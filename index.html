@@ -394,11 +394,20 @@ function resetTime() {
 		reader.onload = (f) => {
 		raw = JSON.parse(f.target.result);
 		updateHeader();
-		buildDateTime();
-		originalDateTime = new Date(currentDateTime);
+
+		// FORCE fresh datetime from new JSON
+		const d = document.getElementById('dobField').value;
+		const t = document.getElementById('tobField').value;
+
+		if (d && t) {
+			currentDateTime = new Date(d + "T" + t);
+			originalDateTime = new Date(currentDateTime);
+		}
+
 		updateMiniClock();
 		calc();
-		};
+	};
+
 
 
 
