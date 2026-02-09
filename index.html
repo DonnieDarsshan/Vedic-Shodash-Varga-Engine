@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Vedic Varga - Precision Final</title>
+    <style>
+        :root { 
+            --bg-gradient: linear-gradient(135deg, #1a001a 0%, #2b0000 100%);
+            --card-bg: #111111; 
+            --grid-line: #ffcc00; 
+            --text-white: #ffffff; 
+            --asc-yellow: #ffcc00; 
+        }
+        body { 
+            background: var(--bg-gradient); 
+            background-attachment: fixed;
+            color: var(--text-white); 
+            font-family: 'Arial', sans-serif; 
+            margin: 0; padding: 20px; 
+        }
+        .header-info { text-align: center; margin-bottom: 30px; }
+        #personName { font-size: 2.2em; font-weight: bold; margin-bottom: 5px; }
+        #personDetails { font-size: 1.2em; color: #ccc; }
+        .controls { display: flex; gap: 15px; justify-content: center; align-items: center; margin-bottom: 40px; }
+        .chart-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); 
+            gap: 25px; max-width: 1000px; margin: 0 auto; 
+        }
+        .varga-card { background: var(--card-bg); border: 1px solid #333; padding: 15px; border-radius: 4px; }
+        .varga-title { text-align: center; color: var(--grid-line); font-size: 1.3em; font-weight: bold; margin-bottom: 12px; }
+        .kundali { 
+            display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); 
+            width: 100%; aspect-ratio: 1/1; border: 1px solid var(--grid-line); 
+        }
+        .house { border: 1px solid var(--grid-line); display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; position: relative; }
+
+        .p-line { margin: 1px 0; font-size: 16px; color: var(--text-white); }
+        .asc-line { color: var(--asc-yellow); font-weight: bold; font-size: 18px; }
+		
+		
+		.pivot-line { 
+		color: var(--asc-yellow); 
+		font-weight: bold; 
+		font-size: 18px; 
+	}
+
+		
+		
+		.house-num {
+		position: absolute;
+		top: 4px;
+		left: 6px;
+		color: var(--asc-yellow);
+		font-weight: bold;
+		font-size: 20px;
+		line-height: 1;
+		z-index: 10;
+		pointer-events: none;
+	}
+
+		
+		
+		
+        .center-box { 
+            grid-column: 2 / 4; grid-row: 2 / 4; background: #000; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 1.8em; color: var(--grid-line); border: 1px solid var(--grid-line); font-weight: bold;
+        }
+        button { padding: 4px 10px; cursor: pointer; background: var(--grid-line); color: #000; border: none; font-weight: bold; font-size: 12px; }
+		select { padding: 10px; background: #222; color: white; border: 1px solid var(--grid-line); }
+
+		
+		
+        input[type="date"],
+		input[type="time"] {
+			background: #111;
+			color: #fff;
+			border: 1px solid var(--grid-line);
+			padding: 4px 6px;
+			font-size: 13px;
+		}
+		
+		
+		
+		
+		
+		
+		/* Permanent top-right time bar */
+		.top-bar {
+			position: fixed;
+			top: 8px;
+			right: 10px;
+			background: rgba(0,0,0,0.85);
+			border: 1px solid var(--grid-line);
+			padding: 6px 10px;
+			font-size: 14px;
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			z-index: 9999;
+			border-radius: 6px;
+			box-shadow: 0 0 8px rgba(0,0,0,0.5);
+		}
+
+		.top-bar span {
+			color: var(--asc-yellow);
+			font-weight: bold;
+			min-width: 52px;
+			text-align: center;
+			font-size: 16px;
+		}
+
+		.top-bar button {
+			padding: 3px 8px;
+			font-size: 13px;
+		}
+
+		.top-bar label {
+			font-size: 13px;
+			display: flex;
+			align-items: center;
+			gap: 4px;
+		}
+
+
+
+		
+		
+    </style>
+	</head>
+	<body>
+
+
+		<div class="top-bar">
+		<span id="miniClock">00:00</span>
+		<button onclick="shiftTime(-60)">-1m</button>
+		<button onclick="shiftTime(60)">+1m</button>
+		<button onclick="resetTime()">R</button>
+		<label>
+			<input type="checkbox" id="topSign" checked onclick="enforceSingleMode('modeSign2Sign')"> Sign
+		</label>
+		<label>
+			<input type="checkbox" id="topKP" onclick="enforceSingleMode('modeKP')"> KP
+		</label>
+	</div>
+
+
+
+
+
+    <div class="header-info">
+        <div id="personName">Varga Engine</div>
+		
+		
+        <div id="personDetails" style="display:flex; justify-content:center; align-items:center; gap:10px; flex-wrap:wrap;">
+		<input type="date" id="dobField" onchange="manualTimeChange()" oninput="manualTimeChange()">
+		<input type="time" id="tobField" step="1" onchange="manualTimeChange()" oninput="manualTimeChange()">
+
+		<button onclick="shiftTime(-1)">-1s</button>
+		<button onclick="shiftTime(1)">+1s</button>
+		<button onclick="shiftTime(-60)">-1m</button>
+		<button onclick="shiftTime(60)">+1m</button>
+		<button onclick="shiftTime(-300)">-5m</button>
+		<button onclick="shiftTime(300)">+5m</button>
+		<button onclick="shiftTime(-600)">-10m</button>
+		<button onclick="shiftTime(600)">+10m</button>
+
+	</div>
+
+
+
+
+    </div>
+
+    <div class="controls">
+        <input type="file" id="fIn" accept=".json" style="display:none">
+        <button onclick="document.getElementById('fIn').click()">LOAD JSON DATA</button>
+        
+		
+		<select id="aya" onchange="calc()">
+    <option value="Lahiri">Lahiri</option>
+    <option value="KP New">KP New</option>
+    <option value="Raman">Raman</option>
+	</select>
+
+	<select id="pivot" onchange="calc()">
+		<option value="ASC">ASC</option>
+		<option value="Surya">Surya</option>
+		<option value="Chandra">Chandra</option>
+		<option value="Mangala">Mangala</option>
+		<option value="Rahu">Rahu</option>
+		<option value="Jupiter">Jupiter</option>
+		<option value="Saturn">Saturn</option>
+
+		<option value="Budha">Budha</option>
+		<option value="Ketu">Ketu</option>
+		<option value="Venus">Venus</option>
+
+		<option value="Surya">Surya</option>
+		<option value="Chandra">Chandra</option>
+		<option value="Mangala">Mangala</option>
+		<option value="Rahu">Rahu</option>
+		<option value="Jupiter">Jupiter</option>
+		<option value="Saturn">Saturn</option>
+		<option value="Budha">Budha</option>
+		<option value="Ketu">Ketu</option>
+		<option value="Venus">Venus</option>
+	</select>
+
+		
+		
+		<script>
+		
+		
+		function enforceSingleMode(activeId){
+		const ids = ["modeSign2Sign","modeKP","modeVedic"];
+		ids.forEach(id=>{
+			const el = document.getElementById(id);
+			if(el) el.checked = (id === activeId);
+		});
+
+		// sync top bar checkboxes
+		const topSign = document.getElementById("topSign");
+		const topKP = document.getElementById("topKP");
+
+		if (topSign) topSign.checked = (activeId === "modeSign2Sign");
+		if (topKP) topKP.checked = (activeId === "modeKP");
+
+		syncTopBarModes();
+		calc();
+
+	}
+
+		
+		
+		</script>
+
+		
+		
+		
+		<label style="margin-left:15px;">
+		<input type="checkbox" id="modeSign2Sign" onclick="enforceSingleMode('modeSign2Sign')"> Sign2Sign
+		</label>
+		<label>
+		<input type="checkbox" id="modeKP" checked onclick="enforceSingleMode('modeKP')"> KP
+		</label>
+		<label>
+		<input type="checkbox" id="modeVedic" onclick="enforceSingleMode('modeVedic')"> Vedic
+		</label>
+
+
+
+    </div>
+
+    <div id="out" class="chart-grid"></div>
+
+<script>
+    let raw = null;
+	
+	let currentDateTime = null;
+	let originalDateTime = null;
+	
+	
+	
+	function syncTopBarModes() {
+    const topSign = document.getElementById("topSign");
+    const topKP = document.getElementById("topKP");
+
+    const mainSign = document.getElementById("modeSign2Sign");
+    const mainKP = document.getElementById("modeKP");
+
+    if (topSign && mainSign) topSign.checked = mainSign.checked;
+    if (topKP && mainKP) topKP.checked = mainKP.checked;
+}
+
+
+
+
+
+function buildDateTime() {
+    const d = document.getElementById('dobField').value;
+    const t = document.getElementById('tobField').value;
+
+    if (!d || !t) return;
+
+    if (!currentDateTime) {
+        currentDateTime = new Date(d + "T" + t);
+    }
+
+    if (!originalDateTime) {
+        originalDateTime = new Date(currentDateTime);
+    }
+}
+
+
+
+
+
+function updateFieldsFromDate() {
+    if (!currentDateTime) return;
+
+    const y = currentDateTime.getFullYear();
+    const m = String(currentDateTime.getMonth()+1).padStart(2,'0');
+    const d = String(currentDateTime.getDate()).padStart(2,'0');
+
+    const hh = String(currentDateTime.getHours()).padStart(2,'0');
+    const mm = String(currentDateTime.getMinutes()).padStart(2,'0');
+    const ss = String(currentDateTime.getSeconds()).padStart(2,'0');
+
+    document.getElementById('dobField').value = `${y}-${m}-${d}`;
+    document.getElementById('tobField').value = `${hh}:${mm}:${ss}`;
+	updateMiniClock();
+
+}
+
+
+
+function updateMiniClock() {
+    if (!currentDateTime) return;
+    const hh = String(currentDateTime.getHours()).padStart(2,'0');
+    const mm = String(currentDateTime.getMinutes()).padStart(2,'0');
+    const el = document.getElementById("miniClock");
+    if (el) el.innerText = `${hh}:${mm}`;
+}
+
+
+
+
+function manualTimeChange() {
+    const d = document.getElementById('dobField').value;
+    const t = document.getElementById('tobField').value;
+
+    if (!d || !t) return;
+
+    // build fresh time objects
+    currentDateTime = new Date(d + "T" + t);
+    originalDateTime = new Date(currentDateTime);
+
+    // force full redraw cycle
+    document.getElementById('out').innerHTML = '';
+
+    calc();
+	updateMiniClock();
+
+}
+
+
+
+
+function shiftTime(sec) {
+    if (!currentDateTime) buildDateTime();
+
+    if (!currentDateTime) return;
+
+    currentDateTime.setSeconds(currentDateTime.getSeconds() + sec);
+
+    updateFieldsFromDate();
+	updateMiniClock();
+	calc();
+
+}
+
+
+
+function resetTime() {
+    if (!originalDateTime) return;
+
+    currentDateTime = new Date(originalDateTime);
+
+    updateFieldsFromDate();
+    updateMiniClock();
+    calc();
+}
+
+	
+	
+	
+	
+	
+	
+	
+	const vList = [1, 10, 9, 7, 8, 30, 24, 12, 2, 11, 3, 4, 5, 6, 16, 20, 27, 40, 45, 60, 1, 21];
+
+    const pNames = ["Surya", "Chandra", "Mangala", "Budha", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu"];
+
+	
+
+
+
+    document.getElementById('fIn').onchange = (e) => {
+        const reader = new FileReader();
+        
+		reader.onload = (f) => {
+		raw = JSON.parse(f.target.result);
+		updateHeader();
+		buildDateTime();
+		originalDateTime = new Date(currentDateTime);
+		updateMiniClock();
+		calc();
+		};
+
+
+
+
+
+
+
+
+
+
+        reader.readAsText(e.target.files[0]);
+    };
+
+
+
+
+    function updateHeader() {
+    if(!raw) return;
+
+    document.getElementById('personName').innerText = raw.meta?.name || "Unknown";
+
+    let dob = "2000-01-01";
+    let tob = "00:00:00";
+
+    if (raw.meta?.datetime_utc) {
+        const utcDate = new Date(raw.meta.datetime_utc);
+
+        const y = utcDate.getFullYear();
+        const m = String(utcDate.getMonth()+1).padStart(2,'0');
+        const d = String(utcDate.getDate()).padStart(2,'0');
+
+        const hh = String(utcDate.getHours()).padStart(2,'0');
+        const mm = String(utcDate.getMinutes()).padStart(2,'0');
+        const ss = String(utcDate.getSeconds()).padStart(2,'0');
+
+        dob = `${y}-${m}-${d}`;
+        tob = `${hh}:${mm}:${ss}`;
+    }
+
+    document.getElementById('dobField').value = dob;
+    document.getElementById('tobField').value = tob;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function getVSign(baseDeg, v) {
+    const sign = Math.floor(baseDeg / 30);   // 0–11
+    let deg  = baseDeg - (sign * 30);
+
+    // 🔒 clamp to avoid D30 border spill
+    if (deg < 0) deg = 0;
+    if (deg >= 30) deg = 29.999999;
+
+
+    // -----------------------
+    // BASIC / SPECIAL VARGAS
+    // -----------------------
+
+    // D1 – Rasi
+    if (v === 1) return sign;
+
+
+
+
+    // D2 – Hora (Raman)
+	if (v === 2) {
+    // JHora Raman Hora: 1st / 11th for all signs
+    return deg < 15 ? sign : (sign + 10) % 12;
+}
+
+
+
+	
+	     // D2 Iyer Hora (Parashara Light reconstructed mapping)
+    if (v === 21) {
+        const map = [
+            [0,1],   // Aries
+            [2,3],   // Taurus
+            [4,5],   // Gemini
+            [6,7],   // Cancer
+            [8,9],   // Leo
+            [10,11], // Virgo
+            [0,1],   // Libra
+            [2,3],   // Scorpio
+            [4,5],   // Sagittarius
+            [6,7],   // Capricorn
+            [8,9],   // Aquarius
+            [10,11]  // Pisces
+        ];
+
+        const half = deg < 15 ? 0 : 1;
+        return map[sign][half];
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+    // D3 – Drekkana (cyclic)
+    if (v === 3) {
+    const d = Math.floor(deg / 10);
+    if (d === 0) return sign;
+    if (d === 1) return (sign + 4) % 12;
+    return (sign + 8) % 12;
+	}
+
+    // D4 – Chaturthamsa (cyclic)
+    if (v === 4) return (sign + Math.floor(deg / 7.5) * 3) % 12;
+
+    // -----------------------
+    // PURE CYCLIC VARGAS
+    // -----------------------
+
+    
+    
+ 
+       // D5 – Panchamsa (Tattvic Mapping Fix)
+    if (v === 5) {
+        const part = Math.floor(deg / 6); // 0, 1, 2, 3, or 4
+        const isOdd = (sign % 2 === 0);   // Ar(0), Ge(2), etc. are even indices (Odd signs)
+        
+        // Specific Panchamsha Cycles
+        const oddCycle = [0, 10, 8, 2, 6];   // Ar, Aq, Sg, Ge, Li
+        const evenCycle = [1, 5, 11, 9, 7];  // Ta, Vi, Pi, Cp, Sc
+        
+        return isOdd ? oddCycle[part] : evenCycle[part];
+    }
+
+
+
+
+
+
+
+
+
+
+
+    // D6 – Shashthamsa
+    if (v === 6) return (sign * 6 + Math.floor(deg * 6 / 30)) % 12;
+
+    // D8 – Ashtamsa
+    if (v === 8) return (sign * 8 + Math.floor(deg * 8 / 30)) % 12;
+
+    // D9 – Navamsa ✅ RESTORED WORKING LOGIC
+    if (v === 9) return (sign * 9 + Math.floor(deg * 9 / 30)) % 12;
+
+    // D11 – Rudramsa
+    if (v === 11) return (sign * 11 + Math.floor(deg * 11 / 30)) % 12;
+
+    // D12 – Dwadasamsa
+    if (v === 12) {
+    const part = Math.floor(deg * 12 / 30);
+    return (sign + part) % 12;
+	}
+
+
+    // D16 – Shodashamsa
+    if (v === 16) return (sign * 16 + Math.floor(deg * 16 / 30)) % 12;
+
+    // D20 – Vimshamsa
+    if (v === 20) return (sign * 20 + Math.floor(deg * 20 / 30)) % 12;
+
+    // D24 – Chaturvimshamsa (Surgical Fix)
+    if (v === 24) {
+        const part = Math.floor(deg * 24 / 30);
+        const isOdd = (sign % 2 === 0);
+        // Odd signs start from Leo(4), Even signs start from Cancer(3)
+        const base = isOdd ? 4 : 3; 
+        return (base + part) % 12;
+    }
+
+
+    // D27 – Nakshatramsa
+    if (v === 27) return (sign * 27 + Math.floor(deg * 27 / 30)) % 12;
+
+    // D40 – Khavedamsa
+    if (v === 40) {
+        const part = Math.floor(deg * 40 / 30);
+        const base = (sign % 2 === 0) ? 0 : 6; // Odd: Aries(0), Even: Libra(6)
+        return (base + part) % 12;
+    }
+
+    // D45 – Akshavedamsa
+    if (v === 45) {
+        const part = Math.floor(deg * 45 / 30);
+        let base;
+        if (sign % 3 === 0) base = 0;      // Movable: Ar, Cn, Li, Cp
+        else if (sign % 3 === 1) base = 4; // Fixed: Ta, Le, Sc, Aq
+        else base = 8;                    // Dual: Ge, Vi, Sg, Pi
+        return (base + part) % 12;
+    }
+
+    // D60 – Shashtiamsa
+    if (v === 60) {
+    const part = Math.floor(deg * 60 / 30);
+    return (sign + part) % 12;
+	}
+
+    // -----------------------
+    // CLASSICAL EXCEPTIONS
+    // -----------------------
+
+    // D7 – Saptamsa (Odd/Even)
+    if (v === 7) {
+        const base = (sign % 2 === 0) ? sign : (sign + 6) % 12;
+        return (base + Math.floor(deg * 7 / 30)) % 12;
+    }
+
+    // D10 – Dasamsa (Odd/Even)
+    if (v === 10) {
+        const base = (sign % 2 === 0) ? sign : (sign + 8) % 12;
+        return (base + Math.floor(deg / 3)) % 12;
+    }
+
+
+
+
+
+
+            // D30 – Trimshamsa (traditional Parashara – corrected)
+			if (v === 30) {
+				const isOdd = (sign % 2 === 0);
+
+				if (isOdd) {
+					if (deg < 5) return 0;      // Aries (Mars)
+					else if (deg < 10) return 10; // Aquarius (Saturn)
+					else if (deg < 18) return 8;  // Sagittarius (Jupiter)
+					else if (deg < 25) return 2;  // Gemini (Mercury)
+					else return 6;                // Libra (Venus)
+				} else {
+					if (deg < 5) return 1;      // Taurus (Venus)
+					else if (deg < 12) return 5; // Virgo (Mercury)
+					else if (deg < 20) return 11; // Pisces (Jupiter)
+					else if (deg < 25) return 9;  // Capricorn (Saturn)
+					else return 7;                // Scorpio (Mars) ← FIXED
+				}
+			}
+
+
+
+
+    return sign;
+}
+
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+ function calc() {
+    const modeSign2Sign = document.getElementById('modeSign2Sign')?.checked;
+    const modeKP = document.getElementById('modeKP')?.checked;
+    const modeVedic = document.getElementById('modeVedic')?.checked;
+    const pivot = document.getElementById('pivot')?.value || "ASC";
+
+    if (!modeSign2Sign && !modeKP && !modeVedic) return;
+    if (!raw) return;
+    
+    buildDateTime();
+
+    const d = raw.ayanamshas[document.getElementById('aya').value];
+    
+    let lagnaShifted = d.lagna;
+
+    if (originalDateTime && currentDateTime) {
+        const diffMs = currentDateTime - originalDateTime;
+        const diffMinutes = diffMs / 60000;
+        const ascShift = diffMinutes * 0.25;
+        lagnaShifted = d.lagna + ascShift;
+        while (lagnaShifted < 0) lagnaShifted += 360;
+        while (lagnaShifted >= 360) lagnaShifted -= 360;
+    }
+    
+    const shiftedPlanets = {};
+    Object.keys(d.planets).forEach(p => {
+        shiftedPlanets[p] = d.planets[p];
+    });
+
+    const rData = d.planets_retro || {};
+    const out = document.getElementById('out');
+    out.innerHTML = '';
+            
+    vList.forEach(v => {
+        const chart = Array(12).fill().map(() => []);
+        let lagnaDeg;
+        let planetDegs = { ...shiftedPlanets };
+        let pivotDeg = lagnaShifted;
+
+        if (pivot !== "ASC") {
+            pivotDeg = d.planets[pivot];
+        }
+
+        if (modeKP) {
+            // KP MODE LOGIC
+            let baseDeg = lagnaShifted;
+            if (pivot !== "ASC") {
+                baseDeg = d.planets[pivot];
+            }
+
+            // For D30 in KP mode, use special handling
+            if (v === 30) {
+                // Calculate ASC D30 position
+                let ascD30Sign, ascD30Deg;
+                {
+                    const sign = Math.floor(lagnaShifted / 30);
+                    const deg = lagnaShifted % 30;
+                    const isOdd = (sign % 2 === 0);
+
+                    let start, length, targetSign;
+
+                    if (isOdd) {
+                        if (deg < 5) { start = 0; length = 5; targetSign = 0; }
+                        else if (deg < 10) { start = 5; length = 5; targetSign = 10; }
+                        else if (deg < 18) { start = 10; length = 8; targetSign = 8; }
+                        else if (deg < 25) { start = 18; length = 7; targetSign = 2; }
+                        else { start = 25; length = 5; targetSign = 6; }
+                    } else {
+                        if (deg < 5) { start = 0; length = 5; targetSign = 1; }
+                        else if (deg < 12) { start = 5; length = 7; targetSign = 5; }
+                        else if (deg < 20) { start = 12; length = 8; targetSign = 11; }
+                        else if (deg < 25) { start = 20; length = 5; targetSign = 9; }
+                        else { start = 25; length = 5; targetSign = 7; }
+                    }
+                    
+                    ascD30Sign = targetSign;
+                    const rel = deg - start;
+                    ascD30Deg = (rel / length) * 30;
+                }
+
+
+
+
+
+
+
+
+
+
+                                // Calculate pivot's D30 position - SIMPLE VERSION
+                let pivotD30Sign, pivotD30Deg;
+                if (pivot === "ASC") {
+                    // For ASC pivot, use D30 position
+                    pivotD30Sign = ascD30Sign;
+                    pivotD30Deg = ascD30Deg;
+                } else {
+                    // For planet pivot, calculate its actual D30 position
+                    const pivotRawDeg = d.planets[pivot];
+                    const sign = Math.floor(pivotRawDeg / 30);
+                    const deg = pivotRawDeg % 30;
+                    const isOdd = (sign % 2 === 0);
+
+                    let start, length, targetSign;
+
+                    if (isOdd) {
+                        if (deg < 5) { start = 0; length = 5; targetSign = 0; }
+                        else if (deg < 10) { start = 5; length = 5; targetSign = 10; }
+                        else if (deg < 18) { start = 10; length = 8; targetSign = 8; }
+                        else if (deg < 25) { start = 18; length = 7; targetSign = 2; }
+                        else { start = 25; length = 5; targetSign = 6; }
+                    } else {
+                        if (deg < 5) { start = 0; length = 5; targetSign = 1; }
+                        else if (deg < 12) { start = 5; length = 7; targetSign = 5; }
+                        else if (deg < 20) { start = 12; length = 8; targetSign = 11; }
+                        else if (deg < 25) { start = 20; length = 5; targetSign = 9; }
+                        else { start = 25; length = 5; targetSign = 7; }
+                    }
+                    
+                    pivotD30Sign = targetSign;
+                    const rel = deg - start;
+                    pivotD30Deg = (rel / length) * 30;
+                }
+				
+				
+				
+				
+				
+
+                // Shift ASC in D30 space
+                lagnaDeg = ascD30Sign * 30 + ascD30Deg - pivotD30Deg;
+                if (lagnaDeg < 0) lagnaDeg += 360;
+
+                // Shift all planets in D30 space
+                pNames.forEach(p => {
+                    if (p === "Rahu" && pivot === "Ketu") return;
+                    
+                    const rawDeg = d.planets[p];
+                    const sign = Math.floor(rawDeg / 30);
+                    const deg = rawDeg % 30;
+                    const isOdd = (sign % 2 === 0);
+
+                    let start, length, targetSign;
+
+                    if (isOdd) {
+                        if (deg < 5) { start = 0; length = 5; targetSign = 0; }
+                        else if (deg < 10) { start = 5; length = 5; targetSign = 10; }
+                        else if (deg < 18) { start = 10; length = 8; targetSign = 8; }
+                        else if (deg < 25) { start = 18; length = 7; targetSign = 2; }
+                        else { start = 25; length = 5; targetSign = 6; }
+                    } else {
+                        if (deg < 5) { start = 0; length = 5; targetSign = 1; }
+                        else if (deg < 12) { start = 5; length = 7; targetSign = 5; }
+                        else if (deg < 20) { start = 12; length = 8; targetSign = 11; }
+                        else if (deg < 25) { start = 20; length = 5; targetSign = 9; }
+                        else { start = 25; length = 5; targetSign = 7; }
+                    }
+                    
+                    const rel = deg - start;
+                    const targetDegD30 = (rel / length) * 30;
+                    
+                    let full = targetSign * 30 + targetDegD30;
+                    
+                    // Apply the pivot shift in D30 space
+                    let newDeg = full - pivotD30Deg;
+                    if (newDeg < 0) newDeg += 360;
+                    
+                    planetDegs[p] = newDeg;
+                });
+                
+				
+				
+				
+                 // ADD ASC TO CHART - D30 KP MODE (FIXED)
+                if (pivot === "ASC") {
+                    // When pivot is ASC, it should be at 0° in its D30 sign
+                    // Use the pivot's D30 sign directly, NOT calculated from lagnaDeg
+                    chart[pivotD30Sign].push({ n: "ASC", d: 0, r: false, isAsc: true });
+                } else {
+                    // When pivot is a planet, ASC moves like other planets
+                    const d30AscSign = Math.floor(lagnaDeg / 30);
+                    const d30AscDeg = lagnaDeg % 30;
+                    chart[d30AscSign].push({ n: "ASC", d: d30AscDeg, r: false, isAsc: true });
+                }
+				
+				
+				
+				
+            } else {
+                // Original KP logic for other vargas
+                const pSign = getVSign(baseDeg, v);
+                const pDeg  = (baseDeg * v) % 30;
+                const shift = pDeg;
+
+                // convert ASC to varga position first
+                const ascSign = getVSign(lagnaShifted, v);
+                const ascDeg  = (lagnaShifted * v) % 30;
+                let ascFull   = ascSign * 30 + ascDeg;
+
+                // shift ASC exactly like planets
+                lagnaDeg = ascFull - shift;
+                if (lagnaDeg < 0) lagnaDeg += 360;
+
+                // shift all planets equally
+                pNames.forEach(p => {
+                    if (p === "Rahu" && pivot === "Ketu") return;
+
+                    const rawDeg = (p === pivot && pivot !== "ASC")
+                        ? baseDeg
+                        : d.planets[p];
+
+                    const sign = getVSign(rawDeg, v);
+                    const deg  = (rawDeg * v) % 30;
+
+                    let full = sign * 30 + deg;
+
+                    let newDeg = full - shift;
+                    if (newDeg < 0) newDeg += 360;
+
+                    planetDegs[p] = newDeg;
+                });
+                
+                
+				
+				
+				// ADD ASC TO CHART - KP MODE (non-D30) (FIXED)
+                if (pivot === "ASC") {
+                    // When pivot is ASC, use the pivot sign directly
+                    chart[pSign].push({ n: "ASC", d: 0, r: false, isAsc: true });
+                } else {
+                    // When pivot is a planet, ASC moves like other planets
+                    const ascSignKP = Math.floor(lagnaDeg / 30);
+                    const ascDegKP = lagnaDeg % 30;
+                    chart[ascSignKP].push({ n: "ASC", d: ascDegKP, r: false, isAsc: true });
+                }
+				
+				
+				
+				
+            }
+        } else {
+            // SIGN2SIGN MODE LOGIC
+            if (v === 30) {
+                // Special D30 ASC calculation for Sign2Sign
+                const sign = Math.floor(lagnaShifted / 30);
+                const deg = lagnaShifted % 30;
+                const isOdd = (sign % 2 === 0);
+
+                let start, length, targetSign;
+
+                if (isOdd) {
+                    if (deg < 5) { start = 0; length = 5; targetSign = 0; }
+                    else if (deg < 10) { start = 5; length = 5; targetSign = 10; }
+                    else if (deg < 18) { start = 10; length = 8; targetSign = 8; }
+                    else if (deg < 25) { start = 18; length = 7; targetSign = 2; }
+                    else { start = 25; length = 5; targetSign = 6; }
+                } else {
+                    if (deg < 5) { start = 0; length = 5; targetSign = 1; }
+                    else if (deg < 12) { start = 5; length = 7; targetSign = 5; }
+                    else if (deg < 20) { start = 12; length = 8; targetSign = 11; }
+                    else if (deg < 25) { start = 20; length = 5; targetSign = 9; }
+                    else { start = 25; length = 5; targetSign = 7; }
+                }
+
+                const rel = deg - start;
+                lagnaDeg = targetSign * 30 + (rel / length) * 30;
+                chart[targetSign].push({ n: "ASC", d: (rel / length) * 30, r: false, isAsc: true });
+            } else if (v === 5) {
+                // D5 ASC calculation
+                const sign = Math.floor(lagnaShifted / 30);
+                const deg  = lagnaShifted - (sign * 30);
+                const part = Math.floor(deg / 6);
+                const isOdd = (sign % 2 === 0);
+                const oddCycle = [0, 10, 8, 2, 6];
+                const evenCycle = [1, 5, 11, 9, 7];
+                const targetSign = isOdd ? oddCycle[part] : evenCycle[part];
+                const rel = deg % 6;
+                lagnaDeg = targetSign * 30 + (rel / 6) * 30;
+                chart[targetSign].push({ n: "ASC", d: (rel / 6) * 30, r: false, isAsc: true });
+            } else {
+                // Standard varga ASC calculation
+                const targetSign = getVSign(lagnaShifted, v);
+                const ascDeg = (lagnaShifted * v) % 30;
+                lagnaDeg = targetSign * 30 + ascDeg;
+                chart[targetSign].push({ n: "ASC", d: ascDeg, r: false, isAsc: true });
+            }
+        }
+
+        // PLANET PLACEMENT
+        pNames.forEach(p => {
+            const deg = planetDegs[p];
+            const label = (p === "Surya") ? "Sy" : p.substring(0,2);
+
+            if (modeKP) {
+                // KP mode planet placement
+                let house = Math.floor(deg / 30);
+                let houseDeg = deg % 30;
+
+                // force pivot planet to 0° in its sign
+                if (pivot !== "ASC" && p === pivot) {
+                    houseDeg = 0;
+                }
+
+                chart[house].push({ n: label, d: houseDeg, r: rData[p] || false, isAsc: false });
+            } else {
+                // Sign2Sign mode planet placement
+                if (v === 30) {
+                    // Special D30 planet calculation
+                    const sign = Math.floor(deg / 30);
+                    let dInSign = deg - (sign * 30);
+
+                    // Clamp to avoid floating-point border errors
+                    if (dInSign < 0) dInSign = 0;
+                    if (dInSign >= 30) dInSign = 29.999999;
+
+                    const isOdd = (sign % 2 === 0);
+                    let start, length, targetSign;
+
+                    if (isOdd) {
+                        if (dInSign < 5) { start = 0; length = 5; targetSign = 0; }
+                        else if (dInSign < 10) { start = 5; length = 5; targetSign = 10; }
+                        else if (dInSign < 18) { start = 10; length = 8; targetSign = 8; }
+                        else if (dInSign < 25) { start = 18; length = 7; targetSign = 2; }
+                        else { start = 25; length = 5; targetSign = 6; }
+                    } else {
+                        if (dInSign < 5) { start = 0; length = 5; targetSign = 1; }
+                        else if (dInSign < 12) { start = 5; length = 7; targetSign = 5; }
+                        else if (dInSign < 20) { start = 12; length = 8; targetSign = 11; }
+                        else if (dInSign < 25) { start = 20; length = 5; targetSign = 9; }
+                        else { start = 25; length = 5; targetSign = 7; }
+                    }
+
+                    const rel = dInSign - start;
+                    const finalDeg = (rel / length) * 30;
+
+                    chart[targetSign].push({
+                        n: label,
+                        d: finalDeg,
+                        r: rData[p] || false,
+                        isAsc: false
+                    });
+                } else {
+                    // Standard varga planet placement
+                    const targetSign = getVSign(deg, v);
+                    const planetDeg = (deg * v) % 30;
+                    chart[targetSign].push({
+                        n: label,
+                        d: planetDeg,
+                        r: rData[p] || false,
+                        isAsc: false
+                    });
+                }
+            }
+        });
+
+        // Sort houses
+        chart.forEach((h, i) => i <= 5 ? h.sort((a,b) => a.d - b.d) : h.sort((a,b) => b.d - a.d));
+        render(v, chart);
+    });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+function render(v, chart) {
+    const card = document.createElement('div'); 
+	const pivot = document.getElementById('pivot')?.value || "ASC";
+
+    card.className = 'varga-card';
+    card.innerHTML = `<div class="varga-title">D-${v}</div>`;
+
+    const k = document.createElement('div'); 
+    k.className = 'kundali';
+
+    const m = [11, 0, 1, 2, 10, -1, -1, 3, 9, -1, -1, 4, 8, 7, 6, 5];
+
+    // find pivot sign index
+    let ascIndex = 0;
+
+    if (pivot === "ASC") {
+        for (let i = 0; i < 12; i++) {
+            if (chart[i].some(p => p.isAsc)) {
+                ascIndex = i;
+                break;
+            }
+        }
+    } else {
+        const pivotLabel = (pivot === "Surya") ? "Sy" : pivot.substring(0,2);
+
+        for (let i = 0; i < 12; i++) {
+            if (chart[i].some(p => p.n === pivotLabel)) {
+                ascIndex = i;
+                break;
+            }
+        }
+    }
+
+    m.forEach(idx => {
+        const h = document.createElement('div'); 
+        h.className = 'house';
+
+        if (idx === -1) {
+            if (!card.querySelector('.center-box')) {
+                const cb = document.createElement('div'); 
+                cb.className = 'center-box'; 
+                cb.innerText = `D${v}`;
+                k.appendChild(cb);
+            }
+        } else {
+            // calculate house number based on ASC pivot
+            const houseNum = ((idx - ascIndex + 12) % 12) + 1;
+
+
+
+
+
+
+
+           // add house number first
+			h.innerHTML += `<div class="house-num">${houseNum}</div>`;
+
+			// top empty line
+			h.innerHTML += `<div class="p-line">&nbsp;</div>`;
+
+			chart[idx].forEach(p => {
+			
+			
+			let lineClass = "p-line";
+
+			if (p.isAsc && pivot === "ASC") {
+				lineClass = "p-line asc-line";
+			}
+			else if (!p.isAsc && p.n === (pivot === "Surya" ? "Sy" : pivot.substring(0,2))) {
+				lineClass = "p-line pivot-line";
+			}
+
+			
+			
+			
+			
+			
+				const r = p.r ? ' (R)' : '';
+				h.innerHTML += `<div class="${lineClass}">${p.n} ${Math.floor(p.d)}°${Math.floor((p.d*60)%60).toString().padStart(2,'0')}′${r}</div>`;
+			});
+
+			// bottom empty line
+			h.innerHTML += `<div class="p-line">&nbsp;</div>`;
+
+
+
+
+
+
+
+            k.appendChild(h);
+        }
+    });
+
+    card.appendChild(k);
+    document.getElementById('out').appendChild(card);
+}
+
+	
+	
+	
+	
+	
+	
+// render empty charts on first load
+window.addEventListener("load", () => {
+    syncTopBarModes();
+
+    if (!raw) {
+        const out = document.getElementById('out');
+        
+        out.innerHTML = '';
+        vList.forEach(v => {
+            const emptyChart = Array(12).fill().map(() => []);
+            render(v, emptyChart);
+        });
+    }
+});
+	
+	
+	
+	
+</script>
+</body>
+</html>
