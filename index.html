@@ -22,20 +22,60 @@
         #personName { font-size: 2.2em; font-weight: bold; margin-bottom: 5px; }
         #personDetails { font-size: 1.2em; color: #ccc; }
         .controls { display: flex; gap: 15px; justify-content: center; align-items: center; margin-bottom: 40px; }
-        .chart-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); 
-            gap: 25px; max-width: 1000px; margin: 0 auto; 
-        }
-        .varga-card { background: var(--card-bg); border: 1px solid #333; padding: 15px; border-radius: 4px; }
-        .varga-title { text-align: center; color: var(--grid-line); font-size: 1.3em; font-weight: bold; margin-bottom: 12px; }
-        .kundali { 
-            display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); 
-            width: 100%; aspect-ratio: 1/1; border: 1px solid var(--grid-line); 
-        }
-        .house { border: 1px solid var(--grid-line); display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; position: relative; }
+		.chart-grid { 
+			display: grid; 
+			grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); 
+			gap: 25px; max-width: 1000px; margin: 0 auto; 
+		}
 
-        .p-line { margin: 1px 0; font-size: 16px; color: var(--text-white); }
+
+
+        .varga-card { 
+		background: var(--card-bg); 
+		border: 1px solid #333; 
+		padding: 15px; 
+		border-radius: 4px; 
+		display: flex;
+		flex-direction: column;
+	}
+
+
+        .varga-title { text-align: center; color: var(--grid-line); font-size: 1.3em; font-weight: bold; margin-bottom: 12px; }
+       .kundali { 
+		display: grid;
+		grid-template-columns: repeat(4, minmax(110px, 1fr));
+		grid-template-rows: repeat(4, minmax(110px, auto));
+		width: 100%;
+		border: 1px solid var(--grid-line);
+	}
+
+
+
+
+
+
+        .house {
+		border: 1px solid var(--grid-line);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		height: 100%;
+		position: relative;
+		padding: 10px 8px;   /* 🔒 inner breathing space */
+		box-sizing: border-box;
+	}
+
+        .p-line {
+		margin: 2px 0;
+		font-size: 16px;
+		color: var(--text-white);
+		white-space: nowrap;
+		text-align: center;
+		font-weight: bold;
+	}
+
+
         .asc-line { color: var(--asc-yellow); font-weight: bold; font-size: 18px; }
 		
 		
@@ -248,6 +288,9 @@
 		<label>
 		<input type="checkbox" id="modeVedic" onclick="enforceSingleMode('modeVedic')"> Vedic
 		</label>
+		<label style="margin-left:6px;">
+		<input type="checkbox" id="modeKN" onchange="calc()"> KN
+		</label>
 
 
 
@@ -380,11 +423,23 @@ function resetTime() {
 	
 	
 	
-	const vList = [1, 10, 9, 7, 8, 30, 24, 12, 2, 11, 3, 4, 5, 6, 16, 20, 27, 40, 45, 60, 1, 21];
+	const vList = [1, 10, 1, 9, 1, 2, 9, 7, 8, 30, 24, 12, 2, 11, 3, 4, 5, 6, 16, 20, 27, 40, 45, 60, 1, 21];
 
     const pNames = ["Surya", "Chandra", "Mangala", "Budha", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu"];
 
-	
+	const planetNameMapKN = {
+    Sy: "ರವಿ",
+    Ch: "ಚಂದ್ರ",
+    Ma: "ಕುಜ",
+    Bu: "ಬುಧ",
+    Ju: "ಗುರು",
+    Ve: "ಶುಕ್ರ",
+    Sa: "ಶನಿ",
+    Ra: "ರಾಹು",
+    Ke: "ಕೇತು",
+    ASC: "ಲಗ್ನ"
+};
+
 
 
 
@@ -1131,8 +1186,14 @@ function render(v, chart) {
 			
 			
 			
-				const r = p.r ? ' (R)' : '';
-				h.innerHTML += `<div class="${lineClass}">${p.n} ${Math.floor(p.d)}°${Math.floor((p.d*60)%60).toString().padStart(2,'0')}′${r}</div>`;
+				const useKN = document.getElementById("modeKN")?.checked;
+				const r = (!useKN && p.r) ? ' (R)' : '';
+
+				
+				const name = useKN ? (planetNameMapKN[p.n] || p.n) : p.n;
+
+				h.innerHTML += `<div class="${lineClass}">${name} ${Math.floor(p.d)}°${Math.floor((p.d*60)%60).toString().padStart(2,'0')}′${r}</div>`;
+
 			});
 
 			// bottom empty line
