@@ -165,6 +165,73 @@
 
 
 
+
+
+		/* ============================= */
+		/* SHODASHAVARGA TABLE STYLES   */
+		/* ============================= */
+
+		.shoda-wrapper{
+			max-width:1000px;
+			margin:40px auto 0 auto;
+		}
+
+		.shoda-table{
+			width:100%;
+			border-collapse:collapse;
+			background:#0a0a0a;
+			border:1px solid var(--grid-line);
+			margin-bottom:40px;
+		}
+
+		.shoda-title{
+			color:var(--grid-line);
+			font-size:18px;
+			font-weight:bold;
+			text-align:center;
+			margin:30px 0 10px 0;
+		}
+
+		.shoda-table th,
+		.shoda-table td{
+			border:1px solid var(--grid-line);
+			padding:6px 8px;
+			text-align:center;
+			font-size:14px;
+		}
+
+		.shoda-table th{
+			background:#1a1a1a;
+			color:var(--asc-yellow);
+		}
+
+		.shoda-table tr:hover{
+			background:#2b1f00;
+		}
+
+
+
+		/* Divisional charts heading */
+		.division-title{
+			max-width:1000px;
+			margin:40px auto 10px auto;
+			text-align:center;
+			font-size:20px;
+			font-weight:bold;
+			color:var(--grid-line);
+			cursor:pointer;
+			padding:8px;
+			border:1px solid var(--grid-line);
+			background:#0a0a0a;
+		}
+
+
+
+
+
+
+
+
 		
 		
     </style>
@@ -212,6 +279,7 @@
 
 
     </div>
+	
 
     <div class="controls">
         <input type="file" id="fIn" accept=".json" style="display:none">
@@ -315,10 +383,42 @@
 
     </div>
 
-    <div id="out" class="chart-grid"></div>
+<div class="division-title" onclick="toggleDivision()">
+    Divisional Charts ▼
+</div>
+
+<div id="out" class="chart-grid"></div>
+
+    
+	<div class="shoda-wrapper">
+	
+	
+	<div style="background:#000;border:1px solid var(--grid-line);padding:8px 10px;margin-bottom:8px;display:flex;gap:20px;justify-content:center;align-items:center;">
+    <label style="display:flex;align-items:center;gap:6px;">
+        <input type="checkbox" id="moonBased" checked onchange="updateShodaOrder('moon')"> Moon Based
+    </label>
+    <label style="display:flex;align-items:center;gap:6px;">
+        <input type="checkbox" id="lagnaBased" onchange="updateShodaOrder('lagna')"> Lagna Based
+    </label>
+</div>
+
+
+    <div class="shoda-title">Bhava Divisional Table</div>
+	<div id="bhavaTable"></div>
+
+	<div class="shoda-title">Zodiac Divisional Table</div>
+	<div id="rashiTable"></div>
+
+</div>
+
 
 <script>
     let raw = null;
+	
+	
+	let moonStarLord = "Sy";
+    let lagnaStarLord = "Sy";
+
 	
 	let currentDateTime = null;
 	let originalDateTime = null;
@@ -769,6 +869,14 @@ function getVSign(baseDeg, v) {
     buildDateTime();
 
     const d = raw.ayanamshas[document.getElementById('aya').value];
+	
+	
+	
+	
+	
+	
+	
+
     
     let lagnaShifted = d.lagna;
 
@@ -791,6 +899,18 @@ function getVSign(baseDeg, v) {
 	
 	
 	
+	// ---------- Compute Starlords AFTER lagnaShifted is finalized ----------
+	function getStarLord(deg){
+		const nakSize = 13 + (20/60); // 13°20'
+		const nak = Math.floor(deg / nakSize);
+		const lords = ["Ke","Ve","Sy","Mo","Ma","Ra","Ju","Sa","Bu"];
+		return lords[nak % 9];
+	}
+
+	moonStarLord = getStarLord(d.planets["Chandra"]);
+	lagnaStarLord = getStarLord(lagnaShifted);
+
+		
 	
 	   
        // -------- D1 Pivot 15° Rule --------
@@ -1215,7 +1335,73 @@ function getVSign(baseDeg, v) {
         // Sort houses
         chart.forEach((h, i) => i <= 5 ? h.sort((a,b) => a.d - b.d) : h.sort((a,b) => b.d - a.d));
         render(v, chart);
-    });
+		
+		
+		
+		if (!window._shodaBhava) window._shodaBhava = {};
+		if (!window._shodaRashi) window._shodaRashi = {};
+
+		const DBA = ["Sy","Ch","Ma","Ra","Ju","Sa","Bu","Ke","Ve"];
+
+		window._shodaBhava[v] = {};
+		window._shodaRashi[v] = {};
+
+		DBA.forEach(p=>{
+			window._shodaBhava[v][p] = "-";
+			window._shodaRashi[v][p] = "-";
+		});
+
+
+
+
+		let ascIndex = 0;
+
+		// find ascendant sign index
+		for (let i = 0; i < 12; i++) {
+			if (chart[i].some(p => p.isAsc)) {
+				ascIndex = i;
+				break;
+			}
+		}
+
+		chart.forEach((houseArr, signIndex)=>{
+		houseArr.forEach(p=>{
+			if(p.isAsc) return;
+
+			if(window._shodaBhava[v][p.n] !== undefined){
+
+				// real house from ascendant (mode dependent)
+				const houseNum = ((signIndex - ascIndex + 12) % 12) + 1;
+				window._shodaBhava[v][p.n] = houseNum;
+			}
+		});
+	});
+
+	// ---------- ZODIAC TABLE (PURE SIGN2SIGN LOGIC) ----------
+	
+
+	pNames.forEach(p=>{
+		const label = (p === "Surya") ? "Sy" : p.substring(0,2);
+		if(!window._shodaRashi[v][label]) return;
+
+		const rawDeg = d.planets[p];
+		const sign = getVSign(rawDeg, v);
+
+		window._shodaRashi[v][label] = sign + 1;
+	});
+
+
+
+		
+		
+		
+		
+		
+		
+		
+   });
+
+buildShodaTables();
 }
 
 
@@ -1335,6 +1521,121 @@ function render(v, chart) {
 
 	
 	
+function toggleDivision(){
+    const out = document.getElementById("out");
+    if(!out) return;
+
+    if(out.style.display === "none"){
+        out.style.display = "grid";
+    }else{
+        out.style.display = "none";
+    }
+}
+	
+	
+	
+
+
+
+
+
+function updateShodaOrder(mode){
+    const moonBox = document.getElementById("moonBased");
+    const lagnaBox = document.getElementById("lagnaBased");
+
+    if(!moonBox || !lagnaBox) return;
+
+    if(mode === "moon"){
+        moonBox.checked = true;
+        lagnaBox.checked = false;
+    }
+
+    if(mode === "lagna"){
+        lagnaBox.checked = true;
+        moonBox.checked = false;
+    }
+
+    buildShodaTables();
+}
+
+
+
+
+
+
+
+	
+	
+function buildShodaTables(){
+
+
+if (!window._shodaBhava || !window._shodaRashi) return;
+
+
+    let DBA = ["Sy","Ch","Ma","Ra","Ju","Sa","Bu","Ke","Ve"];
+
+	const moonBox = document.getElementById("moonBased");
+	const lagnaBox = document.getElementById("lagnaBased");
+
+	let firstPlanet = null;
+
+	if (moonBox && moonBox.checked) firstPlanet = moonStarLord?.substring(0,2);
+	if (lagnaBox && lagnaBox.checked) firstPlanet = lagnaStarLord?.substring(0,2);
+
+	// universal code mapping to DBA format
+	const codeMap = {
+		Sy: "Sy",
+		Mo: "Ch",
+		Ma: "Ma",
+		Ra: "Ra",
+		Ju: "Ju",
+		Sa: "Sa",
+		Bu: "Bu",
+		Ke: "Ke",
+		Ve: "Ve"
+	};
+
+	if (firstPlanet && codeMap[firstPlanet]) {
+    firstPlanet = codeMap[firstPlanet];
+}
+
+if (firstPlanet && DBA.includes(firstPlanet)) {
+    const startIndex = DBA.indexOf(firstPlanet);
+    DBA = [...DBA.slice(startIndex), ...DBA.slice(0, startIndex)];
+}
+
+	
+	
+	
+	
+	
+    const vKeys = [1,9,10,2,21,4,16,6,7,8,60,11,12,3,24,27,30,20,40,45,5];
+
+    function makeTable(data,targetId){
+        const el = document.getElementById(targetId);
+        if(!el) return;
+
+        let html = `<table class="shoda-table"><tr><th>D</th>`;
+        DBA.forEach(p=> html += `<th>${p}</th>`);
+        html += `</tr>`;
+
+        vKeys.forEach(v=>{
+            html += `<tr><th>D${v}</th>`;
+            DBA.forEach(p=>{
+			const val = (data && data[v] && data[v][p]) ? data[v][p] : "-";
+			html += `<td>${val}</td>`;
+		});
+
+            html += `</tr>`;
+        });
+
+        html += `</table>`;
+        el.innerHTML = html;
+    }
+
+    makeTable(window._shodaBhava,"bhavaTable");
+    makeTable(window._shodaRashi,"rashiTable");
+}
 	
 	
 	
