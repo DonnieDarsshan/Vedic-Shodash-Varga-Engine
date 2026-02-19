@@ -212,6 +212,149 @@
 
 
 		/* Divisional charts heading */
+		
+		
+		
+		
+		
+		/* ============================= */
+		/* VIMSHOTTARI DASHA STYLES     */
+		/* ============================= */
+
+		.vim-wrapper{
+		max-width:1800px;
+		margin:40px auto 0 auto;
+	}
+
+	.vim-heading{
+    text-align:center;
+    font-size:22px;
+    font-weight:bold;
+    color:var(--grid-line);
+    cursor:pointer;
+    padding:10px;
+    border:1px solid var(--grid-line);
+    background:#0a0a0a;
+    margin-bottom:15px;
+}
+
+
+
+		.vim-row{
+		display:flex;
+		gap:30px;
+		align-items:flex-start;
+		justify-content:space-between;
+		width:100%;
+	}
+
+
+
+
+
+
+
+
+
+
+		.vim-col{
+		flex:1 1 0;
+		min-width:0;
+		border:1px solid var(--grid-line);
+		padding:8px;
+		background:#000;
+		font-family:'Noto Sans Kannada','Segoe UI',sans-serif;
+		font-weight:500;
+		overflow:hidden;
+	}
+
+
+
+
+
+
+		.vim-title{
+			text-align:center;
+			font-size:18px;
+			color:var(--asc-yellow);
+			margin-bottom:10px;
+		}
+
+		.vim-line{
+			padding:4px 6px;
+			margin:2px 0;
+			border:1px solid #333;
+			cursor:pointer;
+		}
+
+		.vim-maha { 
+			background: #1a001a; 
+		}
+
+		.vim-bhukti { 
+			background: #0f172a; 
+			margin-left: 0 !important; 
+			border-left: 4px solid #3b82f6; /* Blue indicator */
+		}
+
+		.vim-antara { 
+			background: #021b16; 
+			margin-left: 0 !important; 
+			border-left: 8px solid #10b981; /* Green indicator */
+		}
+		
+		
+		/* ACTIVE STATES */
+		/* ACTIVE STATES */
+		.vim-maha.active{
+			background:#3b0000 !important;   /* dark red */
+			border-color:#ff4d4d !important;
+		}
+
+		.vim-bhukti.active{
+			background:#001a3b !important;   /* dark blue */
+			border-left:4px solid #4da6ff !important;
+		}
+
+		.vim-antara.active{
+			background:#2a004d !important;   /* purple */
+			border-left:8px solid #c084fc !important;
+		}
+
+
+		
+		.vimSym {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		font-size: 14px;
+	}
+	
+	
+	.vim-maha div,
+	.vim-bhukti div,
+	.vim-antara div{
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	
+
+		.vim-symbol{
+			display:inline-block;
+			width:22px;
+			text-align:center;
+			margin-right:6px;
+		}
+
+		
+		
+		
+		
+		
+		
+		
 		.division-title{
 			max-width:1000px;
 			margin:40px auto 10px auto;
@@ -379,9 +522,41 @@
 		<input type="checkbox" id="modeKN" onchange="calc()"> KN
 		</label>
 
+		<label style="margin-left:6px;">
+		<input type="checkbox" id="modeDateHide" onchange="calc()" checked> Date
+		</label>
+
 
 
     </div>
+	
+	
+	
+	<div class="vim-wrapper">
+
+    <div class="vim-heading" onclick="toggleVim()">
+        Vimshottari Dasha ▼
+    </div>
+
+    <div id="vimContainer" class="vim-row">
+
+        <div class="vim-col">
+            <div class="vim-title">Vimshottari Dasha – Chandra</div>
+            <div id="vimChandra"></div>
+        </div>
+
+        <div class="vim-col">
+            <div class="vim-title">Vimshottari Dasha – Lagna</div>
+            <div id="vimLagna"></div>
+        </div>
+
+    </div>
+
+</div>
+
+	
+	
+	
 
 <div class="division-title" onclick="toggleDivision()">
     Divisional Charts ▼
@@ -389,8 +564,19 @@
 
 <div id="out" class="chart-grid"></div>
 
+
+
+
+<div class="division-title" onclick="toggleTables()">
+    Divisional Tables ▼
+</div>
+
+
     
 	<div class="shoda-wrapper">
+	
+	
+	
 	
 	
 	<div style="background:#000;border:1px solid var(--grid-line);padding:8px 10px;margin-bottom:8px;display:flex;gap:20px;justify-content:center;align-items:center;">
@@ -1402,6 +1588,14 @@ function getVSign(baseDeg, v) {
    });
 
 buildShodaTables();
+
+// Build Vimshottari
+buildFullDasha("vimChandra",d.planets["Chandra"]);
+buildFullDasha("vimLagna",lagnaShifted);
+
+
+setTimeout(highlightTodayVim,0);
+
 }
 
 
@@ -1534,6 +1728,19 @@ function toggleDivision(){
 	
 	
 	
+	
+	
+	function toggleTables(){
+    const wrapper = document.querySelector(".shoda-wrapper");
+    if(!wrapper) return;
+
+    if(wrapper.style.display === "none"){
+        wrapper.style.display = "block";
+    }else{
+        wrapper.style.display = "none";
+    }
+}
+
 
 
 
@@ -1637,6 +1844,363 @@ if (firstPlanet && DBA.includes(firstPlanet)) {
     makeTable(window._shodaRashi,"rashiTable");
 }
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	function formatDate(d){
+    if(!d) return "-";
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+}
+
+	
+	
+	/* ============================= */
+/* VIMSHOTTARI DASHA ENGINE     */
+/* ============================= */
+
+
+let currentOpenMahaBox = {};
+let currentOpenBhuktiBox = {};
+
+
+const VIM_SYMBOLS = {
+  1:"⭐",
+  2:"▶",
+  3:"◆"
+};
+
+
+
+
+
+function formatDateSmart(d){
+
+  const shortMode = document.getElementById("modeDateHide")?.checked;
+
+  const y = d.getFullYear();
+  const mNum = String(d.getMonth()+1).padStart(2,"0");
+  const day = String(d.getDate()).padStart(2,"0");
+
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const mShort = months[d.getMonth()];
+
+  // checkbox ON → yyyy-Mon
+  if(shortMode){
+    return `${y}-${mShort}`;
+  }
+
+  // checkbox OFF → yyyy-mm-dd
+  return `${y}-${mNum}-${day}`;
+}
+
+
+
+
+
+
+
+
+
+
+
+function buildFullDasha(containerId, baseDeg){
+
+  const box=document.getElementById(containerId);
+  box.innerHTML="";
+  
+  if(!currentDateTime && originalDateTime){
+    currentDateTime = new Date(originalDateTime);
+  }
+  if(!currentDateTime) return;
+
+  const MS_YEAR=365.25*24*60*60*1000;
+  const nakSize=360/27;
+
+  let nakIndex=Math.floor(baseDeg/nakSize);
+  let startLord=VIM_ORDER[nakIndex%9];
+  let frac=(baseDeg%nakSize)/nakSize;
+  let elapsedYears=VIM_YEARS[startLord]*frac;
+
+  let birth=new Date(originalDateTime||currentDateTime);
+
+  let mahaStart=new Date(
+    birth.getTime()-elapsedYears*MS_YEAR
+  );
+
+  let startIndex=VIM_ORDER.indexOf(startLord);
+  let order=[...VIM_ORDER.slice(startIndex),...VIM_ORDER.slice(0,startIndex)];
+
+  // FIXED ALIGNMENT: 34px for arrow, 170px for title, 1fr for date. 
+  // All levels (Maha, Bhukti, Antara) use this same grid.
+const GRID_STYLE = "display:grid; grid-template-columns: 24px 2fr 1fr 0.7fr 0.5fr 1fr 0.7fr; align-items:center; column-gap:0.4em; width:100%; box-sizing:border-box;";
+
+
+
+  order.forEach(mahaLord=>{
+    let mahaYears=VIM_YEARS[mahaLord];
+    let mahaEnd=new Date(mahaStart.getTime()+mahaYears*MS_YEAR);
+    
+    let ageStart = Math.floor((mahaStart - birth)/MS_YEAR);
+    let ageEnd   = Math.floor((mahaEnd - birth)/MS_YEAR);
+
+    if(ageStart < 0) ageStart = 0;
+    if(ageEnd < 0) ageEnd = 0;
+
+    let mahaRow=document.createElement("div");
+    mahaRow.dataset.s=mahaStart;
+    mahaRow.dataset.e=mahaEnd;
+    mahaRow.dataset.l=1;
+    mahaRow.className = "vim-maha"; // Uses CSS from your <style>
+    mahaRow.style=GRID_STYLE + "cursor:pointer; padding:6px 8px; margin:6px 0 3px 0; border:1px solid #444; border-radius:4px;";
+
+    mahaRow.innerHTML=`
+      <div class="vimSym"></div>
+      <div style="font-weight:900;">ಮಹಾದಶೆ – ${KN_NAMES[mahaLord]}</div>
+      <div>${formatDateSmart(mahaStart)}</div>
+      <div>(${ageStart} y)</div>
+      <div style="text-align:center;">→</div>
+      <div>${formatDateSmart(mahaEnd)}</div>
+      <div>(${ageEnd} y)</div>
+    `;
+
+
+    let bhuktiBox=document.createElement("div");
+    bhuktiBox.style.display="none";
+    bhuktiBox.style.marginLeft="0"; // REMOVED ZIGZAG
+    bhuktiBox.style.marginTop="6px";
+
+    let startBhuktiIndex = VIM_ORDER.indexOf(mahaLord);
+	let bhuktiOrder = [
+		...VIM_ORDER.slice(startBhuktiIndex),
+		...VIM_ORDER.slice(0, startBhuktiIndex)
+	];
+
+    let bhuktiStart=new Date(mahaStart);
+
+    bhuktiOrder.forEach(bhuktiLord=>{
+      let bhuktiYears=mahaYears*(VIM_YEARS[bhuktiLord]/120);
+      let bhuktiEnd=new Date(bhuktiStart.getTime()+bhuktiYears*MS_YEAR);
+
+      let bhuktiRow=document.createElement("div");
+      bhuktiRow.dataset.s=bhuktiStart;
+      bhuktiRow.dataset.e=bhuktiEnd;
+      bhuktiRow.dataset.l=2;
+      bhuktiRow.className = "vim-bhukti"; // Uses CSS from your <style>
+      bhuktiRow.style=GRID_STYLE + "cursor:pointer; padding:4px 6px; margin:2px 0; border:1px solid #333; border-radius:3px;";
+
+      bhuktiRow.innerHTML=`
+        <div class="vimSym"></div>
+        <div style="font-weight:900;">ಭುಕ್ತಿ – ${KN_NAMES[bhuktiLord]}</div>
+        <div>${formatDateSmart(bhuktiStart)}</div>
+        <div></div>
+        <div style="text-align:center;">→</div>
+        <div>${formatDateSmart(bhuktiEnd)}</div>
+        <div></div>
+      `;
+
+
+      let antaraBox=document.createElement("div");
+      antaraBox.style.display="none";
+      antaraBox.style.marginLeft="0"; // REMOVED ZIGZAG
+
+      let startAntaraIndex = VIM_ORDER.indexOf(bhuktiLord);
+		let antaraOrder = [
+			...VIM_ORDER.slice(startAntaraIndex),
+			...VIM_ORDER.slice(0, startAntaraIndex)
+		];
+
+      let antaraStart=new Date(bhuktiStart);
+
+      antaraOrder.forEach(antaraLord=>{
+        let antaraYears=bhuktiYears*(VIM_YEARS[antaraLord]/120);
+        let antaraEnd=new Date(antaraStart.getTime()+antaraYears*MS_YEAR);
+
+        let line=document.createElement("div");
+        line.dataset.s=antaraStart;
+        line.dataset.e=antaraEnd;
+        line.dataset.l=3;
+        line.className = "vim-antara"; // Uses CSS from your <style>
+        line.style=GRID_STYLE + "cursor:pointer; padding:3px 6px; margin:1px 0; border:1px solid #1e3a8a; border-radius:2px;";
+
+        line.innerHTML=`
+          <div class="vimSym"></div>
+          <div style="font-weight:900;">ಅಂತರ – ${KN_NAMES[antaraLord]}</div>
+          <div>${formatDateSmart(antaraStart)}</div>
+          <div></div>
+          <div style="text-align:center;">→</div>
+          <div>${formatDateSmart(antaraEnd)}</div>
+          <div></div>
+        `;
+
+
+        antaraBox.appendChild(line);
+        antaraStart=antaraEnd;
+      });
+
+
+
+
+
+
+
+
+      bhuktiRow.onclick=(e)=>{
+        e.stopPropagation();
+        const isOpen=antaraBox.style.display==="block";
+
+        // remove active from this column only
+        box.querySelectorAll(".vim-bhukti").forEach(r=>r.classList.remove("active"));
+
+        // collapse previous in this column
+        if(currentOpenBhuktiBox[containerId] && currentOpenBhuktiBox[containerId]!==antaraBox){
+          currentOpenBhuktiBox[containerId].style.display="none";
+        }
+
+        // toggle current
+        antaraBox.style.display=isOpen?"none":"block";
+
+        // activate color
+        if(!isOpen){
+          bhuktiRow.classList.add("active");
+        }
+
+        currentOpenBhuktiBox[containerId] = antaraBox.style.display==="block" ? antaraBox : null;
+      };
+
+
+
+      bhuktiBox.appendChild(bhuktiRow);
+      bhuktiBox.appendChild(antaraBox);
+      bhuktiStart=bhuktiEnd;
+    });
+
+
+
+
+
+
+
+
+    mahaRow.onclick=()=>{
+      const isOpen=bhuktiBox.style.display==="block";
+
+      // remove active from this column only
+      box.querySelectorAll(".vim-maha").forEach(r=>r.classList.remove("active"));
+
+      // collapse previous in this column
+      if(currentOpenMahaBox[containerId] && currentOpenMahaBox[containerId]!==bhuktiBox){
+        currentOpenMahaBox[containerId].style.display="none";
+      }
+
+      // toggle
+      bhuktiBox.style.display=isOpen?"none":"block";
+
+      // activate current
+      if(!isOpen){
+        mahaRow.classList.add("active");
+      }
+
+      currentOpenMahaBox[containerId] = bhuktiBox.style.display==="block" ? bhuktiBox : null;
+    };
+
+
+
+
+
+    box.appendChild(mahaRow);
+    box.appendChild(bhuktiBox);
+    mahaStart=mahaEnd;
+  });
+}
+
+
+
+
+
+
+
+
+const VIM_ORDER = ["Ke","Ve","Sy","Ch","Ma","Ra","Ju","Sa","Bu"];
+
+const VIM_YEARS = {
+    Ke:7, Ve:20, Sy:6, Ch:10,
+    Ma:7, Ra:18, Ju:16, Sa:19, Bu:17
+};
+
+
+
+const KN_NAMES = {
+    Ke:"ಕೇತು",
+    Ve:"ಶುಕ್ರ",
+    Sy:"ರವಿ",
+    Ch:"ಚಂದ್ರ",
+    Ma:"ಕುಜ",
+    Ra:"ರಾಹು",
+    Ju:"ಗುರು",
+    Sa:"ಶನಿ",
+    Bu:"ಬುಧ"
+};
+
+function toggleVim(){
+    const box=document.getElementById("vimContainer");
+    box.style.display = (box.style.display==="none") ? "flex" : "none";
+}
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+	
+	
+	
+	
+	function highlightTodayVim(){
+
+  const today=new Date();
+
+  document.querySelectorAll(".vimSym")
+    .forEach(s=>s.textContent="");
+
+  const containers=["vimChandra","vimLagna"];
+
+  containers.forEach(id=>{
+
+    let nodes=[...document.querySelectorAll("#"+id+" div")]
+      .filter(n=>n.dataset && n.dataset.s)
+      .filter(n =>
+        today>=new Date(n.dataset.s) &&
+        today< new Date(n.dataset.e)
+      )
+      .sort((a,b)=>a.dataset.l-b.dataset.l);
+
+    nodes.forEach(n=>{
+      let sym=n.querySelector(".vimSym");
+      if(sym){
+        sym.textContent=VIM_SYMBOLS[n.dataset.l] || "";
+      }
+    });
+
+  });
+}
+
 	
 	
 	
