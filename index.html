@@ -587,7 +587,7 @@
 		
 		
 		function enforceSingleMode(activeId){
-		const ids = ["modeSign2Sign","modeKP","modeVedic"];
+		const ids = ["modeSign2Sign","modeKP"];
 		ids.forEach(id=>{
 			const el = document.getElementById(id);
 			if(el) el.checked = (id === activeId);
@@ -618,9 +618,8 @@
 		<label>
 		<input type="checkbox" id="modeKP" checked onclick="enforceSingleMode('modeKP')"> KP
 		</label>
-		<label>
-		<input type="checkbox" id="modeVedic" onclick="enforceSingleMode('modeVedic')"> Vedic
-		</label>
+		
+		
 		<label style="margin-left:6px;">
 		<input type="checkbox" id="modeKN"  checked onchange="calc()"> KN
 		</label>
@@ -656,7 +655,7 @@
 
     </div>
 
-    <div id="vimContainer" class="vim-row">
+    <div id="vimContainer" class="vim-row" style="display:none;">
 
         <div class="vim-col">
             <div class="vim-title">Vimshottari Dasha – Chandra</div>
@@ -691,19 +690,38 @@
 
 
     
-	<div class="shoda-wrapper">
+	<div class="shoda-wrapper" style="display:none;">
 	
 	
 	
 	
 	
 	<div style="background:#000;border:1px solid var(--grid-line);padding:8px 10px;margin-bottom:8px;display:flex;gap:20px;justify-content:center;align-items:center;">
+	
+	
     <label style="display:flex;align-items:center;gap:6px;">
         <input type="checkbox" id="moonBased" checked onchange="updateShodaOrder('moon')"> Moon Based
     </label>
+	
+	
+	
     <label style="display:flex;align-items:center;gap:6px;">
         <input type="checkbox" id="lagnaBased" onchange="updateShodaOrder('lagna')"> Lagna Based
     </label>
+	
+	
+	
+	<button onclick="clearAllTableSelections()" 
+        style="padding:4px 10px;
+               background:#5a0008;
+               color:#fff;
+               border:1px solid var(--grid-line);
+               font-weight:bold;
+               cursor:pointer;">
+    Clear All
+</button>
+	
+	
 </div>
 
 
@@ -728,7 +746,23 @@
 	
 	
 	<div id="rashiTable"></div>
+	
+	
+	
+	
+	
 
+</div>
+
+
+
+<div class="division-title" onclick="toggleLordTable()">
+    Lords Of Kundalis ▼
+</div>
+
+<div id="lordWrapper" class="shoda-wrapper">
+    <div class="shoda-title">Lords of Houses Table</div>
+    <div id="lordsTable"></div>
 </div>
 
 
@@ -1192,10 +1226,10 @@ function getVSign(baseDeg, v) {
  function calc() {
     const modeSign2Sign = document.getElementById('modeSign2Sign')?.checked;
     const modeKP = document.getElementById('modeKP')?.checked;
-    const modeVedic = document.getElementById('modeVedic')?.checked;
+    
     const pivot = document.getElementById('pivot')?.value || "ASC";
 
-    if (!modeSign2Sign && !modeKP && !modeVedic) return;
+    if (!modeSign2Sign && !modeKP) return;
     if (!raw) return;
     
     buildDateTime();
@@ -1698,6 +1732,9 @@ moonStarLord = getStarLord(moonShifted);
 
 
 
+		// ensure asc storage exists
+		if(!window._ascSigns) window._ascSigns = {};
+
 		let ascIndex = 0;
 
 		// find ascendant sign index
@@ -1707,6 +1744,9 @@ moonStarLord = getStarLord(moonShifted);
 				break;
 			}
 		}
+
+// store ASC sign index for this varga
+window._ascSigns[v] = ascIndex;
 
 		chart.forEach((houseArr, signIndex)=>{
 		houseArr.forEach(p=>{
@@ -1724,18 +1764,21 @@ moonStarLord = getStarLord(moonShifted);
 
 
 
-	// ---------- ZODIAC TABLE (PURE SIGN2SIGN LOGIC) ----------
-	
 
-	pNames.forEach(p=>{
-		const label = (p === "Surya") ? "Sy" : p.substring(0,2);
-		if(!window._shodaRashi[v][label]) return;
+	// ---------- ZODIAC TABLE (FORCED PURE SIGN2SIGN — KP IMMUNE) ----------
 
-		const rawDeg = planetDegs[p] !== undefined ? planetDegs[p] : d.planets[p];
-		const sign = getVSign(rawDeg, v);
+pNames.forEach(p=>{
+    const label = (p === "Surya") ? "Sy" : p.substring(0,2);
+    if(!window._shodaRashi[v][label]) return;
 
-		window._shodaRashi[v][label] = sign + 1;
-	});
+    // ALWAYS use original raw longitude — ignore KP shifted planetDegs
+    const rawDeg = d.planets[p];
+
+    // ALWAYS compute using pure Sign2Sign logic
+    const sign = getVSign(rawDeg, v);
+
+    window._shodaRashi[v][label] = sign + 1;
+});
 
 
 
@@ -1749,6 +1792,7 @@ moonStarLord = getStarLord(moonShifted);
    });
 
 buildShodaTables();
+buildLordsTable();
 
 // Build Vimshottari
 buildFullDasha("vimChandra", moonShifted);
@@ -1911,6 +1955,20 @@ function toggleDivision(){
 
 
 
+
+function toggleLordTable(){
+    const wrapper = document.getElementById("lordWrapper");
+    if(!wrapper) return;
+
+    wrapper.style.display =
+        (wrapper.style.display === "none") ? "block" : "none";
+}
+
+
+
+
+
+
 function updateShodaOrder(mode){
     const moonBox = document.getElementById("moonBased");
     const lagnaBox = document.getElementById("lagnaBased");
@@ -1971,17 +2029,77 @@ function attachMemoryEvents(tableEl){
 
 
 			cell.onclick = function(){
+			
+			
+			
+			// ---- SYNC TABLES START ----
+			// ---- SYNC TABLES START ----
+			const tableId = tableEl.parentElement.id;
+
+			// Only allow sync between Bhava and Rashi
+			let otherTable = null;
+
+			if(tableId === "bhavaTable"){
+				otherTable = document.querySelector("#rashiTable table");
+			}
+			else if(tableId === "rashiTable"){
+				otherTable = document.querySelector("#bhavaTable table");
+			}
+			else{
+				// Lords table or any other table → NO SYNC
+				otherTable = null;
+			}
+
+			function syncSelection(type, rIndex, cIndex){
+				if(!otherTable) return;
+
+				const otherRows = otherTable.querySelectorAll("tr");
+				const otherRow = otherRows[rIndex];
+				if(!otherRow) return;
+
+				const otherCells = otherRow.querySelectorAll("th,td");
+				const otherCell = otherCells[cIndex];
+				if(!otherCell) return;
+
+				if(type === "cell"){
+					otherCell.classList.toggle("mem-cell");
+				}
+
+				if(type === "row"){
+					if(otherTable._activeRows.has(rIndex)){
+						otherTable._activeRows.delete(rIndex);
+					} else {
+						otherTable._activeRows.add(rIndex);
+					}
+					refreshMultiHighlight(otherTable);
+				}
+
+				if(type === "col"){
+					if(otherTable._activeCols.has(cIndex)){
+						otherTable._activeCols.delete(cIndex);
+					} else {
+						otherTable._activeCols.add(cIndex);
+					}
+					refreshMultiHighlight(otherTable);
+				}
+			}
+			// ---- SYNC TABLES END ----
+
+
 
 			// CLICK TOP HEADER → TOGGLE COLUMN
 			if(rIndex === 0 && cIndex > 0){
 
 				if(tableEl._activeCols.has(cIndex)){
-					tableEl._activeCols.delete(cIndex);
-				}else{
-					tableEl._activeCols.add(cIndex);
-				}
+				tableEl._activeCols.delete(cIndex);
+				window._globalTableMemory.cols.delete(cIndex);
+			}else{
+				tableEl._activeCols.add(cIndex);
+				window._globalTableMemory.cols.add(cIndex);
+			}
 
 				refreshMultiHighlight(tableEl);
+				syncSelection("col", rIndex, cIndex);
 				return;
 			}
 
@@ -1989,21 +2107,30 @@ function attachMemoryEvents(tableEl){
 			if(cIndex === 0 && rIndex > 0){
 
 				if(tableEl._activeRows.has(rIndex)){
-					tableEl._activeRows.delete(rIndex);
-				}else{
-					tableEl._activeRows.add(rIndex);
-				}
+				tableEl._activeRows.delete(rIndex);
+				window._globalTableMemory.rows.delete(rIndex);
+			}else{
+				tableEl._activeRows.add(rIndex);
+				window._globalTableMemory.rows.add(rIndex);
+			}
 
 				refreshMultiHighlight(tableEl);
+				syncSelection("row", rIndex, cIndex);
 				return;
 			}
 
 			// CLICK NORMAL CELL → TOGGLE ONLY THAT CELL
+			const key = rIndex + "-" + cIndex;
+
 			if(cell.classList.contains("mem-cell")){
 				cell.classList.remove("mem-cell");
+				window._globalTableMemory.cells.delete(key);
 			}else{
 				cell.classList.add("mem-cell");
+				window._globalTableMemory.cells.add(key);
 			}
+			
+			syncSelection("cell", rIndex, cIndex);
 
 		};
 			
@@ -2109,6 +2236,47 @@ function handleZodiacToggle(type){
 }
 
 
+
+
+
+
+
+
+
+/* ============================= */
+/* CLEAR ALL TABLE SELECTIONS   */
+/* ============================= */
+
+function clearAllTableSelections(){
+
+    // Reset global memory
+    if(window._globalTableMemory){
+        window._globalTableMemory.rows.clear();
+        window._globalTableMemory.cols.clear();
+        window._globalTableMemory.cells.clear();
+    }
+
+    // Clear both tables
+    const tables = document.querySelectorAll(".shoda-table");
+
+    tables.forEach(table=>{
+
+        // Reset internal sets
+        table._activeRows = new Set();
+        table._activeCols = new Set();
+
+        // Remove highlight classes
+        table.querySelectorAll("td,th").forEach(cell=>{
+            cell.classList.remove(
+                "mem-cell",
+                "mem-row",
+                "mem-col",
+                "mem-cross"
+            );
+        });
+
+    });
+}
 
 	
 	
@@ -2393,17 +2561,183 @@ if (firstPlanet && DBA.includes(firstPlanet)) {
 	setTimeout(()=>{
 	const bhava = document.querySelector("#bhavaTable table");
 	const rashi = document.querySelector("#rashiTable table");
+
 	attachMemoryEvents(bhava);
 	attachMemoryEvents(rashi);
 
+	// =============================
+	// REAPPLY GLOBAL MEMORY
+	// =============================
+
+	[bhava, rashi].forEach(table=>{
+		if(!table) return;
+
+		const rows = table.querySelectorAll("tr");
+
+		rows.forEach((row,rIndex)=>{
+			const cells = row.querySelectorAll("th,td");
+
+			cells.forEach((cell,cIndex)=>{
+				const key = rIndex + "-" + cIndex;
+
+				if(window._globalTableMemory.cells.has(key)){
+					cell.classList.add("mem-cell");
+				}
+
+				if(window._globalTableMemory.rows.has(rIndex)){
+					table._activeRows.add(rIndex);
+				}
+
+				if(window._globalTableMemory.cols.has(cIndex)){
+					table._activeCols.add(cIndex);
+				}
+			});
+		});
+
+		refreshMultiHighlight(table);
+	});
+
 	highlightRunningMahaInTable();
-},50);
+	},50);
 	
 	
 
 }
 	
 	
+	
+	
+	
+	
+	
+	function buildLordsTable(){
+
+    const el = document.getElementById("lordsTable");
+    if(!el || !window._shodaBhava) return;
+
+    const signLords = {
+        1:"Ma", 2:"Ve", 3:"Bu", 4:"Ch",
+        5:"Sy", 6:"Bu", 7:"Ve", 8:"Ma",
+        9:"Ju",10:"Sa",11:"Sa",12:"Ju"
+    };
+
+    const vKeys = [1,9,10,2,21,4,16,6,7,8,60,11,12,3,24,27,30,20,40,45,5];
+
+    let html = `<table class="shoda-table"><tr><th>D</th>`;
+
+
+
+
+
+    for(let h=1;h<=12;h++){
+        html += `<th>${h}</th>`;
+    }
+
+    html += `<th>Ra</th><th>Ke</th></tr>`;
+
+    vKeys.forEach(v=>{
+
+        html += `<tr><th>D${v}</th>`;
+
+        const bhavaData = window._shodaBhava[v];
+        const rashiData = window._shodaRashi[v];
+
+
+
+
+
+
+
+
+
+        for(let h=1;h<=12;h++){
+
+    // get real ASC sign index stored during calc()
+    // Lords table must follow ORIGINAL ASC only (ignore dropdown override)
+
+		const d = raw.ayanamshas[document.getElementById('aya').value];
+
+		// original lagna without dropdown override
+		let originalLagna = d.lagna;
+
+		// apply time shift if active (same logic as calc)
+		if (originalDateTime && currentDateTime) {
+			const diffMs = currentDateTime - originalDateTime;
+			const diffMinutes = diffMs / 60000;
+			const ascShift = diffMinutes * 0.25;
+			originalLagna += ascShift;
+			while (originalLagna < 0) originalLagna += 360;
+			while (originalLagna >= 360) originalLagna -= 360;
+		}
+
+		// compute varga ASC sign using pure varga logic
+		const ascSignIndex = getVSign(originalLagna, v);
+
+    // calculate zodiac sign of this house
+    const signOfHouse = ((ascSignIndex + h - 1) % 12) + 1;
+
+    const lord = signLords[signOfHouse];
+
+    let housePlaced = "-";
+
+    if(bhavaData && bhavaData[lord]){
+        housePlaced = bhavaData[lord];
+    }
+
+    html += `<td>${housePlaced}</td>`;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+        // Rahu
+        html += `<td>${bhavaData["Ra"] || "-"}</td>`;
+
+        // Ketu
+        html += `<td>${bhavaData["Ke"] || "-"}</td>`;
+
+        html += `</tr>`;
+    });
+
+    html += `</table>`;
+
+    el.innerHTML = html;
+	
+	
+	
+	setTimeout(()=>{
+
+    const lordTable = document.querySelector("#lordsTable table");
+    if(!lordTable) return;
+
+    attachMemoryEvents(lordTable);
+
+	// make Lords table independent
+	lordTable._activeRows = new Set();
+	lordTable._activeCols = new Set();
+
+
+
+
+
+
+
+
+    
+
+},50);
+	
+	
+	
+}
 	
 	
 	
@@ -2430,6 +2764,17 @@ if (firstPlanet && DBA.includes(firstPlanet)) {
 
 let currentOpenMahaBox = {};
 let currentOpenBhuktiBox = {};
+
+
+// =============================
+// GLOBAL TABLE SELECTION MEMORY
+// =============================
+
+window._globalTableMemory = {
+    rows: new Set(),
+    cols: new Set(),
+    cells: new Set()
+};
 
 
 const VIM_SYMBOLS = {
@@ -2622,28 +2967,44 @@ const GRID_STYLE = "display:grid; grid-template-columns: 24px 2fr 1fr 0.7fr 0.5f
 
 
 
-      bhuktiRow.onclick=(e)=>{
-        e.stopPropagation();
-        const isOpen=antaraBox.style.display==="block";
+     bhuktiRow.onclick=(e)=>{
+	  e.stopPropagation();
 
-        // remove active from this column only
-        box.querySelectorAll(".vim-bhukti").forEach(r=>r.classList.remove("active"));
+	  const levelLimit = parseInt(document.getElementById("expandLevel")?.value || "2");
 
-        // collapse previous in this column
-        if(currentOpenBhuktiBox[containerId] && currentOpenBhuktiBox[containerId]!==antaraBox){
-          currentOpenBhuktiBox[containerId].style.display="none";
-        }
+	  // Remove active from this column only
+	  box.querySelectorAll(".vim-bhukti").forEach(r=>r.classList.remove("active"));
 
-        // toggle current
-        antaraBox.style.display=isOpen?"none":"block";
+	  // Always highlight clicked bhukti
+	  bhuktiRow.classList.add("active");
 
-        // activate color
-        if(!isOpen){
-          bhuktiRow.classList.add("active");
-        }
+	  // If dropdown is set to Bukthi (2) → LOCK
+	  if(levelLimit === 2){
+		// Force close any open antara
+		if(currentOpenBhuktiBox[containerId]){
+		  currentOpenBhuktiBox[containerId].style.display="none";
+		}
 
-        currentOpenBhuktiBox[containerId] = antaraBox.style.display==="block" ? antaraBox : null;
-      };
+		currentOpenBhuktiBox[containerId] = null;
+		return;
+	  }
+
+	  // If dropdown is Antara (3) → allow expand
+	  const isOpen = antaraBox.style.display === "block";
+
+	  if(currentOpenBhuktiBox[containerId] && currentOpenBhuktiBox[containerId]!==antaraBox){
+		currentOpenBhuktiBox[containerId].style.display="none";
+	  }
+
+	  antaraBox.style.display = isOpen ? "none" : "block";
+
+	  currentOpenBhuktiBox[containerId] =
+		antaraBox.style.display==="block" ? antaraBox : null;
+	};
+	  
+	  
+	  
+	  
 
 
 
