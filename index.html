@@ -28,7 +28,7 @@
 		
 		.chart-grid { 
 		display: grid; 
-		grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); 
+		grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); 
 		gap: 25px; 
 		max-width: 1500px; 
 		margin: 0 auto; 
@@ -50,6 +50,9 @@
 
 
 		.varga-title { text-align: center; color: var(--grid-line); font-size: 1.3em; font-weight: bold; margin-bottom: 12px; }
+		
+		
+		
 	   .kundali { 
 		display: grid;
 		grid-template-columns: repeat(4, minmax(110px, 1fr));
@@ -496,6 +499,10 @@
 		<label>
 			<input type="checkbox" id="topKP" onclick="enforceSingleMode('modeKP')"> KP
 		</label>
+		<label>
+		<input type="checkbox" id="topShift" checked onclick="syncShiftToggle()"> Shift
+	</label>
+		
 	</div>
 
 
@@ -617,6 +624,15 @@
 
 		<label style="margin-left:6px;">
 		<input type="checkbox" id="modeDateHide" onchange="calc()" checked> Date
+		</label>
+		
+		
+		<label style="margin-left:6px;">
+		<input type="checkbox" id="showCusps" onchange="calc()"> Cusps
+		</label>
+
+		<label style="margin-left:6px;">
+		<input type="checkbox" id="showLordship" onchange="calc()" checked> Lordship
 		</label>
 
 
@@ -792,6 +808,43 @@
 <script>
 	let raw = null;
 	
+	let currentCusps = null;
+	
+	
+	
+	/* =========================================
+   D1 PLACIDUS HOUSE ENGINE (CUSPS FROM JSON)
+========================================= */
+
+function getPlacidusHouse(deg, cusps){
+
+    if(!cusps) return null;
+
+    const c = [];
+    for(let i=1;i<=12;i++){
+        let v = cusps[i];
+        if(v===undefined) return null;
+        c.push(parseFloat(v));
+    }
+
+    for(let i=0;i<12;i++){
+
+        let start = c[i];
+        let end = c[(i+1)%12];
+
+        if(end < start) end += 360;
+
+        let d = deg;
+        if(d < start) d += 360;
+
+        if(d >= start && d < end){
+            return i+1;
+        }
+    }
+
+    return null;
+}
+	
 	
 	let moonStarLord = "Sy";
 	let lagnaStarLord = "Sy";
@@ -812,6 +865,19 @@
 
 	if (topSign && mainSign) topSign.checked = mainSign.checked;
 	if (topKP && mainKP) topKP.checked = mainKP.checked;
+}
+
+
+function syncShiftToggle(){
+
+	const topShift = document.getElementById("topShift");
+	const mainShift = document.getElementById("shiftedLagnaToggle");
+
+	if(!topShift || !mainShift) return;
+
+	mainShift.checked = topShift.checked;
+
+	calc();
 }
 
 
@@ -1287,9 +1353,7 @@ function buildLordshipDeciderTable(){
         document.getElementById("lordshipVargaSelect").value
     );
 
-    const ascIndex =
-    window._lordshipAscSigns?.[v] ??
-    window._ascSigns[v];
+    const ascIndex = window._ascSigns[v];
 	
     if(ascIndex===undefined) return;
 
@@ -1616,6 +1680,9 @@ addNodeRows("Ke");
  
 	const SHIFTED_LAGNA =
     document.getElementById("shiftedLagnaToggle")?.checked;
+	
+	const topShiftBox = document.getElementById("topShift");
+	if(topShiftBox) topShiftBox.checked = SHIFTED_LAGNA;
  
 	const modeSign2Sign = document.getElementById('modeSign2Sign')?.checked;
 	const modeKP = document.getElementById('modeKP')?.checked;
@@ -1628,6 +1695,11 @@ addNodeRows("Ke");
 	buildDateTime();
 
 	const d = raw.ayanamshas[document.getElementById('aya').value];
+	
+	
+	currentCusps = d.cusps;
+	
+	const cuspData = d.cusps;
 	
 	
 	
@@ -2218,7 +2290,7 @@ if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
 
 		// ensure asc storage exists
 		if(!window._ascSigns) window._ascSigns = {};
-		if(!window._lordshipAscSigns) window._lordshipAscSigns = {};
+		
 
 		let ascIndex = 0;
 
@@ -2234,61 +2306,53 @@ if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
 		window._ascSigns[v] = ascIndex;
 
 
-		/* =====================================================
-		   🔥 PER-VARGA LORDSHIP SHIFT BASED ON PIVOT DEGREE
-		   ===================================================== */
 
-		let pivotLabel =
-			(pivot === "ASC") ? "ASC" :
-			(pivot === "Surya" ? "Sy" : pivot.substring(0,2));
 
-		let pivotSignIndex = null;
-		let pivotDegInSign = 0;
 
-		// locate pivot inside this varga chart
-		for (let s = 0; s < 12; s++) {
-			for (let obj of chart[s]) {
 
-				if (pivot === "ASC" && obj.isAsc) {
-					pivotSignIndex = s;
-					pivotDegInSign = obj.d;
-				}
 
-				if (!obj.isAsc && obj.n === pivotLabel) {
-					pivotSignIndex = s;
-					pivotDegInSign = obj.d;
-				}
-			}
-		}
 
-		// fallback safety
-		if (pivotSignIndex === null) pivotSignIndex = ascIndex;
 
-		// apply 15° rule (lordship only)
-		let lordshipAscIndex = ascIndex;
 
-		if (SHIFTED_LAGNA && pivotDegInSign >= 15) {
-			lordshipAscIndex = (ascIndex + 1) % 12;
-		}
 
-		// store shifted lordship sign for this varga
-		window._lordshipAscSigns[v] = lordshipAscIndex;
+
+
+
 
 
 
 
 		chart.forEach((houseArr, signIndex)=>{
-		houseArr.forEach(p=>{
-			if(p.isAsc) return;
+			houseArr.forEach(p=>{
+				if(p.isAsc) return;
 
-			if(window._shodaBhava[v][p.n] !== undefined){
+				if(window._shodaBhava[v][p.n] !== undefined){
 
-				// real house from ascendant (mode dependent)
-				const houseNum = ((signIndex - ascIndex + 12) % 12) + 1;
-				window._shodaBhava[v][p.n] = houseNum;
-			}
+					let houseNum;
+
+					if(v === 1 && cuspData){
+						const planetLong = shiftedPlanets[
+							p.n==="Sy"?"Surya":
+							p.n==="Ch"?"Chandra":
+							p.n==="Ma"?"Mangala":
+							p.n==="Bu"?"Budha":
+							p.n==="Ju"?"Jupiter":
+							p.n==="Ve"?"Venus":
+							p.n==="Sa"?"Saturn":
+							p.n==="Ra"?"Rahu":
+							p.n==="Ke"?"Ketu":null
+						];
+
+						houseNum = getPlacidusHouse(planetLong, cuspData);
+					}
+					else{
+						houseNum = ((signIndex - ascIndex + 12) % 12) + 1;
+					}
+
+					window._shodaBhava[v][p.n] = houseNum;
+				}
+			});
 		});
-	});
 
 
 
@@ -2405,39 +2469,206 @@ function render(v, chart) {
 		   // add house number first
 			h.innerHTML += `<div class="house-num">${houseNum}</div>`;
 
-			// top empty line
-			h.innerHTML += `<div class="p-line">&nbsp;</div>`;
-
-			chart[idx].forEach(p => {
-			
-			
-			let lineClass = "p-line";
-
-			if (p.isAsc && pivot === "ASC") {
-				lineClass = "p-line asc-line";
-			}
-			else if (!p.isAsc && p.n === (pivot === "Surya" ? "Sy" : pivot.substring(0,2))) {
-				lineClass = "p-line pivot-line";
-			}
-
-			
-			
-			
-			
-			
-				const useKN = document.getElementById("modeKN")?.checked;
-				const r = (!useKN && p.r) ? ' (R)' : '';
-
-				
-				const name = useKN ? (planetNameMapKN[p.n] || p.n) : p.n;
-
-				h.innerHTML += `<div class="${lineClass}">${name} ${Math.floor(p.d)}°${Math.floor((p.d*60)%60).toString().padStart(2,'0')}′${r}</div>`;
-
-			});
-
 			// bottom empty line
 			h.innerHTML += `<div class="p-line">&nbsp;</div>`;
 
+
+
+
+
+
+			/* =========================================
+			   MERGE PLANETS + CUSPS FOR SORTING
+			========================================= */
+
+			let objects = [];
+
+			// add planets
+			chart[idx].forEach(p=>{
+				objects.push({
+					type:"planet",
+					deg:p.d,
+					data:p
+				});
+			});
+
+			// add cusps (D1 only)
+			if(v===1){
+
+				const showCusps=document.getElementById("showCusps")?.checked;
+
+				if(showCusps && currentCusps){
+
+					for(let c=2;c<=12;c++){
+
+						let deg=currentCusps[c];
+						if(deg===undefined) continue;
+
+						let signIndex=Math.floor(deg/30);
+
+						if(signIndex===idx){
+
+							objects.push({
+								type:"cusp",
+								deg:deg%30,
+								cusp:c
+							});
+						}
+					}
+				}
+			}
+
+			// sort by degree
+			if(idx <= 5){
+				objects.sort((a,b)=>a.deg-b.deg);   // Aries → Virgo (top → bottom)
+			}else{
+				objects.sort((a,b)=>b.deg-a.deg);   // Libra → Pisces (bottom → top)
+			}
+
+			// render
+			objects.forEach(obj=>{
+
+				if(obj.type==="cusp"){
+
+					const d=obj.deg;
+
+					h.innerHTML+=`
+					<div class="p-line" style="color:#10b981;">
+					C${obj.cusp} ${Math.floor(d)}°${Math.floor((d*60)%60).toString().padStart(2,'0')}′
+					</div>`;
+				}
+
+				if(obj.type==="planet"){
+
+					const p=obj.data;
+
+					let lineClass="p-line";
+
+					if(p.isAsc && pivot==="ASC"){
+						lineClass="p-line asc-line";
+					}
+					else if(!p.isAsc && p.n === (pivot==="Surya"?"Sy":pivot.substring(0,2))){
+						lineClass="p-line pivot-line";
+					}
+
+					const useKN=document.getElementById("modeKN")?.checked;
+					
+					const showLordship=document.getElementById("showLordship")?.checked;
+
+					/* =========================
+					   LORDSHIP ENGINE
+					========================= */
+
+					function getPlanetLordship(pCode){
+
+						const SHIFTED=document.getElementById("shiftedLagnaToggle")?.checked;
+
+						/* sign lords */
+						const signLords={
+							1:"Ma",2:"Ve",3:"Bu",4:"Ch",
+							5:"Sy",6:"Bu",7:"Ve",8:"Ma",
+							9:"Ju",10:"Sa",11:"Sa",12:"Ju"
+						};
+
+						let ascSign = window._ascSigns?.[v] ?? 0;
+
+						/* get real asc degree */
+						let ascDeg = 0;
+
+						for(let i=0;i<12;i++){
+							const ascObj = chart[i].find(p=>p.isAsc);
+							if(ascObj){
+								ascSign = i;
+								ascDeg = ascObj.d;
+								break;
+							}
+						}
+
+						
+
+						/* shifted lagna rule */
+						if(SHIFTED && ascDeg>=15){
+							ascSign=(ascSign+1)%12;
+						}
+
+						/* convert to 1-12 */
+						const ascIndex=ascSign+1;
+
+						/* normal planets */
+						function housesOfLord(lord){
+							const arr=[];
+							for(let h=1;h<=12;h++){
+								const signOfHouse=((ascIndex+h-2)%12)+1;
+								if(signLords[signOfHouse]===lord){
+									arr.push(h);
+								}
+							}
+							return arr;
+						}
+
+						/* Rahu / Ketu dispositor */
+						if(pCode==="Ra" || pCode==="Ke"){
+
+							const signPlaced=window._shodaRashi?.[v]?.[pCode];
+							if(!signPlaced) return [];
+
+							const dispositor=signLords[signPlaced];
+
+							return housesOfLord(dispositor);
+						}
+
+						return housesOfLord(pCode);
+					}
+					
+					
+					
+					
+					const r = (!useKN && p.r && !document.getElementById("showLordship")?.checked) ? ' (R)' : '';
+					const name=useKN?(planetNameMapKN[p.n]||p.n):p.n;
+
+
+
+
+
+
+
+
+
+
+
+
+			
+					
+
+					/* =========================
+					   PRINT PLANET LINE
+					========================= */
+
+					h.innerHTML+=`<div class="${lineClass}" style="font-size:16px;">
+					${showLordship && !p.isAsc
+						? `${name} ${Math.floor(p.d)}° - ${getPlanetLordship(p.n).join(",")}`
+						: `${name} ${Math.floor(p.d)}°${Math.floor((p.d*60)%60).toString().padStart(2,'0')}′${r}`
+					}
+					</div>`;
+
+
+
+
+
+				}
+
+			});
+
+
+
+
+			
+			
+			
+			
+			
+			
+			
 
 
 
