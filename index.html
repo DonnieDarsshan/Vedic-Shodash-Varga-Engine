@@ -2606,13 +2606,23 @@ function render(v, chart) {
 							return arr;
 						}
 
-						/* Rahu / Ketu dispositor */
+						/* Rahu / Ketu dispositor (WORKS FOR ALL VARGAS) */
 						if(pCode==="Ra" || pCode==="Ke"){
 
-							const signPlaced=window._shodaRashi?.[v]?.[pCode];
+							let signPlaced = null;
+
+							/* find sign directly from chart */
+							for(let i=0;i<12;i++){
+								const obj = chart[i].find(p=>p.n===pCode);
+								if(obj){
+									signPlaced = i + 1;
+									break;
+								}
+							}
+
 							if(!signPlaced) return [];
 
-							const dispositor=signLords[signPlaced];
+							const dispositor = signLords[signPlaced];
 
 							return housesOfLord(dispositor);
 						}
