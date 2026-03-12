@@ -634,6 +634,12 @@
 		<label style="margin-left:6px;">
 		<input type="checkbox" id="showLordship" onchange="calc()" checked> Lordship
 		</label>
+		
+		<label style="margin-left:6px; color:#10b981; font-weight:bold;">
+		<input type="checkbox" id="useTrueNode" onchange="calc()"> True Node
+		</label>
+		
+		
 
 
 
@@ -1387,6 +1393,10 @@ function buildLordshipDeciderTable(){
    HELPER — GET LORDSHIP OF PLANET
 ========================================= */
 
+/* =========================================
+   HELPER — GET LORDSHIP OF PLANET
+========================================= */
+
 function getPlanetLordships(pCode){
 
     if(pCode==="Ra" || pCode==="Ke"){
@@ -1403,6 +1413,14 @@ function getPlanetLordships(pCode){
                 houses.push(h);
             }
         }
+        
+        /* --- NEW: prepend dispositor placed house --- */
+        const dispositorPlacedHouse = bhavaData[dispositor];
+        if (dispositorPlacedHouse && dispositorPlacedHouse !== "-") {
+            return [dispositorPlacedHouse, ...houses];
+        }
+        /* -------------------------------------------- */
+        
         return houses;
     }
 
@@ -1415,6 +1433,12 @@ function getPlanetLordships(pCode){
     }
     return houses;
 }
+
+
+
+
+
+
 
 /* =========================================
    PLANET POSITIONS (HOUSE 1–12)  ← KP BASE
@@ -1689,15 +1713,39 @@ addNodeRows("Ke");
 	
 	const pivot = document.getElementById('pivot')?.value || "ASC";
 
+
+
+
+
+
 	if (!modeSign2Sign && !modeKP) return;
 	if (!raw) return;
 	
 	buildDateTime();
 
-	const d = raw.ayanamshas[document.getElementById('aya').value];
+	// 1. Get raw data
+	const d_raw = raw.ayanamshas[document.getElementById('aya').value];
 	
+	// 2. Clone it so we don't mutate the global JSON
+	const d = {
+		...d_raw,
+		planets: { ...d_raw.planets },
+		planets_retro: { ...(d_raw.planets_retro || {}) }
+	};
+
+	// 3. TRUE NODE OVERRIDE ENGINE
+	if (document.getElementById("useTrueNode")?.checked) {
+		if (d.planets["Rahu_true"] !== undefined) d.planets["Rahu"] = d.planets["Rahu_true"];
+		if (d.planets["Ketu_true"] !== undefined) d.planets["Ketu"] = d.planets["Ketu_true"];
+		
+		if (d.planets_retro["Rahu_true"] !== undefined) d.planets_retro["Rahu"] = d.planets_retro["Rahu_true"];
+		if (d.planets_retro["Ketu_true"] !== undefined) d.planets_retro["Ketu"] = d.planets_retro["Ketu_true"];
+	}
 	
 	currentCusps = d.cusps;
+	
+	
+	
 	
 	const cuspData = d.cusps;
 	
@@ -2164,11 +2212,18 @@ if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
 
 
 
-		// PLANET PLACEMENT
+
+
+
+
+// PLANET PLACEMENT
 		pNames.forEach(p => {
 
 			const deg = planetDegs[p];
 			const label = (p === "Surya") ? "Sy" : p.substring(0,2);
+			
+			// 🔒 PRESERVE PURE SIGN-MODE ZODIAC SIGN FOR LORDSHIP (KP IMMUNE)
+			const pureZodiacSign = getVSign(shiftedPlanets[p], v);
 
 			if (modeKP) {
 
@@ -2192,7 +2247,8 @@ if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
 					n: label,
 					d: houseDeg,
 					r: rData[p] || false,
-					isAsc: false
+					isAsc: false,
+					pureSign: pureZodiacSign // <--- ADDED PURE SIGN
 				});
 
 			} else {
@@ -2233,7 +2289,8 @@ if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
 						n: label,
 						d: finalDeg,
 						r: rData[p] || false,
-						isAsc: false
+						isAsc: false,
+						pureSign: targetSign // <--- ADDED PURE SIGN
 					});
 
 				} else {
@@ -2245,13 +2302,13 @@ if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
 						n: label,
 						d: planetDeg,
 						r: rData[p] || false,
-						isAsc: false
+						isAsc: false,
+						pureSign: targetSign // <--- ADDED PURE SIGN
 					});
 
 				}
 			}
 		});
-		
 		
 		
 		
@@ -2555,6 +2612,20 @@ function render(v, chart) {
 					
 					const showLordship=document.getElementById("showLordship")?.checked;
 
+
+
+
+
+
+
+
+
+
+
+					/* =========================
+					   LORDSHIP ENGINE
+					========================= */
+
 					/* =========================
 					   LORDSHIP ENGINE
 					========================= */
@@ -2584,8 +2655,6 @@ function render(v, chart) {
 							}
 						}
 
-						
-
 						/* shifted lagna rule */
 						if(SHIFTED && ascDeg>=15){
 							ascSign=(ascSign+1)%12;
@@ -2606,31 +2675,70 @@ function render(v, chart) {
 							return arr;
 						}
 
+
+
+
+
+
+
+
+
+
+
+						/* Rahu / Ketu dispositor (WORKS FOR ALL VARGAS) */
 						/* Rahu / Ketu dispositor (WORKS FOR ALL VARGAS) */
 						if(pCode==="Ra" || pCode==="Ke"){
 
 							let signPlaced = null;
+							let pObj = null;
 
-							/* find sign directly from chart */
+							/* find the planet object to access its pure sign */
 							for(let i=0;i<12;i++){
-								const obj = chart[i].find(p=>p.n===pCode);
-								if(obj){
-									signPlaced = i + 1;
+								pObj = chart[i].find(p=>p.n===pCode);
+								if(pObj){
 									break;
 								}
 							}
 
-							if(!signPlaced) return [];
+							if(!pObj) return [];
+
+							/* 🔥 KP IMMUNE FIX: Use pureSign instead of shifted chart position */
+							if(pObj.pureSign !== undefined){
+								signPlaced = pObj.pureSign + 1; // Convert 0-11 to 1-12
+							} else {
+								/* Fallback if pureSign is missing */
+								for(let i=0;i<12;i++){
+									if(chart[i].includes(pObj)){
+										signPlaced = i + 1;
+										break;
+									}
+								}
+							}
 
 							const dispositor = signLords[signPlaced];
+							const lordHouses = housesOfLord(dispositor);
 
-							return housesOfLord(dispositor);
+							/* --- NEW: find dispositor's placed house --- */
+							let dispositorHouse = null;
+							for(let i=0;i<12;i++){
+								const obj = chart[i].find(p=>p.n===dispositor);
+								if(obj){
+									dispositorHouse = ((i - ascSign + 12) % 12) + 1;
+									break;
+								}
+							}
+
+							if (dispositorHouse) {
+								return [dispositorHouse, ...lordHouses];
+							}
+							/* ------------------------------------------- */
+
+							return lordHouses;
 						}
 
+						// 👇 THIS WAS ACCIDENTALLY DELETED! 👇
 						return housesOfLord(pCode);
-					}
-					
-					
+					}		
 					
 					
 					const r = (!useKN && p.r && !document.getElementById("showLordship")?.checked) ? ' (R)' : '';
