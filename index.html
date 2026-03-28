@@ -77,6 +77,11 @@
 		padding: 10px 8px;   /* 🔒 inner breathing space */
 		box-sizing: border-box;
 	}
+	
+	
+	.asc-house{
+    background: rgba(255,204,0,0.08);
+	}
 
 		.p-line {
 		margin: 2px 0;
@@ -131,6 +136,26 @@
 			border: 1px solid var(--grid-line);
 			padding: 4px 6px;
 			font-size: 13px;
+			color-scheme: dark; /* Forces the browser's native calendar pop-up to be dark */
+		}
+		
+		
+		
+		
+		/* =========================================
+		   DARK MODE DATE PICKER ICON FIX
+		========================================= */
+		input[type="date"]::-webkit-calendar-picker-indicator,
+		input[type="time"]::-webkit-calendar-picker-indicator {
+			/* Removed the invert filter since color-scheme: dark handles it natively */
+			cursor: pointer;
+			opacity: 0.6; /* Dimmed slightly so it blends nicely */
+			transition: 0.2s ease;
+		}
+		
+		input[type="date"]::-webkit-calendar-picker-indicator:hover,
+		input[type="time"]::-webkit-calendar-picker-indicator:hover {
+			opacity: 1; /* Brightens when you hover over it */
 		}
 		
 		
@@ -480,7 +505,69 @@
 		}
 
 
+	/* ============================= */
+	/* ASHTAKAVARGA STYLES           */
+	/* ============================= */
+	.ashta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; width: 100%; max-width: 900px; margin: 20px auto; justify-items: center; }
+	.ashta-kundali { width: 260px; height: 260px; border: 3px solid var(--grid-line); display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); background: #111; }
+	
+	.ashta-cell { 
+		display: flex; 
+		align-items: center; 
+		justify-content: center; 
+		font-weight: bold; 
+		font-size: 18px; 
+		border: 1px solid #555; 
+		color: var(--text-white); 
+		}
 
+		/* SAV / BAV highlight */
+		.ashta-highlight{
+		background:#5a0008;   /* dark red */
+		border:2px solid #ff4444;
+		}
+
+
+
+	.ashta-center { grid-column: 2/4; grid-row: 2/4; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--asc-yellow); text-align: center; padding: 10px; }
+
+
+		body { 
+			background: var(--bg-gradient); 
+			background-attachment: fixed;
+			color: var(--text-white); 
+			font-family: 'Arial', sans-serif; 
+			margin: 0; padding: 20px; 
+		}
+
+		/* =========================================
+		   CUSTOM DARK SCROLLBAR (STEALTH MODE)
+		========================================= */
+		::-webkit-scrollbar {
+			width: 6px;  /* Very thin vertical scrollbar */
+			height: 6px; /* Very thin horizontal scrollbar */
+		}
+		::-webkit-scrollbar-track {
+			background: #050505; /* Deep dark background */
+		}
+		::-webkit-scrollbar-thumb {
+			background: #222222; /* Low-contrast dark thumb */
+			border-radius: 10px; /* Smooth rounded edges */
+		}
+		::-webkit-scrollbar-thumb:hover {
+			background: #444444; /* Slightly visible only when hovering */
+		}
+		/* Firefox Support */
+		html {
+			scrollbar-width: thin;
+			scrollbar-color: #222222 #050505;
+		}
+
+		.header-info { text-align: center; margin-bottom: 30px; }
+		
+		
+		
+		
 		
 		
 	</style>
@@ -493,16 +580,21 @@
 		<button onclick="shiftTime(-60)">-1m</button>
 		<button onclick="shiftTime(60)">+1m</button>
 		<button onclick="resetTime()">R</button>
-		<label>
-			<input type="checkbox" id="topSign" checked onclick="enforceSingleMode('modeSign2Sign')"> Sign
-		</label>
-		<label>
-			<input type="checkbox" id="topKP" onclick="enforceSingleMode('modeKP')"> KP
-		</label>
-		<label>
-		<input type="checkbox" id="topShift" checked onclick="syncShiftToggle()"> Shift
-	</label>
 		
+		
+		
+		
+		<label>
+		<input type="checkbox" id="topSign" onchange="enforceSingleMode('modeSign2Sign')"> Sign
+		</label>
+		<label>
+			<input type="checkbox" id="topKP" checked onchange="enforceSingleMode('modeKP')"> KP
+		</label>
+		
+		
+		<label>
+			<input type="checkbox" id="topShift" checked onchange="syncShiftToggle()"> Shift
+		</label>
 	</div>
 
 
@@ -571,9 +663,9 @@
 
 		<label style="margin-left:10px; color:var(--asc-yellow); font-weight:bold;">
     <input type="checkbox"
-           id="shiftedLagnaToggle"
-           checked
-           onchange="calc()">
+       id="shiftedLagnaToggle"
+       checked
+       onchange="onShiftManualChange()">
     Shifted Lagna
 </label>
 
@@ -584,24 +676,32 @@
 		<script>
 		
 		
-		function enforceSingleMode(activeId){
-		const ids = ["modeSign2Sign","modeKP"];
-		ids.forEach(id=>{
-			const el = document.getElementById(id);
-			if(el) el.checked = (id === activeId);
-		});
+		function enforceSingleMode(activeId) {
+		if (window._modeSwitchLock) return;
+		window._modeSwitchLock = true;
 
-		// sync top bar checkboxes
+		const isSignActive = (activeId === "modeSign2Sign");
+
 		const topSign = document.getElementById("topSign");
 		const topKP = document.getElementById("topKP");
+		const mainSign = document.getElementById("modeSign2Sign");
+		const mainKP = document.getElementById("modeKP");
 
-		if (topSign) topSign.checked = (activeId === "modeSign2Sign");
-		if (topKP) topKP.checked = (activeId === "modeKP");
+		// Strictly enforce true/false across all 4 boxes at once
+		if (topSign) topSign.checked = isSignActive;
+		if (mainSign) mainSign.checked = isSignActive;
+		if (topKP) topKP.checked = !isSignActive;
+		if (mainKP) mainKP.checked = !isSignActive;
 
-		syncTopBarModes();
+		setTimeout(() => { window._modeSwitchLock = false; }, 10);
 		calc();
-
 	}
+	
+	
+	
+	
+	
+
 
 		
 		
@@ -611,10 +711,10 @@
 		
 		
 		<label style="margin-left:15px;">
-		<input type="checkbox" id="modeSign2Sign" onclick="enforceSingleMode('modeSign2Sign')"> Sign2Sign
+		<input type="checkbox" id="modeSign2Sign" onchange="enforceSingleMode('modeSign2Sign')"> Sign2Sign
 		</label>
 		<label>
-		<input type="checkbox" id="modeKP" checked onclick="enforceSingleMode('modeKP')"> KP
+			<input type="checkbox" id="modeKP" checked onchange="enforceSingleMode('modeKP')"> KP
 		</label>
 		
 		
@@ -638,11 +738,15 @@
 		<label style="margin-left:6px; color:#10b981; font-weight:bold;">
 		<input type="checkbox" id="useTrueNode" onchange="calc()"> True Node
 		</label>
-		
-		
+	</div>
 
-
-
+	<div class="controls" style="margin-top: -20px; margin-bottom: 40px;">
+		<label style="color:var(--asc-yellow); font-weight:bold; cursor:pointer;">
+			<input type="checkbox" id="hideAllAge" onchange="calc()"> Hide Age
+		</label>
+		<label style="color:var(--asc-yellow); font-weight:bold; cursor:pointer;">
+			<input type="checkbox" id="hideBhuktiAge" onchange="calc()" checked> Hide Bukthi Age
+		</label>
 	</div>
 	
 	
@@ -684,13 +788,106 @@
 
 </div>
 
-	
-	
-	
+
+<div class="vim-wrapper" style="margin-top: 20px; margin-bottom: 40px;">
+    <div style="background: #0a0a0a; border: 1px solid var(--grid-line); padding: 15px 20px; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 30px;">
+        <div style="color: var(--asc-yellow); font-weight: bold; font-size: 18px; text-transform: uppercase;">Date Difference Utility</div>
+
+        <label style="color: var(--text-white); font-weight: bold; display: flex; align-items: center; gap: 10px; font-size: 15px;">
+            Start Date
+            <input type="date" id="toolStartDate" style="background: #111; color: #fff; border: 1px solid var(--grid-line); padding: 6px 10px; outline: none; font-family: monospace;">
+        </label>
+
+        <label style="color: var(--text-white); font-weight: bold; display: flex; align-items: center; gap: 10px; font-size: 15px;">
+            End Date
+            <input type="date" id="toolEndDate" style="background: #111; color: #fff; border: 1px solid var(--grid-line); padding: 6px 10px; outline: none; font-family: monospace;">
+        </label>
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="color: var(--asc-yellow); font-weight: bold; font-size: 15px;">Difference:</span>
+            <div id="toolDateDiff" style="background: #000; border: 1px solid var(--grid-line); padding: 6px 15px; color: #10b981; font-weight: bold; font-size: 16px; min-width: 250px; text-align: center;">
+                Waiting for dates...
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+/* =========================================================
+   DATE DIFFERENCE TOOL LOGIC
+   ========================================================= */
+function calcToolDateDiff() {
+    const fromVal = document.getElementById("toolStartDate").value;
+    const toVal   = document.getElementById("toolEndDate").value;
+    const out     = document.getElementById("toolDateDiff");
+
+    if(!fromVal || !toVal) {
+        out.innerHTML = "Select both dates";
+        out.style.color = "#ff4444"; // Red for error
+        return;
+    }
+
+    const [fy, fm, fd] = fromVal.split("-").map(Number);
+    const [ty, tm, td] = toVal.split("-").map(Number);
+
+    let fromDate = new Date(fy, fm - 1, fd);
+    let toDate   = new Date(ty, tm - 1, td);
+
+    let sign = "";
+    let start = fromDate;
+    let end   = toDate;
+
+    // Handle negative difference if End Date is before Start Date
+    if(toDate < fromDate){
+        sign = "- ";
+        start = toDate;
+        end   = fromDate;
+    }
+
+    let years  = end.getFullYear() - start.getFullYear();
+    let months = end.getMonth() - start.getMonth();
+    let days   = end.getDate() - start.getDate();
+
+    if(days < 0){
+        months--;
+        days += new Date(end.getFullYear(), end.getMonth(), 0).getDate();
+    }
+
+    if(months < 0){
+        years--;
+        months += 12;
+    }
+
+    out.style.color = "#10b981"; // Using the theme's green
+    out.innerHTML = `${sign}${years} years, ${months} months, ${days} days`;
+}
+
+// Attach event listeners for real-time calculation
+document.getElementById("toolStartDate").addEventListener("change", calcToolDateDiff);
+document.getElementById("toolEndDate").addEventListener("change", calcToolDateDiff);
+
+// Initialize with today's date so it works immediately upon load
+(function initDateTool() {
+    const todayStr = new Date().toISOString().split("T")[0];
+    document.getElementById("toolStartDate").value = todayStr;
+    document.getElementById("toolEndDate").value = todayStr;
+    calcToolDateDiff();
+})();
+</script>
 
 <div class="division-title" onclick="toggleDivision()">
 	Divisional Charts ▶
 </div>
+
+
+
+
+
+
+
+
+
+
 
 <div id="out" class="chart-grid" style="display:none;"></div>
 
@@ -803,19 +1000,51 @@
 
 </div>
 
-<div id="lordshipDeciderWrapper" class="shoda-wrapper" style="padding-bottom:50vh;">
+<div id="lordshipDeciderWrapper" class="shoda-wrapper" style="padding-bottom:20px;">
     <div id="lordshipDeciderContainer"></div>
+</div>
+
+
+
+<div class="division-title" onclick="toggleAshtakavarga()">
+    Sarvashtaka Varga Calculator ▼
+</div>
+
+<div id="ashtakavargaWrapper" class="shoda-wrapper" style="display:none; padding-bottom:50vh;">
+    <div style="text-align:center; margin-bottom:20px;">
+        <label style="color:var(--grid-line); font-weight:bold; font-size:16px; margin-right:10px;">
+            SELECT KUNDALI:
+        </label>
+
+        <select id="savVargaSelect"
+                onchange="renderVargaAshtakavarga()"
+                style="background:#000;color:#fff;border:1px solid var(--grid-line);
+                       padding:6px 10px;font-size:16px;font-weight:bold;cursor:pointer;">
+        </select>
+    </div>
+
+    <div id="ashtakavargaContainer"
+         style="display:flex;flex-direction:column;gap:20px;align-items:center;">
+    </div>
 </div>
 
 
 
 
 
+
+
 <script>
+
+
+
+
+
+
+
 	let raw = null;
-	
-	let currentCusps = null;
-	
+
+let currentCusps = null;
 	
 	
 	/* =========================================
@@ -862,28 +1091,43 @@ function getPlacidusHouse(deg, cusps){
 	
 	
 	
-	function syncTopBarModes() {
-	const topSign = document.getElementById("topSign");
-	const topKP = document.getElementById("topKP");
+	
 
-	const mainSign = document.getElementById("modeSign2Sign");
-	const mainKP = document.getElementById("modeKP");
 
-	if (topSign && mainSign) topSign.checked = mainSign.checked;
-	if (topKP && mainKP) topKP.checked = mainKP.checked;
-}
+
+
+
+
 
 
 function syncShiftToggle(){
+    if (window._shiftLock) return;
+    window._shiftLock = true;
 
-	const topShift = document.getElementById("topShift");
-	const mainShift = document.getElementById("shiftedLagnaToggle");
+    const topShift = document.getElementById("topShift");
+    const mainShift = document.getElementById("shiftedLagnaToggle");
 
-	if(!topShift || !mainShift) return;
+    if (topShift && mainShift) {
+        mainShift.checked = topShift.checked;
+    }
 
-	mainShift.checked = topShift.checked;
+    setTimeout(() => { window._shiftLock = false; }, 10);
+    calc();
+}
 
-	calc();
+function onShiftManualChange(){
+    if (window._shiftLock) return;
+    window._shiftLock = true; // <-- Added the missing lock
+
+    const topShift = document.getElementById("topShift");
+    const mainShift = document.getElementById("shiftedLagnaToggle");
+
+    if (topShift && mainShift) {
+        topShift.checked = mainShift.checked;
+    }
+
+    setTimeout(() => { window._shiftLock = false; }, 10);
+    calc();
 }
 
 
@@ -965,6 +1209,7 @@ function manualTimeChange() {
 	document.getElementById('out').innerHTML = '';
 
 	updateMiniClock();
+	initLordshipDropdown();
 	calc();
 }
 
@@ -1328,24 +1573,190 @@ function getVSign(baseDeg, v) {
 	  12:{ excellent:[2,10], good:[4,8,12], average:[1,6], bad:[3,9], worst:[5,7,11] }
 
 	};
+	
+	
+	
+	
+	const BAV_RULES = {
+    Surya: { Surya: [1,2,4,7,8,9,10,11], Chandra: [3,6,10,11], Mangala: [1,2,4,7,8,9,10,11], Budha: [3,5,6,9,10,11,12], Jupiter: [5,6,9,11], Venus: [6,7,12], Saturn: [1,2,4,7,8,9,10,11], Lagna: [3,4,6,10,11,12] },
+    Chandra: { Surya: [3,6,7,8,10,11], Chandra: [1,3,6,7,10,11], Mangala: [2,3,5,6,9,10,11], Budha: [1,3,4,5,7,8,10,11], Jupiter: [1,4,7,8,10,11,12], Venus: [3,4,5,7,9,10,11], Saturn: [3,5,6,11], Lagna: [3,6,10,11,12] },
+    Mangala: { Surya: [3,5,6,10,11], Chandra: [3,6,11], Mangala: [1,2,4,7,8,10,11], Budha: [3,5,6,11], Jupiter: [6,10,11,12], Venus: [6,8,11,12], Saturn: [1,4,7,8,9,10,11], Lagna: [1,3,6,10,11] },
+    Budha: { Surya: [5,6,9,11,12], Chandra: [2,4,6,8,10,11], Mangala: [1,2,4,7,8,9,10,11], Budha: [1,3,5,6,9,10,11,12], Jupiter: [6,8,11,12], Venus: [1,2,3,4,5,8,9,11], Saturn: [1,2,4,7,8,9,10,11], Lagna: [1,2,4,6,8,10,11] },
+    Jupiter: { Surya: [1,2,3,4,7,8,9,10,11], Chandra: [2,5,7,9,11], Mangala: [1,2,4,7,8,10,11], Budha: [1,2,4,5,6,9,10,11], Jupiter: [1,2,3,4,7,8,10,11], Venus: [2,5,6,9,10,11], Saturn: [3,5,6,12], Lagna: [1,2,4,5,6,7,9,10,11] },
+    Venus: { Surya: [8,11,12], Chandra: [1,2,3,4,5,8,9,11,12], Mangala: [3,5,6,9,11,12], Budha: [3,5,6,9,11], Jupiter: [5,8,9,10,11], Venus: [1,2,3,4,5,8,9,10,11], Saturn: [3,4,5,8,9,10,11], Lagna: [1,2,3,4,5,8,9] },
+    Saturn: { Surya: [1,2,4,7,8,10,11], Chandra: [3,6,11], Mangala: [3,5,6,10,11,12], Budha: [6,8,9,10,11,12], Jupiter: [5,6,11,12], Venus: [6,11,12], Saturn: [3,5,6,11], Lagna: [1,3,4,6,10,11] },
+    Rahu: { Surya: [1,2,3,5,7,8,10], Chandra: [1,3,5,7,8,9,10], Mangala: [2,3,5,12], Budha: [2,4,7,8,12], Jupiter: [1,3,4,6,8], Venus: [6,7,11,12], Saturn: [3,5,7,10,11,12], Lagna: [3,4,5,9,12] }
+};
+const LAGNA_BAV_RULES_GLOBAL = { Surya: [3,4,6,10,11,12], Chandra: [3,6,10,11,12], Mangala: [1,3,6,10,11], Budha: [1,2,4,6,8,10,11], Jupiter: [1,2,4,5,6,7,9,10,11], Venus: [1,2,3,4,5,8,9], Saturn: [1,3,4,6,10,11], Lagna: [3,6,10,11] };
+
+function toggleAshtakavarga() { const box = document.getElementById("ashtakavargaWrapper"); if(!box) return; box.style.display = (box.style.display === "none") ? "block" : "none"; }
+
+
+
+
+function getVargaPosSign(v) { 
+    const pMap = {Surya: "Sy", Chandra: "Ch", Mangala: "Ma", Budha: "Bu", Jupiter: "Ju", Venus: "Ve", Saturn: "Sa", Rahu: "Ra"}; 
+    const rashiData = window._shodaRashi[v]; 
+    const posSign = {}; 
+    
+    if (!rashiData) return posSign; 
+    
+    Object.keys(pMap).forEach(target => { 
+        const code = pMap[target]; 
+        if (rashiData[code] && rashiData[code] !== "-") { 
+            posSign[target] = parseInt(rashiData[code]) - 1; 
+        } 
+    }); 
+    
+    // 🔒 FIX 3: Use pure unshifted lagna instead of the shifted lagna to prevent rule recalculation
+    posSign["Lagna"] = (window._pureAscSigns && window._pureAscSigns[v] !== undefined) 
+                        ? window._pureAscSigns[v] 
+                        : (window._ascSigns[v] !== undefined ? window._ascSigns[v] : 0); 
+    
+    return posSign; 
+}
+
+
+
+function calcVargaSAV(v) { const posSign = getVargaPosSign(v); const planets7 = ["Surya", "Chandra", "Mangala", "Budha", "Jupiter", "Venus", "Saturn"]; const SAV = Array(12).fill(0); if (Object.keys(posSign).length < 8) return SAV; planets7.forEach(targetPlanet => { const contributors = [...planets7, "Lagna"]; contributors.forEach(source => { const rules = BAV_RULES[targetPlanet][source]; const sourceSign = posSign[source]; if (rules && sourceSign !== undefined) { rules.forEach(houseOffset => { SAV[(sourceSign + (houseOffset - 1)) % 12]++; }); } }); }); return SAV; }
+
+
+function calcVargaSingleBAV(v, target) { const posSign = getVargaPosSign(v); const planets7 = ["Surya", "Chandra", "Mangala", "Budha", "Jupiter", "Venus", "Saturn"]; const row = Array(12).fill(0); if (Object.keys(posSign).length < 8) return row; if (target === "Lagna") { Object.entries(LAGNA_BAV_RULES_GLOBAL).forEach(([source, rules]) => { const sSign = posSign[source]; if (sSign !== undefined) { rules.forEach(offset => { row[(sSign + (offset - 1)) % 12]++; }); } }); return row; } if (target === "Rahu") { [...planets7, "Lagna"].forEach(source => { const rules = BAV_RULES["Rahu"][source]; const sSign = posSign[source]; if (rules && sSign !== undefined) { rules.forEach(offset => { row[(sSign + (offset - 1)) % 12]++; }); } }); return row; } [...planets7, "Lagna"].forEach(source => { const rules = BAV_RULES[target]?.[source]; const sSign = posSign[source]; if (rules && sSign !== undefined) { rules.forEach(offset => { row[(sSign + (offset - 1)) % 12]++; }); } }); return row; }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function renderVargaAshtakavarga() { 
+    const container = document.getElementById("ashtakavargaContainer"); 
+    const sel = document.getElementById("savVargaSelect"); 
+    
+    if (!container || !sel) return; 
+    container.innerHTML = ""; 
+    
+    const v = parseInt(sel.value); 
+    if (!window._shodaRashi || !window._shodaRashi[v]) return; 
+    
+    function makeKundali(values, title, highlightSign=null) { 
+        const k = document.createElement("div"); 
+        k.className = "ashta-kundali"; 
+
+        const map = [11, 0, 1, 2, 10, -1, -1, 3, 9, -1, -1, 4, 8, 7, 6, 5]; 
+
+        map.forEach(idx => { 
+            if (idx === -1) { 
+                const c = document.createElement("div"); 
+                c.className = "ashta-center"; 
+                c.innerText = title; 
+                k.appendChild(c); 
+            } 
+            else { 
+                const c = document.createElement("div"); 
+                c.className = "ashta-cell"; 
+                c.innerText = values[idx] ?? ""; 
+
+                /* highlight sign */
+                if(highlightSign !== null && idx === highlightSign){
+                    c.classList.add("ashta-highlight");
+                }
+
+                k.appendChild(c); 
+            } 
+        }); 
+
+        return k; 
+    }
+    
+    // 🔒 FIX 4: Determine exactly how many signs the array needs to rotate visually
+    let shiftAmount = 0;
+    const modeKP = document.getElementById('modeKP')?.checked;
+    if (modeKP) {
+        shiftAmount = window._kpSignShift?.[v] || 0;
+    } else {
+        shiftAmount = window._signShiftVarga?.[v] || 0;
+    }
+
+    // Helper function to shift the numbers in the array to the next sign
+    function rotateArrayRight(arr, shift) {
+        if (!shift) return arr;
+        const len = arr.length;
+        shift = ((shift % len) + len) % len;
+        return [...arr.slice(-shift), ...arr.slice(0, len - shift)];
+    }
+
+    // Row-by-row layout as requested
+    const layoutRows = [
+        ["SAV", "Lagna"],
+        ["Jupiter", "Saturn", "Budha"],
+        ["Ketu", "Venus", "Surya"],
+        ["Chandra", "Mangala", "Rahu"]
+    ];
+
+    layoutRows.forEach(rowPlanets => {
+        // Create a separate grid container for each row to enforce the structure
+        const grid = document.createElement("div"); 
+        grid.className = "ashta-grid"; 
+        grid.style.marginBottom = "10px"; // Optional tweak for row spacing
+
+        rowPlanets.forEach(p => {
+            if (p === "SAV") {
+                let SAV = calcVargaSAV(v); 
+                SAV = rotateArrayRight(SAV, shiftAmount); 
+                const ascSign = window._ascSigns?.[v] ?? 0;
+                grid.appendChild(makeKundali(SAV, "D" + v + "\nSAV", ascSign));
+            } 
+            else if (p === "Ketu") {
+                // Generate an empty dummy Kundali for Ketu
+                const emptyArr = Array(12).fill("");
+                grid.appendChild(makeKundali(emptyArr, "BAV\nKetu", null));
+            } 
+            else {
+                let row = calcVargaSingleBAV(v, p); 
+                row = rotateArrayRight(row, shiftAmount);
+                const posSign = getVargaPosSign(v);
+                const planetSign = posSign[p];
+                grid.appendChild(makeKundali(row, "BAV\n" + p, planetSign));
+            }
+        });
+
+        container.appendChild(grid);
+    });
+}
+
+
+
+
 		
 	
 	function initLordshipDropdown(){
-
     const sel = document.getElementById("lordshipVargaSelect");
-    if(!sel) return;
+    const savSel = document.getElementById("savVargaSelect");
+    const vKeys = [1,10,9,7,2,4,8,60,11,30,21,16,6,12,3,24,27,20,40,45,5];
 
-    const vKeys = [1,9,10,2,21,4,16,6,7,8,60,11,12,3,24,27,30,20,40,45,5];
-
-    sel.innerHTML="";
+    if(sel) sel.innerHTML="";
+    if(savSel) savSel.innerHTML="";
 
     vKeys.forEach(v=>{
         const op=document.createElement("option");
-        op.value=v;
-        op.textContent="D"+v;
-        sel.appendChild(op);
+        op.value=v; op.textContent="D"+v;
+        if(sel) sel.appendChild(op);
+        
+        if(savSel) {
+            const op2=document.createElement("option");
+            op2.value=v; op2.textContent="D"+v;
+            savSel.appendChild(op2);
+        }
     });
-
+    if(savSel) savSel.value = 1;
 }
 
 
@@ -1893,6 +2304,10 @@ if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
 		const chart = Array(12).fill().map(() => []);
 		let lagnaDeg;
 		
+		// 🔒 FIX 1: Store pure unshifted Ascendant sign for SAV baseline
+		if (!window._pureAscSigns) window._pureAscSigns = {};
+		window._pureAscSigns[v] = getVSign(d.lagna, v);
+		
 		
 		let d1OverrideSign = null;
 		if (v === 1) {
@@ -1988,10 +2403,13 @@ if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
 					pivotD30Deg = (rel / length) * 30;
 				}
 				
-				
-				
-				
-				
+				// 🔥 D30 KP SHIFT LOGIC 
+				let kpSignShift = 0;
+				if (SHIFTED_LAGNA && pivotD30Deg >= 15) {
+					kpSignShift = 1;
+				}
+				if(!window._kpSignShift) window._kpSignShift = {};
+				window._kpSignShift[30] = kpSignShift;
 
 				// Shift ASC in D30 space
 				lagnaDeg = ascD30Sign * 30 + ascD30Deg - pivotD30Deg;
@@ -2039,14 +2457,13 @@ if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
 				
 				 // ADD ASC TO CHART - D30 KP MODE (FIXED)
 				if (pivot === "ASC") {
-					// When pivot is ASC, it should be at 0° in its D30 sign
-					// Use the pivot's D30 sign directly, NOT calculated from lagnaDeg
-					chart[pivotD30Sign].push({ n: "ASC", d: 0, r: false, isAsc: true });
+					let finalAscSign = (pivotD30Sign + kpSignShift) % 12;
+					chart[finalAscSign].push({ n: "ASC", d: 0, r: false, isAsc: true });
 				} else {
-					// When pivot is a planet, ASC moves like other planets
 					const d30AscSign = Math.floor(lagnaDeg / 30);
 					const d30AscDeg = lagnaDeg % 30;
-					chart[d30AscSign].push({ n: "ASC", d: d30AscDeg, r: false, isAsc: true });
+					let finalAscSign = (d30AscSign + kpSignShift) % 12;
+					chart[finalAscSign].push({ n: "ASC", d: d30AscDeg, r: false, isAsc: true });
 				}
 				
 				
@@ -2118,12 +2535,15 @@ if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
 				// final ASC placement
 				let ascSignKP = (pSign + kpSignShift) % 12;
 
-				chart[ascSignKP].push({
-					n: "ASC",
-					d: 0,
-					r: false,
-					isAsc: true
-				});
+				if (pivot === "ASC") {
+					chart[ascSignKP].push({ n: "ASC", d: 0, r: false, isAsc: true });
+				} else {
+					// Place True Lagna properly when a Planet is Pivot
+					const trueAscHouse = Math.floor(lagnaDeg / 30);
+					const trueAscDeg = lagnaDeg % 30;
+					const finalTrueAsc = (trueAscHouse + kpSignShift) % 12;
+					chart[finalTrueAsc].push({ n: "ASC", d: trueAscDeg, r: false, isAsc: true });
+				}
 								
 				
 				
@@ -2358,9 +2778,24 @@ if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
 				break;
 			}
 		}
+		
+		
+		// ============================
+		// SHIFT ENGINE (DISPLAY ONLY)
+		// ============================
+		// Visual shift hack removed to protect pure Sign2Sign mode.
+		// KP mode mathematically moves data, so visual UI tricks aren't needed.
+        
+		if(!window._signShiftVarga) window._signShiftVarga = {};
+		window._signShiftVarga[v] = 0; 
+		window._signShift = 0;
+		
+		
 
-		// store REAL chart ascendant (visual chart reference)
+		// store REAL chart ascendant
 		window._ascSigns[v] = ascIndex;
+
+		
 
 
 
@@ -2444,6 +2879,7 @@ pNames.forEach(p=>{
 buildShodaTables();
 buildLordsTable();
 buildLordshipDeciderTable();
+renderVargaAshtakavarga();
 
 // Build Vimshottari
 buildFullDasha("vimChandra", moonShifted);
@@ -2503,6 +2939,8 @@ function render(v, chart) {
 	}
 
 	m.forEach(idx => {
+
+		const sIdx = idx; // No more visual trickery!
 		const h = document.createElement('div'); 
 		h.className = 'house';
 
@@ -2515,20 +2953,15 @@ function render(v, chart) {
 			}
 		} else {
 			// calculate house number based on ASC pivot
-			const houseNum = ((idx - ascIndex + 12) % 12) + 1;
+			const houseNum = ((sIdx - ascIndex + 12) % 12) + 1;
 
+			// highlight ASC sign box
+			if(sIdx === ascIndex){
+				h.classList.add("asc-house");
+			}
 
-
-
-
-
-
-		   // add house number first
+			// add house number
 			h.innerHTML += `<div class="house-num">${houseNum}</div>`;
-
-			// bottom empty line
-			h.innerHTML += `<div class="p-line">&nbsp;</div>`;
-
 
 
 
@@ -2541,7 +2974,7 @@ function render(v, chart) {
 			let objects = [];
 
 			// add planets
-			chart[idx].forEach(p=>{
+			chart[sIdx].forEach(p=>{
 				objects.push({
 					type:"planet",
 					deg:p.d,
@@ -2655,10 +3088,7 @@ function render(v, chart) {
 							}
 						}
 
-						/* shifted lagna rule */
-						if(SHIFTED && ascDeg>=15){
-							ascSign=(ascSign+1)%12;
-						}
+						
 
 						/* convert to 1-12 */
 						const ascIndex=ascSign+1;
@@ -3311,7 +3741,7 @@ if (firstPlanet && DBA.includes(firstPlanet)) {
 	
 	
 	
-	const vKeys = [1,9,10,2,21,4,16,6,7,8,60,11,12,3,24,27,30,20,40,45,5];
+	const vKeys = [1,10,9,7,2,4,8,60,11,30,21,16,6,12,3,24,27,20,40,45,5];
 
 	function makeTable(data,targetId){
 		const el = document.getElementById(targetId);
@@ -3500,7 +3930,7 @@ if (firstPlanet && DBA.includes(firstPlanet)) {
 		9:"Ju",10:"Sa",11:"Sa",12:"Ju"
 	};
 
-	const vKeys = [1,9,10,2,21,4,16,6,7,8,60,11,12,3,24,27,30,20,40,45,5];
+	const vKeys = [1,10,9,7,2,4,8,60,11,30,21,16,6,12,3,24,27,20,40,45,5];
 
 	let html = `<table class="shoda-table"><tr><th>D</th>`;
 
@@ -3656,6 +4086,24 @@ window._globalTableMemory = {
 };
 
 
+
+// =============================
+// GLOBAL TABLE SELECTION MEMORY
+// =============================
+
+window._globalTableMemory = {
+	rows: new Set(),
+	cols: new Set(),
+	cells: new Set()
+};
+
+// =============================
+// DISPLAY SHIFT MEMORY
+// =============================
+window._signShift = 0;
+
+
+
 const VIM_SYMBOLS = {
   1:"⭐",
   2:"▶",
@@ -3695,7 +4143,6 @@ function formatDateSmart(d){
 
 
 
-
 function buildFullDasha(containerId, baseDeg){
 
   const box=document.getElementById(containerId);
@@ -3721,14 +4168,14 @@ function buildFullDasha(containerId, baseDeg){
   );
 
   let startIndex=VIM_ORDER.indexOf(startLord);
-  let mahaCounter = 0; // track first Mahadasha only
+  let mahaCounter = 0; 
   let order=[...VIM_ORDER.slice(startIndex),...VIM_ORDER.slice(0,startIndex)];
 
-  // FIXED ALIGNMENT: 34px for arrow, 170px for title, 1fr for date. 
-  // All levels (Maha, Bhukti, Antara) use this same grid.
-const GRID_STYLE = "display:grid; grid-template-columns: 24px 2fr 1fr 0.7fr 0.5fr 1fr 0.7fr; align-items:center; column-gap:0.4em; width:100%; box-sizing:border-box;";
+  const GRID_STYLE = "display:grid; grid-template-columns: 24px 2fr 1fr 0.7fr 0.5fr 1fr 0.7fr; align-items:center; column-gap:0.4em; width:100%; box-sizing:border-box;";
 
-
+  // --- NEW: Read Checkbox States ---
+  const hideAllAge = document.getElementById("hideAllAge")?.checked;
+  const hideBhuktiAge = document.getElementById("hideBhuktiAge")?.checked;
 
   order.forEach(mahaLord=>{
 	let mahaYears=VIM_YEARS[mahaLord];
@@ -3740,14 +4187,16 @@ const GRID_STYLE = "display:grid; grid-template-columns: 24px 2fr 1fr 0.7fr 0.5f
 	if(ageStart < 0) ageStart = 0;
 	if(ageEnd < 0) ageEnd = 0;
 
+    // Visibility logic for Maha age
+    const showMahaAge = !hideAllAge;
+
 	let mahaRow=document.createElement("div");
 	mahaRow.dataset.lord = KN_NAMES[mahaLord];
 	mahaRow.dataset.lord = mahaLord;
 	mahaRow.dataset.s=mahaStart;
 	mahaRow.dataset.e=mahaEnd;
 	mahaRow.dataset.l=1;
-	mahaRow.dataset.lord = mahaLord;
-	mahaRow.className = "vim-maha"; // Uses CSS from your <style>
+	mahaRow.className = "vim-maha"; 
 	mahaRow.style=GRID_STYLE + "cursor:pointer; padding:6px 8px; margin:6px 0 3px 0; border:1px solid #444; border-radius:4px;";
 
 	mahaRow.innerHTML=`
@@ -3756,16 +4205,16 @@ const GRID_STYLE = "display:grid; grid-template-columns: 24px 2fr 1fr 0.7fr 0.5f
 		${document.getElementById("modeKN")?.checked ? "ಮಹಾದಶೆ – " + KN_NAMES[mahaLord] : "Mahadasha – " + EN_NAMES[mahaLord]}
 		</div>
 	  <div>${formatDateSmart(mahaCounter === 0 && originalDateTime ? originalDateTime : mahaStart)}</div>
-	  <div>(${ageStart} y)</div>
+	  <div>${showMahaAge ? `(${ageStart} y)` : ''}</div>
 	  <div style="text-align:center;">→</div>
 	  <div>${formatDateSmart(mahaEnd)}</div>
-	  <div>(${ageEnd} y)</div>
+	  <div>${showMahaAge ? `(${ageEnd} y)` : ''}</div>
 	`;
 
 
 	let bhuktiBox=document.createElement("div");
 	bhuktiBox.style.display="none";
-	bhuktiBox.style.marginLeft="0"; // REMOVED ZIGZAG
+	bhuktiBox.style.marginLeft="0"; 
 	bhuktiBox.style.marginTop="6px";
 
 	let startBhuktiIndex = VIM_ORDER.indexOf(mahaLord);
@@ -3780,11 +4229,20 @@ const GRID_STYLE = "display:grid; grid-template-columns: 24px 2fr 1fr 0.7fr 0.5f
 	  let bhuktiYears=mahaYears*(VIM_YEARS[bhuktiLord]/120);
 	  let bhuktiEnd=new Date(bhuktiStart.getTime()+bhuktiYears*MS_YEAR);
 
+      // --- NEW: Calculate Bhukti Age ---
+      let bAgeStart = Math.floor((bhuktiStart - birth)/MS_YEAR);
+      let bAgeEnd   = Math.floor((bhuktiEnd - birth)/MS_YEAR);
+      if(bAgeStart < 0) bAgeStart = 0;
+      if(bAgeEnd < 0) bAgeEnd = 0;
+
+      // Visibility logic for Bhukti age
+      const showBhuktiAge = !hideAllAge && !hideBhuktiAge;
+
 	  let bhuktiRow=document.createElement("div");
 	  bhuktiRow.dataset.s=bhuktiStart;
 	  bhuktiRow.dataset.e=bhuktiEnd;
 	  bhuktiRow.dataset.l=2;
-	  bhuktiRow.className = "vim-bhukti"; // Uses CSS from your <style>
+	  bhuktiRow.className = "vim-bhukti"; 
 	  bhuktiRow.style=GRID_STYLE + "cursor:pointer; padding:4px 6px; margin:2px 0; border:1px solid #333; border-radius:3px;";
 
 	  bhuktiRow.innerHTML=`
@@ -3793,16 +4251,16 @@ const GRID_STYLE = "display:grid; grid-template-columns: 24px 2fr 1fr 0.7fr 0.5f
 		${document.getElementById("modeKN")?.checked ? "ಭುಕ್ತಿ – " + KN_NAMES[bhuktiLord] : "Bhukti – " + EN_NAMES[bhuktiLord]}
 		</div>
 		<div>${formatDateSmart(bhuktiStart)}</div>
-		<div></div>
+		<div>${showBhuktiAge ? `(${bAgeStart} y)` : ''}</div>
 		<div style="text-align:center;">→</div>
 		<div>${formatDateSmart(bhuktiEnd)}</div>
-		<div></div>
+		<div>${showBhuktiAge ? `(${bAgeEnd} y)` : ''}</div>
 	  `;
 
 
 	  let antaraBox=document.createElement("div");
 	  antaraBox.style.display="none";
-	  antaraBox.style.marginLeft="0"; // REMOVED ZIGZAG
+	  antaraBox.style.marginLeft="0"; 
 
 	  let startAntaraIndex = VIM_ORDER.indexOf(bhuktiLord);
 		let antaraOrder = [
@@ -3820,7 +4278,7 @@ const GRID_STYLE = "display:grid; grid-template-columns: 24px 2fr 1fr 0.7fr 0.5f
 		line.dataset.s=antaraStart;
 		line.dataset.e=antaraEnd;
 		line.dataset.l=3;
-		line.className = "vim-antara"; // Uses CSS from your <style>
+		line.className = "vim-antara"; 
 		line.style=GRID_STYLE + "cursor:pointer; padding:3px 6px; margin:1px 0; border:1px solid #1e3a8a; border-radius:2px;";
 
 		line.innerHTML=`
@@ -3840,27 +4298,15 @@ const GRID_STYLE = "display:grid; grid-template-columns: 24px 2fr 1fr 0.7fr 0.5f
 		antaraStart=antaraEnd;
 	  });
 
-
-
-
-
-
-
-
 	 bhuktiRow.onclick=(e)=>{
 	  e.stopPropagation();
 
 	  const levelLimit = parseInt(document.getElementById("expandLevel")?.value || "2");
 
-	  // Remove active from this column only
 	  box.querySelectorAll(".vim-bhukti").forEach(r=>r.classList.remove("active"));
-
-	  // Always highlight clicked bhukti
 	  bhuktiRow.classList.add("active");
 
-	  // If dropdown is set to Bukthi (2) → LOCK
 	  if(levelLimit === 2){
-		// Force close any open antara
 		if(currentOpenBhuktiBox[containerId]){
 		  currentOpenBhuktiBox[containerId].style.display="none";
 		}
@@ -3869,7 +4315,6 @@ const GRID_STYLE = "display:grid; grid-template-columns: 24px 2fr 1fr 0.7fr 0.5f
 		return;
 	  }
 
-	  // If dropdown is Antara (3) → allow expand
 	  const isOpen = antaraBox.style.display === "block";
 
 	  if(currentOpenBhuktiBox[containerId] && currentOpenBhuktiBox[containerId]!==antaraBox){
@@ -3881,40 +4326,23 @@ const GRID_STYLE = "display:grid; grid-template-columns: 24px 2fr 1fr 0.7fr 0.5f
 	  currentOpenBhuktiBox[containerId] =
 		antaraBox.style.display==="block" ? antaraBox : null;
 	};
-	  
-	  
-	  
-	  
-
-
 
 	  bhuktiBox.appendChild(bhuktiRow);
 	  bhuktiBox.appendChild(antaraBox);
 	  bhuktiStart=bhuktiEnd;
 	});
 
-
-
-
-
-
-
-
 	mahaRow.onclick=()=>{
 	  const isOpen=bhuktiBox.style.display==="block";
 
-	  // remove active from this column only
 	  box.querySelectorAll(".vim-maha").forEach(r=>r.classList.remove("active"));
 
-	  // collapse previous in this column
 	  if(currentOpenMahaBox[containerId] && currentOpenMahaBox[containerId]!==bhuktiBox){
 		currentOpenMahaBox[containerId].style.display="none";
 	  }
 
-	  // toggle
 	  bhuktiBox.style.display=isOpen?"none":"block";
 
-	  // activate current
 	  if(!isOpen){
 		mahaRow.classList.add("active");
 	  }
@@ -3922,16 +4350,21 @@ const GRID_STYLE = "display:grid; grid-template-columns: 24px 2fr 1fr 0.7fr 0.5f
 	  currentOpenMahaBox[containerId] = bhuktiBox.style.display==="block" ? bhuktiBox : null;
 	};
 
-
-
-
-
 	box.appendChild(mahaRow);
 	box.appendChild(bhuktiBox);
 	mahaStart=mahaEnd;
 	mahaCounter++;
   });
 }
+
+
+
+
+
+
+
+
+
 
 
 
@@ -4298,8 +4731,7 @@ function expandVimForDate(containerId,targetDate){
 	
 // render empty charts on first load
 window.addEventListener("load", () => {
-    syncTopBarModes();
-    setTodayVimDate();
+    setTodayVimDate(); // Now this will successfully run!
 
     initLordshipDropdown();   // ⭐ ADD THIS LINE HERE
 
