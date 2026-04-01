@@ -639,26 +639,15 @@
 
 	<select id="pivot" onchange="calc()">
 		<option value="ASC">ASC</option>
+		<option value="Saturn">Saturn</option>
+		<option value="Budha">Budha</option>
+		<option value="Ketu">Ketu</option>
+		<option value="Venus">Venus</option>
 		<option value="Surya">Surya</option>
 		<option value="Chandra">Chandra</option>
 		<option value="Mangala">Mangala</option>
 		<option value="Rahu">Rahu</option>
 		<option value="Jupiter">Jupiter</option>
-		<option value="Saturn">Saturn</option>
-
-		<option value="Budha">Budha</option>
-		<option value="Ketu">Ketu</option>
-		<option value="Venus">Venus</option>
-
-		<option value="Surya">Surya</option>
-		<option value="Chandra">Chandra</option>
-		<option value="Mangala">Mangala</option>
-		<option value="Rahu">Rahu</option>
-		<option value="Jupiter">Jupiter</option>
-		<option value="Saturn">Saturn</option>
-		<option value="Budha">Budha</option>
-		<option value="Ketu">Ketu</option>
-		<option value="Venus">Venus</option>
 	</select>
 
 		<label style="margin-left:10px; color:var(--asc-yellow); font-weight:bold;">
@@ -1268,39 +1257,88 @@ function resetTime() {
 
 
 
+	/* =========================================
+   UI RESET ENGINE
+========================================= */
+function resetAllControlsToDefault() {
+	// 1. Reset Dropdowns
+	if (document.getElementById('aya')) document.getElementById('aya').value = 'Lahiri';
+	if (document.getElementById('expandLevel')) document.getElementById('expandLevel').value = '2';
+	if (document.getElementById('pivot')) document.getElementById('pivot').value = 'ASC';
+
+	// 2. Reset Checkboxes to their initial HTML states
+	const checkboxDefaults = {
+		'topSign': false,
+		'topKP': true,
+		'topShift': true,
+		'shiftedLagnaToggle': true,
+		'modeSign2Sign': false,
+		'modeKP': true,
+		'modeKN': true,
+		'modeDateHide': true,
+		'showCusps': false,
+		'showLordship': true,
+		'useTrueNode': false,
+		'hideAllAge': false,
+		'hideBhuktiAge': true,
+		'moonBased': true,
+		'lagnaBased': false,
+		'toggleSignNames': false,
+		'toggleDignity': true
+	};
+
+	for (const [id, isChecked] of Object.entries(checkboxDefaults)) {
+		const el = document.getElementById(id);
+		if (el) el.checked = isChecked;
+	}
+
+	// 3. Reset dynamically generated dropdowns (Vargas)
+	if (typeof initLordshipDropdown === 'function') {
+		initLordshipDropdown();
+	}
+}
+
 	document.getElementById('fIn').onchange = (e) => {
 		const reader = new FileReader();
 		
 		reader.onload = (f) => {
-		raw = JSON.parse(f.target.result);
-		updateHeader();
+			raw = JSON.parse(f.target.result);
+			
+			// 🔥 RESET ALL UI CONTROLS TO DEFAULT BEFORE PROCESSING 🔥
+			resetAllControlsToDefault();
 
-		// FORCE fresh datetime from new JSON
-		const d = document.getElementById('dobField').value;
-		const t = document.getElementById('tobField').value;
+			updateHeader();
 
-		if (d && t) {
-		// Set birth anchor ONCE
-		originalDateTime = new Date(d + "T" + t);
-		currentDateTime  = new Date(originalDateTime);
-	}
+			// FORCE fresh datetime from new JSON
+			const d = document.getElementById('dobField').value;
+			const t = document.getElementById('tobField').value;
 
-		updateMiniClock();
-		calc();
-	};
+			if (d && t) {
+				// Set birth anchor ONCE
+				originalDateTime = new Date(d + "T" + t);
+				currentDateTime  = new Date(originalDateTime);
+			}
 
-
-
-
-
-
-
-
-
-
+			updateMiniClock();
+			calc();
+		};
 
 		reader.readAsText(e.target.files[0]);
+		
+		// Reset the file input value so you can reload the same file if needed
+		e.target.value = ''; 
 	};
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 
 
 
@@ -4763,8 +4801,35 @@ window.addEventListener("load", () => {
 	
 	
 	
-	
-	
+/* =========================================
+   NATIVE DROPDOWN KEYBOARD LOOP ENGINE
+========================================= */
+const pivotSelect = document.getElementById('pivot');
+if (pivotSelect) {
+	pivotSelect.addEventListener('keydown', function(e) {
+		const max = this.options.length - 1;
+		
+		// If pressing DOWN on the last item, loop to top
+		if (e.key === 'ArrowDown' && this.selectedIndex === max) {
+			e.preventDefault();
+			this.selectedIndex = 0;
+			calc(); // Recalculate chart
+		} 
+		// If pressing UP on the first item, loop to bottom
+		else if (e.key === 'ArrowUp' && this.selectedIndex === 0) {
+			e.preventDefault();
+			this.selectedIndex = max;
+			calc(); // Recalculate chart
+		}
+	});
+}
+
 </script>
+
+
+
+
+
+
 </body>
 </html>
