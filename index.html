@@ -883,6 +883,522 @@ document.getElementById("toolEndDate").addEventListener("change", calcToolDateDi
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<style>
+/* =========================================================
+   TABLE 6 : CUSTOM VEDIC ASPECT STYLES (SOLID COLORS)
+========================================================= */
+#p2pTable th, #p2hTable th {
+    background: #660033 !important; 
+    color: #facc15 !important;
+    font-weight: 900;
+    cursor: pointer;
+    border: 1px solid var(--grid-line);
+    padding: 10px;
+}
+
+#p2pTable td:first-child, #p2hTable td:first-child {
+    background: #2d0066 !important; 
+    color: #facc15 !important;
+    font-weight: 900;
+    cursor: pointer;
+    border: 1px solid var(--grid-line);
+}
+
+/* Hover State (Crosshair overlay) */
+#vedicAspectsWrapper th.vedic-hover-bg,
+#vedicAspectsWrapper td.vedic-hover-bg {
+    background: rgba(16, 185, 129, 0.45) !important; 
+    color: #ffffff !important;
+}
+
+/* Protect the Planet Placement Cell from Hover Color changes */
+#vedicAspectsWrapper td.placement-cell,
+#vedicAspectsWrapper td.placement-cell.vedic-hover-bg {
+    background: #000099 !important; /* <--- CHANGED FROM #590F00 TO #000099 */
+    color: #ffffff !important;
+}
+
+/* Active State (Multi-Select Click Highlight) */
+#vedicAspectsWrapper th.vedic-active-bg,
+#vedicAspectsWrapper td.vedic-active-bg {
+    background: rgba(139, 0, 0, 0.8) !important; 
+    color: #ffffff !important;
+}
+</style>
+
+<div class="division-title" onclick="toggleVedicAspects()">
+    Vedic Aspects & Specific Chart ▼
+</div>
+
+<div id="vedicAspectsWrapper" class="shoda-wrapper" style="display:none; padding-bottom: 20px;">
+    
+    <div style="text-align:center; margin-bottom:14px;">
+        <label style="color:var(--grid-line); font-weight:bold; font-size:16px; margin-right:10px;">
+            SELECT DIVISIONAL CHART:
+        </label>
+        <select id="vedicAspectVargaSelect"
+                onchange="renderVedicAspectsTab()"
+                style="background:#000;color:#fff;border:1px solid var(--grid-line);
+                       padding:6px 10px;font-size:16px;font-weight:bold;cursor:pointer;">
+        </select>
+    </div>
+
+    <div style="text-align:center; margin-bottom:20px; font-weight:800; color:var(--text-white);">
+        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px;">
+            <input type="checkbox" id="rkAspectsToggle" onchange="renderVedicAspectsTab()">
+            Rahu & Ketu Aspects: 3, 11 (Default is 5, 9)
+        </label>
+    </div>
+
+    <div id="vedicSingleKundali" style="display:flex; justify-content:center; margin-bottom: 40px; width:100%;"></div>
+
+    <div class="shoda-title">Planet to Planet Aspects (Vedic)</div>
+    
+    <div style="text-align:center; color:#10b981; font-weight:bold; margin-top:-5px; margin-bottom:15px; font-size:14px;" id="vedicAspectStarlordIndicator"></div>
+    
+    <div style="display:flex; justify-content:center; overflow-x:auto; margin-bottom: 40px;">
+        <table id="p2pTable" class="shoda-table" style="max-width:1200px; margin-bottom:0;"></table>
+    </div>
+
+    <div class="shoda-title">Planet To House Aspects (Vedic)</div>
+    <div style="display:flex; justify-content:center; overflow-x:auto;">
+        <table id="p2hTable" class="shoda-table" style="max-width:1200px; margin-bottom:0;"></table>
+    </div>
+</div>
+
+<script>
+/* =========================================
+   VEDIC ASPECTS & SINGLE KUNDALI ENGINE (FULL REPLACEMENT)
+========================================= */
+
+function toggleVedicAspects() {
+    const box = document.getElementById("vedicAspectsWrapper");
+    if(!box) return;
+
+    const isOpening = (box.style.display === "none");
+    box.style.display = isOpening ? "block" : "none";
+
+    if (isOpening) {
+        renderVedicAspectsTab(); // 🔥 FORCE RENDER ON OPEN
+    }
+}
+
+function initVedicAspectDropdown() {
+    const sel = document.getElementById("vedicAspectVargaSelect");
+    const vKeys = [1, 10, 9, 7, 2, 4, 8, 60, 11, 30, 21, 16, 6, 12, 3, 24, 27, 20, 40, 45, 5];
+    if(sel) {
+        sel.innerHTML = "";
+        vKeys.forEach(v => {
+            const op = document.createElement("option");
+            op.value = v; op.textContent = "D" + v;
+            sel.appendChild(op);
+        });
+        sel.value = 1; // Default D1
+    }
+}
+
+function getDynamicVedicAspects(planet, isP2P) {
+    if (planet === "Sa") return [3, 7, 10];
+    if (planet === "Ma") return [4, 7, 8];
+    if (planet === "Ju") return [5, 7, 9];
+    if (planet === "Ra" || planet === "Ke") {
+        const alt = document.getElementById("rkAspectsToggle")?.checked;
+        if (isP2P) return alt ? [3, 11] : [5, 9]; 
+        else return alt ? [3, 7, 11] : [5, 7, 9]; 
+    }
+    return [7]; 
+}
+
+function getVedicOrdinal(n) {
+    if(n === 3) return "3rd";
+    return n + "th";
+}
+
+
+
+
+
+
+
+function renderVedicAspectsTab() {
+    const sel = document.getElementById("vedicAspectVargaSelect");
+    if (!sel) return;
+
+    if (!window._shodaBhava || !window._shodaRashi || !window._ascSigns) {
+        console.warn("⏳ Waiting for Vedic data...");
+        return;
+    }
+
+    const v = parseInt(sel.value);
+    const rashiData = window._shodaRashi[v];
+    if (!rashiData) return;
+
+    /* ----------------------------------------------------
+       1. VIMSHOTTARI SORTING (CHANDRA'S STARLORD FIRST)
+    ------------------------------------------------------ */
+    let startPlanet = "Ke"; 
+    try {
+        if (typeof moonStarLord !== "undefined" && moonStarLord) {
+            startPlanet = moonStarLord;
+        }
+    } catch(e) {}
+    
+    if (startPlanet === "Mo") startPlanet = "Ch"; 
+
+    const vimBaseOrder = ["Ke", "Ve", "Sy", "Ch", "Ma", "Ra", "Ju", "Sa", "Bu"];
+    let startIndex = vimBaseOrder.indexOf(startPlanet);
+    if (startIndex === -1) startIndex = 0; 
+
+    const planets = [
+        ...vimBaseOrder.slice(startIndex),
+        ...vimBaseOrder.slice(0, startIndex)
+    ];
+
+    const modeKN = document.getElementById("modeKN")?.checked;
+    const planetNameMapKN = { Sy: "ರವಿ", Ch: "ಚಂದ್ರ", Ma: "ಕುಜ", Bu: "ಬುಧ", Ju: "ಗುರು", Ve: "ಶುಕ್ರ", Sa: "ಶನಿ", Ra: "ರಾಹು", Ke: "ಕೇತು" };
+
+    const indicator = document.getElementById("vedicAspectStarlordIndicator");
+    if (indicator) {
+        const dispName = modeKN ? (planetNameMapKN[startPlanet] || startPlanet) : startPlanet;
+        indicator.innerText = `(Sorted strictly by Moon's Starlord: ${dispName})`;
+    }
+
+
+
+
+
+
+
+/* ----------------------------------------------------
+       1.5 100% ACCURATE MEMORY SYNC (NO HTML SCRAPING)
+    ------------------------------------------------------ */
+    const visualPMap = {};
+    let visualAscIdx = window._ascSigns[v] !== undefined ? window._ascSigns[v] : 0;
+
+    // Read directly from the global array generated by calc()
+    if (window._vargaChartStore && window._vargaChartStore[v]) {
+        const chartData = window._vargaChartStore[v];
+        for (let sIdx = 0; sIdx < 12; sIdx++) {
+            chartData[sIdx].forEach(pObj => {
+                if (pObj.isAsc) {
+                    visualAscIdx = sIdx;
+                } else {
+                    visualPMap[pObj.n] = sIdx; // Automatically matches "Sy", "Ju", "Ra", etc.
+                }
+            });
+        }
+    }
+
+	
+	
+	
+    // Fallback if DOM scrape misses a planet (e.g. chart not rendered yet)
+    const modeKP = document.getElementById("modeKP")?.checked;
+    const kpShift = window._kpSignShift?.[v] || 0;
+    planets.forEach(p => {
+        if (visualPMap[p] === undefined) {
+            let fallbackSign = parseInt(rashiData[p]) - 1;
+            if (modeKP) fallbackSign = (fallbackSign + kpShift) % 12;
+            visualPMap[p] = isNaN(fallbackSign) ? -1 : fallbackSign;
+        }
+    });
+
+    // Helper to calculate exact visual house (1-12) relative to Ascendant
+    function getVisualHouse(pBox) {
+        if (pBox === undefined || pBox === -1) return "-";
+        return ((pBox - visualAscIdx + 12) % 12) + 1;
+    }
+
+    /* ---------------------------------
+       2. RENDER SINGLE KUNDALI
+    ----------------------------------- */
+    const kundaliContainer = document.getElementById("vedicSingleKundali");
+    kundaliContainer.innerHTML = "";
+    
+    const card = document.createElement('div'); 
+    card.className = 'varga-card';
+    card.style.maxWidth = '440px';
+    card.style.width = '100%';
+    card.innerHTML = `<div class="varga-title">D-${v} Selected Chart</div>`;
+
+    const k = document.createElement('div'); 
+    k.className = 'kundali';
+    const m = [11, 0, 1, 2, 10, -1, -1, 3, 9, -1, -1, 4, 8, 7, 6, 5];
+
+    m.forEach(sIdx => {
+        const h = document.createElement('div'); 
+        h.className = 'house';
+
+        if (sIdx === -1) {
+            if (!card.querySelector('.center-box')) {
+                const cb = document.createElement('div'); 
+                cb.className = 'center-box'; 
+                cb.innerText = `D${v}`;
+                k.appendChild(cb);
+            }
+        } else {
+            const houseNum = ((sIdx - visualAscIdx + 12) % 12) + 1;
+            if(sIdx === visualAscIdx) h.classList.add("asc-house");
+            h.innerHTML += `<div class="house-num">${houseNum}</div>`;
+
+            if(sIdx === visualAscIdx) {
+                h.innerHTML += `<div class="p-line asc-line" style="font-size:16px;">ASC</div>`;
+            }
+
+            planets.forEach(p => {
+                // Uses the exact visual box scraped from the main chart above!
+                if (visualPMap[p] === sIdx) {
+                    const name = modeKN ? (planetNameMapKN[p] || p) : p;
+                    h.innerHTML += `<div class="p-line" style="font-size:16px; color:#fff;">${name}</div>`;
+                }
+            });
+            k.appendChild(h);
+        }
+    });
+    card.appendChild(k);
+    kundaliContainer.appendChild(card);
+
+    /* ---------------------------------
+       3. CALCULATE VEDIC ASPECT TABLES
+    ----------------------------------- */
+    const p2pTable = document.getElementById("p2pTable");
+    const p2hTable = document.getElementById("p2hTable");
+    if (!p2pTable || !p2hTable) return;
+    
+    p2pTable.innerHTML = "";
+    p2hTable.innerHTML = "";
+
+    const VEDIC_SHORT_NAMES = {
+        Sy: "Sury", Ch: "Chnd", Ma: "Kuja", Bu: "Buda",
+        Ju: "Jupt", Ve: "Vens", Sa: "Shan", Ra: "Rahu", Ke: "Ketu"
+    };
+
+    // A) Planet to Planet Table
+    let p2pHeader = p2pTable.insertRow();
+    p2pHeader.appendChild(document.createElement("th")); 
+    planets.forEach(p => {
+        let th = document.createElement("th");
+        th.innerHTML = modeKN ? (planetNameMapKN[p] || p) : p;
+        p2pHeader.appendChild(th);
+    });
+
+    planets.forEach(pFrom => {
+        let r = p2pTable.insertRow();
+        let firstCell = r.insertCell();
+        firstCell.innerHTML = modeKN ? (planetNameMapKN[pFrom] || pFrom) : pFrom;
+
+        const fromH = getVisualHouse(visualPMap[pFrom]);
+        let aspects = getDynamicVedicAspects(pFrom, true); 
+
+        planets.forEach(pTo => {
+            let cell = r.insertCell();
+            if (pFrom === pTo) {
+                cell.textContent = "---";
+                cell.style.color = "#555";
+            } else {
+                const toH = getVisualHouse(visualPMap[pTo]);
+                if (fromH !== "-" && toH !== "-") {
+                    let dist = (toH - fromH + 12) % 12 + 1;
+                    if (aspects.includes(dist)) {
+                        cell.textContent = getVedicOrdinal(dist);
+                        cell.style.color = "#facc15"; 
+                        cell.style.fontWeight = "bold";
+                    } else {
+                        cell.textContent = "-";
+                        cell.style.color = "#555";
+                    }
+                } else {
+                    cell.textContent = "-";
+                }
+            }
+        });
+    });
+
+    // B) Planet to House Table (WITH PLACEMENT CELLS)
+    let p2hHeader = p2hTable.insertRow();
+    p2hHeader.appendChild(document.createElement("th")); 
+    for(let h=1; h<=12; h++) {
+        let th = document.createElement("th");
+        th.innerHTML = `${h}H`;
+        p2hHeader.appendChild(th);
+    }
+
+    planets.forEach(pFrom => {
+        let r = p2hTable.insertRow();
+        let firstCell = r.insertCell();
+        firstCell.innerHTML = modeKN ? (planetNameMapKN[pFrom] || pFrom) : pFrom;
+
+        const fromH = getVisualHouse(visualPMap[pFrom]);
+        let aspects = getDynamicVedicAspects(pFrom, false); 
+        let shortName = modeKN ? (planetNameMapKN[pFrom] || pFrom) : (VEDIC_SHORT_NAMES[pFrom] || pFrom);
+
+        for(let toH=1; toH<=12; toH++) {
+            let cell = r.insertCell();
+            
+            if (fromH === "-") {
+                cell.textContent = "-";
+                continue;
+            }
+
+            if (toH === fromH) {
+                cell.textContent = shortName;
+                cell.classList.add("placement-cell"); 
+            } else {
+                let dist = (toH - fromH + 12) % 12 + 1;
+                if (aspects.includes(dist)) {
+                    cell.textContent = getVedicOrdinal(dist);
+                    cell.style.color = "#facc15"; 
+                    cell.style.fontWeight = "bold";
+                } else {
+                    cell.textContent = "-";
+                    cell.style.color = "#555";
+                }
+            }
+        }
+    });
+
+    attachVedicInteractions("p2pTable");
+    attachVedicInteractions("p2hTable");
+}
+
+
+
+
+
+
+
+
+
+
+
+// =========================================================
+// HOVER & MULTI-SELECT CLICK HIGHLIGHT LOGIC
+// =========================================================
+function attachVedicInteractions(tableId) {
+    const table = document.getElementById(tableId);
+    if (!table) return;
+
+    let activeRows = new Set();
+    let activeCols = new Set();
+
+    const updateHighlights = () => {
+        table.querySelectorAll('.vedic-active-bg').forEach(el => el.classList.remove('vedic-active-bg'));
+        
+        activeRows.forEach(rowIdx => {
+            if (table.rows[rowIdx]) {
+                for (let i = 0; i < table.rows[rowIdx].cells.length; i++) { 
+                    table.rows[rowIdx].cells[i].classList.add('vedic-active-bg');
+                }
+            }
+        });
+
+        activeCols.forEach(colIdx => {
+            for (let i = 0; i < table.rows.length; i++) { 
+                if (table.rows[i].cells[colIdx]) {
+                    table.rows[i].cells[colIdx].classList.add('vedic-active-bg');
+                }
+            }
+        });
+    };
+
+    const headers = table.rows[0].cells;
+    for (let i = 1; i < headers.length; i++) {
+        headers[i].addEventListener('click', () => {
+            if (activeCols.has(i)) activeCols.delete(i);
+            else activeCols.add(i);
+            updateHighlights();
+        });
+        
+        headers[i].addEventListener('mouseenter', () => {
+            for (let r = 1; r < table.rows.length; r++) { 
+                if (table.rows[r].cells[i]) table.rows[r].cells[i].classList.add('vedic-hover-bg');
+            }
+        });
+        headers[i].addEventListener('mouseleave', () => {
+            table.querySelectorAll('.vedic-hover-bg').forEach(el => el.classList.remove('vedic-hover-bg'));
+        });
+    }
+
+    for (let i = 1; i < table.rows.length; i++) {
+        const firstCell = table.rows[i].cells[0];
+        
+        firstCell.addEventListener('click', () => {
+            if (activeRows.has(i)) activeRows.delete(i);
+            else activeRows.add(i);
+            updateHighlights();
+        });
+
+        firstCell.addEventListener('mouseenter', () => {
+            for (let c = 1; c < table.rows[i].cells.length; c++) { 
+                table.rows[i].cells[c].classList.add('vedic-hover-bg');
+            }
+        });
+        firstCell.addEventListener('mouseleave', () => {
+            table.querySelectorAll('.vedic-hover-bg').forEach(el => el.classList.remove('vedic-hover-bg'));
+        });
+    }
+
+    for (let i = 1; i < table.rows.length; i++) {
+        for (let j = 1; j < table.rows[i].cells.length; j++) {
+            const cell = table.rows[i].cells[j];
+            
+            cell.addEventListener('mouseenter', () => {
+                for (let r = 1; r < table.rows.length; r++) { 
+                    if (table.rows[r].cells[j]) table.rows[r].cells[j].classList.add('vedic-hover-bg');
+                }
+                for (let c = 1; c < table.rows[i].cells.length; c++) { 
+                    table.rows[i].cells[c].classList.add('vedic-hover-bg');
+                }
+            });
+            
+            cell.addEventListener('mouseleave', () => {
+                table.querySelectorAll('.vedic-hover-bg').forEach(el => el.classList.remove('vedic-hover-bg'));
+            });
+        }
+    }
+}
+
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <div class="division-title" onclick="toggleTables()">
 	Divisional Tables ▼
 </div>
@@ -1230,6 +1746,43 @@ function resetTime() {
 	calc();
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+// =========================================
+// SAFE OVERRIDE FOR calc() (VEDIC FIX)
+// =========================================
+(function(){
+
+    const originalCalc = window.calc;
+
+    window.calc = function(){
+
+        // 🔁 Run original engine first
+        if (typeof originalCalc === "function") {
+            originalCalc();
+        }
+
+        // 🔥 Then force Vedic refresh
+        try {
+            if (typeof renderVedicAspectsTab === "function") {
+                renderVedicAspectsTab();
+            }
+        } catch(e){
+            console.warn("Vedic refresh failed", e);
+        }
+    };
+
+})();
 	
 	
 	
@@ -1298,42 +1851,62 @@ function resetAllControlsToDefault() {
 	}
 }
 
-	document.getElementById('fIn').onchange = (e) => {
-		const reader = new FileReader();
-		
-		reader.onload = (f) => {
-			raw = JSON.parse(f.target.result);
-			
-			// 🔥 RESET ALL UI CONTROLS TO DEFAULT BEFORE PROCESSING 🔥
-			resetAllControlsToDefault();
 
-			updateHeader();
 
-			// FORCE fresh datetime from new JSON
-			const d = document.getElementById('dobField').value;
-			const t = document.getElementById('tobField').value;
 
-			if (d && t) {
-				// Set birth anchor ONCE
-				originalDateTime = new Date(d + "T" + t);
-				currentDateTime  = new Date(originalDateTime);
-			}
 
-			updateMiniClock();
-			calc();
-		};
 
-		reader.readAsText(e.target.files[0]);
-		
-		// Reset the file input value so you can reload the same file if needed
-		e.target.value = ''; 
-	};
+
+
+
+document.getElementById('fIn').onchange = (e) => {
+    const reader = new FileReader();
+    
+    reader.onload = (f) => {
+        raw = JSON.parse(f.target.result);
+        
+        // 🔥 RESET ALL UI CONTROLS TO DEFAULT BEFORE PROCESSING 🔥
+        resetAllControlsToDefault();
+
+        updateHeader();
+
+        // FORCE fresh datetime from new JSON
+        const d = document.getElementById('dobField').value;
+        const t = document.getElementById('tobField').value;
+
+        if (d && t) {
+            // Set birth anchor ONCE
+            originalDateTime = new Date(d + "T" + t);
+            currentDateTime  = new Date(originalDateTime);
+        }
+
+        updateMiniClock();
+        calc();
+
+        // 🔥 FORCE VEDIC SYSTEM INIT
+        initVedicAspectDropdown();
+        renderVedicAspectsTab();
+    };
+
+    reader.readAsText(e.target.files[0]);
+    
+    // Reset the file input value so you can reload the same file if needed
+    e.target.value = ''; 
+};
 	
 	
 	
 	
-	
-	
+// =========================================
+// GLOBAL INIT (VEDIC SYSTEM BOOT)
+// =========================================
+(function initVedicSystem(){
+    try {
+        initVedicAspectDropdown();
+    } catch(e){
+        console.warn("Init dropdown failed", e);
+    }
+})();	
 	
 	
 	
@@ -2147,6 +2720,12 @@ addNodeRows("Ke");
 	
 
 	
+	
+	
+	
+	
+	
+	
 
  function calc() {
  
@@ -2455,10 +3034,11 @@ if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
 
 				// Shift all planets in D30 space
 				pNames.forEach(p => {
-					if (p === "Rahu" && pivot === "Ketu") return;
+					// if (p === "Rahu" && pivot === "Ketu") return;
 					
 					const rawDeg = d.planets[p];
 					const sign = Math.floor(rawDeg / 30);
+					
 					const deg = rawDeg % 30;
 					const isOdd = (sign % 2 === 0);
 
@@ -2522,9 +3102,9 @@ if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
 				lagnaDeg = ascFull - shift;
 				if (lagnaDeg < 0) lagnaDeg += 360;
 
-				// shift all planets equally
+				//  shift all planets equally
 				pNames.forEach(p => {
-					if (p === "Rahu" && pivot === "Ketu") return;
+					// if (p === "Rahu" && pivot === "Ketu") return;
 
 					const rawDeg = (p === pivot && pivot !== "ASC")
 						? baseDeg
@@ -2778,6 +3358,11 @@ if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
 
 		// Sort houses
 		chart.forEach((h, i) => i <= 5 ? h.sort((a,b) => a.d - b.d) : h.sort((a,b) => b.d - a.d));
+		
+		// 🔥 DIRECT DATA LINK FOR VEDIC ASPECTS (NO SCRAPING) 🔥
+		if(!window._vargaChartStore) window._vargaChartStore = {};
+		window._vargaChartStore[v] = chart;
+		
 		render(v, chart);
 		
 		
@@ -2918,6 +3503,8 @@ buildShodaTables();
 buildLordsTable();
 buildLordshipDeciderTable();
 renderVargaAshtakavarga();
+renderVargaAshtakavarga();
+renderVedicAspectsTab(); // <-- Add this here so aspects auto-update when time changes
 
 // Build Vimshottari
 buildFullDasha("vimChandra", moonShifted);
@@ -3625,6 +4212,21 @@ function clearAllTableSelections(){
 	});
 }
 
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 function buildShodaTables(){
@@ -4772,6 +5374,7 @@ window.addEventListener("load", () => {
     setTodayVimDate(); // Now this will successfully run!
 
     initLordshipDropdown();   // ⭐ ADD THIS LINE HERE
+	initVedicAspectDropdown(); // <-- Add this here
 
     if (!raw) {
         const out = document.getElementById('out');
