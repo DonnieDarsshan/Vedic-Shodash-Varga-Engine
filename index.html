@@ -1054,6 +1054,16 @@
 </div>
 
 
+
+
+
+
+
+
+
+
+
+
 <div class="vim-wrapper" style="margin-top: 20px; margin-bottom: 40px;">
     <div style="background: #0a0a0a; border: 1px solid var(--grid-line); padding: 15px 20px; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 30px;">
         <div style="color: var(--asc-yellow); font-weight: bold; font-size: 18px; text-transform: uppercase;">Date Difference Utility</div>
@@ -1139,6 +1149,18 @@ document.getElementById("toolEndDate").addEventListener("change", calcToolDateDi
     calcToolDateDiff();
 })();
 </script>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2298,11 +2320,10 @@ function shiftTime(sec) {
 
 	updateFieldsFromDate();
 	updateMiniClock();
+	
+	// Force the entire calculation engine to run
 	calc();
-
 }
-
-
 
 function resetTime() {
 	if (!originalDateTime) return;
@@ -2311,6 +2332,8 @@ function resetTime() {
 
 	updateFieldsFromDate();
 	updateMiniClock();
+	
+	// Force the entire calculation engine to run
 	calc();
 }
 
@@ -2421,14 +2444,22 @@ function resetAllControlsToDefault() {
         'includeAspectsToggle': false,
         'includeRaKeAspectsToggle': true,
         
-        // Nakshatra Nadi Controls
+       // Nakshatra Nadi Controls (Existing)
         'nadiSubStarToggle': false,
         'nadiAllowDuplicatesToggle': false,
         'nadiCuspalConjToggle': true,
         'nadiCenterAlignToggle': false,
+        'nadiRemoveOccupiedToggle': true,
         'nadiLocalShiftToggle': true,
-        'nadiUntenentedToggle': true,
-        'nadiTenentedToggle': false
+        'nadiUntenentedToggle': false,
+        
+        // NEW Nadi Combo Controls
+        'nadiThreePerRowToggle': true,
+        'nadiTwoPerRowToggle': false,
+        'nadiOnePerRowToggle': false,
+        'nadiComboStarToggle': true,
+        'nadiComboSubToggle': false,
+        'nadiComboSubSubToggle': false
     };
 
     for (const [id, isChecked] of Object.entries(checkboxDefaults)) {
@@ -3360,12 +3391,6 @@ addNodeRows("Ke");
 		if (d.planets_retro["Ketu_true"] !== undefined) d.planets_retro["Ketu"] = d.planets_retro["Ketu_true"];
 	}
 	
-	currentCusps = d.cusps;
-	
-	
-	
-	
-	const cuspData = d.cusps;
 	
 	
 	
@@ -3373,22 +3398,37 @@ addNodeRows("Ke");
 	
 	
 	
-
 	
 	// ---------- LAGNA SHIFT CONTROLLED BY TOGGLE ----------
 	let lagnaShifted = d.lagna;
+	let globalAscShift = 0; // Track this to shift Cusps
 
 	// apply time progression ONLY if shifted lagna enabled
 	if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
 		const diffMs = currentDateTime - originalDateTime;
 		const diffMinutes = diffMs / 60000;
-		const ascShift = diffMinutes * 0.25;
+		globalAscShift = diffMinutes * 0.25;
 
-		lagnaShifted = d.lagna + ascShift;
+		lagnaShifted = d.lagna + globalAscShift;
 
 		while (lagnaShifted < 0) lagnaShifted += 360;
 		while (lagnaShifted >= 360) lagnaShifted -= 360;
 	}
+
+	// 🔥 DYNAMIC CUSP SHIFTING ENGINE 🔥
+	// This ensures Nakshatra Nadi Table instantly updates Cuspal Sublords & Sub-Subs on time change!
+	currentCusps = {};
+	if (d.cusps) {
+		for (let c = 1; c <= 12; c++) {
+			if (d.cusps[c] !== undefined) {
+				let shiftedCusp = parseFloat(d.cusps[c]) + globalAscShift;
+				while (shiftedCusp < 0) shiftedCusp += 360;
+				while (shiftedCusp >= 360) shiftedCusp -= 360;
+				currentCusps[c] = shiftedCusp;
+			}
+		}
+	}
+	const cuspData = currentCusps;
 	
 	
 	// ---------- Compute Starlords AFTER lagnaShifted is finalized ----------
@@ -5971,8 +6011,14 @@ window.addEventListener("load", () => {
         .catch(() => console.log("Render server is booting up in the background..."));
 
     setTodayVimDate(); // Now this will successfully run!
+    
+    // 🔥 FIX: Delay Transit Auto-Fetch so it doesn't crash the server ping!
+    setTimeout(() => {
+        setMixerToNow();
+    }, 3000);
 
     initLordshipDropdown();   // ⭐ ADD THIS LINE HERE
+	
     initVedicAspectDropdown(); // <-- Add this here
     initNakshatraNadiDropdown(); // Initialize Nadi dropdowns for default open state
 
@@ -6005,27 +6051,46 @@ window.addEventListener("load", () => {
 	
 	
 /* =========================================
-   NATIVE DROPDOWN KEYBOARD LOOP ENGINE
+   NATIVE DROPDOWN KEYBOARD & MOUSE LOOP ENGINE
 ========================================= */
-const pivotSelect = document.getElementById('pivot');
-if (pivotSelect) {
-	pivotSelect.addEventListener('keydown', function(e) {
-		const max = this.options.length - 1;
-		
-		// If pressing DOWN on the last item, loop to top
-		if (e.key === 'ArrowDown' && this.selectedIndex === max) {
-			e.preventDefault();
-			this.selectedIndex = 0;
-			calc(); // Recalculate chart
-		} 
-		// If pressing UP on the first item, loop to bottom
-		else if (e.key === 'ArrowUp' && this.selectedIndex === 0) {
-			e.preventDefault();
-			this.selectedIndex = max;
-			calc(); // Recalculate chart
-		}
-	});
+function attachInfiniteScroll(selectId, updateCallback) {
+    const el = document.getElementById(selectId);
+    if (!el) return;
+    
+    // 1. Keyboard Loop (Overrides native to guarantee instant UI updates on ALL keys)
+    el.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault(); // Stop native browser select behavior
+            const max = this.options.length - 1;
+
+            if (e.key === 'ArrowDown') {
+                this.selectedIndex = (this.selectedIndex === max) ? 0 : this.selectedIndex + 1;
+            } else if (e.key === 'ArrowUp') {
+                this.selectedIndex = (this.selectedIndex === 0) ? max : this.selectedIndex - 1;
+            }
+            if (typeof updateCallback === "function") updateCallback();
+        }
+    });
+
+    // 2. Mouse Wheel Infinite Scroll (Hover over closed dropdown and scroll)
+    el.addEventListener('wheel', function(e) {
+        e.preventDefault(); // Stop page from scrolling
+        const max = this.options.length - 1;
+
+        if (e.deltaY > 0) {
+            this.selectedIndex = (this.selectedIndex === max) ? 0 : this.selectedIndex + 1;
+        } else if (e.deltaY < 0) {
+            this.selectedIndex = (this.selectedIndex === 0) ? max : this.selectedIndex - 1;
+        }
+        if (typeof updateCallback === "function") updateCallback();
+    });
 }
+
+// 🔥 Apply infinite keyboard & mouse scrolling to critical dropdowns!
+attachInfiniteScroll('pivot', calc);
+attachInfiniteScroll('nadiSortSelect', renderNakshatraNadiTab);
+attachInfiniteScroll('nadiVargaSelect', handleNadiVargaChange);
+attachInfiniteScroll('nadiHousePivot', handleNadiPivotChange);
 
 </script>
 
@@ -6211,6 +6276,32 @@ function clearFetchData() {
 
 
 
+// ==========================================
+// 🛡️ SAFE TIMEZONE FETCHER (ANTI-HANG)
+// ==========================================
+window._isFetchingNatal = false; // 🔒 Global lock to prevent server crashing
+
+async function getDynamicTimezoneSafe(lat, lon) {
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2500); // Strict 2.5s limit
+        
+        const tzResponse = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&timezone=auto`, {
+            signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        const tzData = await tzResponse.json();
+        
+        if (tzData && tzData.utc_offset_seconds !== undefined) {
+            return tzData.utc_offset_seconds / 60;
+        }
+    } catch (error) {
+        console.warn("Timezone API slow/failed. Defaulting to IST to save time.");
+    }
+    return 330; // Default IST (5.5 hours)
+}
+
 // --- GLOBAL TRACKING FOR WAKE TIMER ---
 let wakeInterval = null; // Removed 'isFirstCloudFetch' entirely
 
@@ -6227,22 +6318,14 @@ async function fetchFromCloud() {
     const lonVal = document.getElementById("onlineLon").value;
 
     if (!d || !m || !y || !hr || !min || !latVal || !lonVal) {
+        alert("⚠️ SYSTEM HALT: Please fill all Date, Time, and Location fields before fetching!");
         return;
     }
 
-    // 🔥 NEW: Auto-fetch dynamic timezone using Open-Meteo's free API
-    let dynamicOffset = 330; // Default to IST as a safety fallback
-    try {
-        const tzResponse = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latVal}&longitude=${lonVal}&timezone=auto`);
-        const tzData = await tzResponse.json();
-        
-        // Open-Meteo returns the offset in seconds. We divide by 60 to get minutes.
-        if (tzData && tzData.utc_offset_seconds !== undefined) {
-            dynamicOffset = tzData.utc_offset_seconds / 60; 
-        }
-    } catch (error) {
-        console.warn("Timezone fetch failed. Falling back to IST.", error);
-    }
+    window._isFetchingNatal = true; // 🔒 Lock the server
+
+    // 🔥 FIX: Fast, safe timezone fetch
+    let dynamicOffset = await getDynamicTimezoneSafe(latVal, lonVal);
 
     const requestData = {
         year: parseInt(y),
@@ -6423,15 +6506,25 @@ async function fetchFromCloud() {
                 btn.classList.remove("success");
                 btn.removeAttribute("style");
                 btn.disabled = false;
+                window._isFetchingNatal = false; // 🔓 Unlock server
             }, 3000);
 
         } else {
             // Silenced Server Error
             btn.innerHTML = originalText;
             btn.disabled = false;
+            window._isFetchingNatal = false; // 🔓 Unlock server
         }
     } catch (error) {
         console.error("Fetch error:", error);
+        window._isFetchingNatal = false; // 🔓 Unlock server
+		
+		
+		
+		
+		
+		
+		
         
         // --- CLEAR TIMER ON ERROR ---
         if (wakeInterval) clearInterval(wakeInterval);
@@ -6704,6 +6797,11 @@ function loadCloudProfile(event) {
             <input type="checkbox" id="nadiCenterAlignToggle" onchange="renderNakshatraNadiTab()">
             Center Align
         </label>
+
+        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:#ff3366; font-weight:bold; font-size:16px;">
+            <input type="checkbox" id="nadiRemoveOccupiedToggle" checked onchange="renderNakshatraNadiTab()">
+            Remove Occupied
+        </label>
     </div>
 
     <div style="text-align:center; margin-bottom:25px; font-weight:800; display:flex; justify-content:center; flex-wrap:wrap; gap:25px;">
@@ -6723,13 +6821,8 @@ function loadCloudProfile(event) {
         </label>
 
         <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:#c084fc;">
-            <input type="checkbox" id="nadiUntenentedToggle" checked onchange="renderNakshatraNadiTab()">
+            <input type="checkbox" id="nadiUntenentedToggle" onchange="renderNakshatraNadiTab()">
             Untenented
-        </label>
-
-        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:#f472b6;">
-            <input type="checkbox" id="nadiTenentedToggle" onchange="renderNakshatraNadiTab()">
-            Tenented
         </label>
 
         <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:#ff9933;">
@@ -6742,6 +6835,49 @@ function loadCloudProfile(event) {
             Shift
         </label>
     </div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div style="text-align:center; margin-bottom:25px; font-weight:800; display:flex; justify-content:center; flex-wrap:wrap; gap:25px;">
+        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:#ffffff;">
+            <input type="checkbox" id="nadiThreePerRowToggle" checked onchange="handleNadiLayoutToggle('three')">
+            3 Planet
+        </label>
+        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:#ffffff;">
+            <input type="checkbox" id="nadiTwoPerRowToggle" onchange="handleNadiLayoutToggle('two')">
+            2 Planet
+        </label>
+        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:#ffffff;">
+            <input type="checkbox" id="nadiOnePerRowToggle" onchange="handleNadiLayoutToggle('one')">
+            1 Planet
+        </label>
+        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:#0bf4e6;">
+            <input type="checkbox" id="nadiComboStarToggle" checked onchange="renderNakshatraNadiTab()">
+            Starlord
+        </label>
+        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:#facc15;">
+            <input type="checkbox" id="nadiComboSubToggle" onchange="renderNakshatraNadiTab()">
+            Sub-lord
+        </label>
+        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:#ff8800;">
+            <input type="checkbox" id="nadiComboSubSubToggle" onchange="renderNakshatraNadiTab()">
+            Sub-sub
+        </label>
+    </div>
+	
+	
 
     <style>
         .nadi-hl-btn {
@@ -6890,6 +7026,18 @@ function formatNadiNumbers(numStr) {
     });
     return formatted.join(" <span style='color:#777; font-size: 15px;'>,</span> ");
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 function toggleNakshatraNadi() {
     const box = document.getElementById("nakshatraNadiWrapper");
@@ -7268,6 +7416,12 @@ function getNadiScriptString(pCode, v) {
     let placedHouse = base.h;
     let lordships = base.l;
 
+    // 🛡️ NEW: Create an immunity list for placed houses so they are never removed
+    let immuneHouses = new Set();
+    if (placedHouse !== "-" && placedHouse != null) {
+        immuneHouses.add(parseInt(placedHouse));
+    }
+
     // --- NEW: RAHU/KETU ASPECT LOGIC (Strict KP House to House rules) ---
     const rakeAspToggle = document.getElementById("nadiRaKeAspToggle")?.checked;
     if ((pCode === "Ra" || pCode === "Ke") && rakeAspToggle) {
@@ -7291,7 +7445,10 @@ function getNadiScriptString(pCode, v) {
                 if (aspects.includes(dist)) {
                     let apScript = getPlanetBaseScript(ap);
                     // Add the aspecting planet's placed house and lordships into the Node's script
-                    if (apScript.h !== "-" && apScript.h != null) lordships.push(apScript.h);
+                    if (apScript.h !== "-" && apScript.h != null) {
+                        lordships.push(apScript.h);
+                        immuneHouses.add(parseInt(apScript.h)); // 🛡️ Grant immunity to aspecting planet's placed house
+                    }
                     lordships.push(...apScript.l);
                 }
             });
@@ -7309,6 +7466,31 @@ function getNadiScriptString(pCode, v) {
     if (allowDuplicates && placedHouse !== "-" && placedHouse != null) {
         lordships.push(placedHouse);
     }
+
+    // =================================================================
+    // 🔥 NEW: REMOVE OCCUPIED HOUSES LOGIC
+    // =================================================================
+    const removeOccupiedToggle = document.getElementById("nadiRemoveOccupiedToggle")?.checked;
+    if (removeOccupiedToggle) {
+        let occupiedBaseHouses = new Set();
+        const allPlanetsList = ["Sy", "Ch", "Ma", "Bu", "Ju", "Ve", "Sa", "Ra", "Ke"];
+        
+        // 1. Gather all houses that currently contain a planet
+        allPlanetsList.forEach(p => {
+            let pScript = getPlanetBaseScript(p);
+            if (pScript.h !== "-" && pScript.h != null) {
+                occupiedBaseHouses.add(parseInt(pScript.h));
+            }
+        });
+        
+        // 2. Filter out any lordship house that is inside the occupied list
+        // 🛡️ FIX: Sparing ALL immune placed houses (both its own, and aspecting planets')
+        lordships = lordships.filter(h => {
+            let hNum = parseInt(h);
+            return !occupiedBaseHouses.has(hNum) || immuneHouses.has(hNum);
+        });
+    }
+    // =================================================================
 
     let rotatedPlacedHouse = placedHouse;
     let rotatedLordships = [...lordships];
@@ -7428,6 +7610,38 @@ function handleNadiVargaChange() {
 
 
 
+window.handleNadiLayoutToggle = function(type) {
+    if (document.getElementById('nadiThreePerRowToggle')) {
+        document.getElementById('nadiThreePerRowToggle').checked = (type === 'three');
+    }
+    if (document.getElementById('nadiTwoPerRowToggle')) {
+        document.getElementById('nadiTwoPerRowToggle').checked = (type === 'two');
+    }
+    if (document.getElementById('nadiOnePerRowToggle')) {
+        document.getElementById('nadiOnePerRowToggle').checked = (type === 'one');
+    }
+    if (typeof renderNakshatraNadiTab === "function") renderNakshatraNadiTab();
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function renderNakshatraNadiTab() {
     const sel = document.getElementById("nadiVargaSelect");
@@ -7463,7 +7677,6 @@ function renderNakshatraNadiTab() {
             k.className = 'kundali';
             const m = [11, 0, 1, 2, 10, -1, -1, 3, 9, -1, -1, 4, 8, 7, 6, 5];
             
-            // Find Ascendant index to color the ASC house
             let ascIndex = 0;
             for (let i = 0; i < 12; i++) {
                 if (chartData[i].some(p => p.isAsc)) { ascIndex = i; break; }
@@ -7471,7 +7684,6 @@ function renderNakshatraNadiTab() {
 
             const modeKN = document.getElementById("modeKN")?.checked;
             const planetNameMapKN = { Sy: "ರವಿ", Ch: "ಚಂದ್ರ", Ma: "ಕುಜ", Bu: "ಬುಧ", Ju: "ಗುರು", Ve: "ಶುಕ್ರ", Sa: "ಶನಿ", Ra: "ರಾಹು", Ke: "ಕೇತು", ASC: "ಲಗ್ನ" };
-
             const showLordship = document.getElementById("showLordship")?.checked;
             const kpData = typeof computeKPForVarga === "function" ? computeKPForVarga(v) : {};
 
@@ -7511,10 +7723,7 @@ function renderNakshatraNadiTab() {
                     let dispositorHouse = null;
                     for(let i=0; i<12; i++) {
                         const obj = chartData[i].find(p => p.n === dispositor);
-                        if(obj) {
-                            dispositorHouse = ((i - ascIndex + 12) % 12) + 1;
-                            break;
-                        }
+                        if(obj) { dispositorHouse = ((i - ascIndex + 12) % 12) + 1; break; }
                     }
                     if (dispositorHouse) return [dispositorHouse, ...lordHouses];
                     return lordHouses;
@@ -7525,13 +7734,10 @@ function renderNakshatraNadiTab() {
             m.forEach(sIdx => {
                 const h = document.createElement('div'); 
                 h.className = 'house';
-
                 if (sIdx === -1) {
                     if (!card.querySelector('.center-box')) {
                         const cb = document.createElement('div'); 
-                        cb.className = 'center-box'; 
-                        cb.innerText = `D${v}`;
-                        k.appendChild(cb);
+                        cb.className = 'center-box'; cb.innerText = `D${v}`; k.appendChild(cb);
                     }
                 } else {
                     const houseNum = ((sIdx - ascIndex + 12) % 12) + 1;
@@ -7545,7 +7751,6 @@ function renderNakshatraNadiTab() {
                     planets.forEach(p => {
                         let lineClass = p.isAsc ? "p-line asc-line" : "p-line";
                         const name = modeKN ? (planetNameMapKN[p.n] || p.n) : p.n;
-
                         let displayStr = "";
 
                         if (p.isAsc) {
@@ -7566,7 +7771,6 @@ function renderNakshatraNadiTab() {
                                 displayStr = `${name} ${Math.floor(p.d)}°${mins}′ | ${kp.star || "-"} / ${kp.sub || "-"} / ${kp.subsub || "-"}`;
                             }
                         }
-                        
                         h.innerHTML += `<div class="${lineClass}" style="font-size:15px; color:#fff; white-space:normal;">${displayStr}</div>`;
                     });
                     k.appendChild(h);
@@ -7576,6 +7780,76 @@ function renderNakshatraNadiTab() {
             kundaliContainer.appendChild(card);
         }
     }
+
+    // ==========================================
+    // CUSPAL VARGA PROJECTION ENGINE
+    // ==========================================
+    function getCuspVargaLongitude(cuspDeg, vNum) {
+        if (cuspDeg === undefined || cuspDeg === null) return -1;
+        let d = parseFloat(cuspDeg);
+        if (isNaN(d)) return -1;
+        
+        if (vNum === 1) return d;
+        
+        if (vNum === 30) {
+            const sign = Math.floor(d / 30);
+            const deg = d % 30;
+            const isOdd = (sign % 2 === 0);
+            let start, length, targetSign;
+            if (isOdd) {
+                if (deg < 5) { start = 0; length = 5; targetSign = 0; }
+                else if (deg < 10) { start = 5; length = 5; targetSign = 10; }
+                else if (deg < 18) { start = 10; length = 8; targetSign = 8; }
+                else if (deg < 25) { start = 18; length = 7; targetSign = 2; }
+                else { start = 25; length = 5; targetSign = 6; }
+            } else {
+                if (deg < 5) { start = 0; length = 5; targetSign = 1; }
+                else if (deg < 12) { start = 5; length = 7; targetSign = 5; }
+                else if (deg < 20) { start = 12; length = 8; targetSign = 11; }
+                else if (deg < 25) { start = 20; length = 5; targetSign = 9; }
+                else { start = 25; length = 5; targetSign = 7; }
+            }
+            const rel = deg - start;
+            return targetSign * 30 + (rel / length) * 30;
+        }
+        
+        if (vNum === 5) {
+            const sign = Math.floor(d / 30);
+            const deg = d % 30;
+            const part = Math.floor(deg / 6);
+            const isOdd = (sign % 2 === 0);
+            const oddCycle = [0, 10, 8, 2, 6];
+            const evenCycle = [1, 5, 11, 9, 7];
+            const targetSign = isOdd ? oddCycle[part] : evenCycle[part];
+            const rel = deg % 6;
+            return targetSign * 30 + (rel / 6) * 30;
+        }
+        
+        const vSign = getVSign(d, vNum);
+        const vDeg = (d * vNum) % 30;
+        return (vSign * 30) + vDeg;
+    }
+
+    // Build Cuspal Table Memory for the Active Varga
+    let vargaCusps = {};
+    let baseCusps = null;
+    
+    if (typeof currentCusps !== "undefined" && currentCusps) {
+        baseCusps = currentCusps;
+    } else if (window.raw && window.raw.ayanamshas) {
+         const aya = document.getElementById('aya')?.value || 'Lahiri';
+         if(window.raw.ayanamshas[aya].cusps) baseCusps = window.raw.ayanamshas[aya].cusps;
+    }
+
+    if (baseCusps) {
+        for(let c = 1; c <= 12; c++) {
+            if (baseCusps[c] !== undefined) {
+                let vDeg = getCuspVargaLongitude(baseCusps[c], v);
+                vargaCusps[c] = getKpLordsNadi(vDeg); 
+            }
+        }
+    }
+
 
     // ==========================================
     // RENDER NADI TABLE
@@ -7595,7 +7869,20 @@ function renderNakshatraNadiTab() {
     const isCenter = document.getElementById("nadiCenterAlignToggle")?.checked;
     const alignText = isCenter ? "center" : "left";
 
-    function buildRow(label, scriptStr, colorCode, noBottomBorder = false) {
+    // GRID LAYOUT TOGGLE
+    const threePerRow = document.getElementById("nadiThreePerRowToggle")?.checked;
+    const twoPerRow = document.getElementById("nadiTwoPerRowToggle")?.checked;
+    
+    if (threePerRow) {
+        container.style.gridTemplateColumns = "repeat(3, 1fr)";
+    } else if (twoPerRow) {
+        container.style.gridTemplateColumns = "repeat(2, 1fr)";
+    } else {
+        container.style.gridTemplateColumns = "1fr"; // One Planet Per Column 
+    }
+
+    // ROW BUILDER (Appends Cuspal Lordships with `+`)
+    function buildRow(label, scriptStr, colorCode, noBottomBorder = false, extraLords = []) {
         if (scriptStr.includes("ERR")) scriptStr = "Data Error";
         const borderStyle = noBottomBorder ? 'none' : '1px solid #555';
         
@@ -7604,8 +7891,15 @@ function renderNakshatraNadiTab() {
         let house = formatNadiNumbers(parts[1] || "");
         let lords = formatNadiNumbers(parts[2] || "");
 
-        // Aggressively squeezed columns: 48px (Label), 62px (Planet), 26px (House). 
-        // Gap reduced to 6px. Gives the 1fr column ultimate horizontal real estate!
+        // Inject the combined Boxed Cuspal lordships directly inside their styled span
+        if (extraLords && extraLords.length > 0) {
+            let validExtras = extraLords.filter(e => e.trim() !== "" && !e.includes(">-</span>"));
+            if (validExtras.length > 0) {
+                // Light grey (#dddddd) plus symbol for clarity
+                lords += " <span style='color:#dddddd; font-weight:900; font-size:16px; margin:0 4px;'>+</span> " + validExtras.join(" <span style='color:#dddddd; font-weight:900; font-size:16px; margin:0 4px;'>+</span> ");
+            }
+        }
+
         return `
         <div style="display:grid; grid-template-columns: 48px 1px 62px 1px 26px 1px 1fr; gap: 6px; font-size:14px; align-items:center; border-bottom: ${borderStyle}; padding: 6px 0; color: ${colorCode};">
             <div style="font-weight:bold; text-align:center; white-space:nowrap;">${label}</div>
@@ -7618,7 +7912,43 @@ function renderNakshatraNadiTab() {
         </div>`;
     }
 
-    const hideUntenentedStars = document.getElementById("nadiUntenentedToggle")?.checked;
+    const applyUntenentedRule = document.getElementById("nadiUntenentedToggle")?.checked;
+    
+    // Combo Checkbox states
+    const comboStar = document.getElementById("nadiComboStarToggle")?.checked;
+    const comboSub = document.getElementById("nadiComboSubToggle")?.checked;
+    const comboSubSub = document.getElementById("nadiComboSubSubToggle")?.checked;
+
+    // Helper Function to Extract and Style Cuspal Interlinks per target planet
+    function getComboExtras(targetPlanet) {
+        let cuspalStarlordOf = [];
+        let cuspalSublordOf = [];
+        let cuspalSubSublordOf = [];
+        
+        for (let c = 1; c <= 12; c++) {
+            if (vargaCusps[c]) {
+                if (vargaCusps[c].star === targetPlanet) cuspalStarlordOf.push(c);
+                if (vargaCusps[c].sub === targetPlanet) cuspalSublordOf.push(c);
+                if (vargaCusps[c].subSub === targetPlanet) cuspalSubSublordOf.push(c);
+            }
+        }
+
+        let extras = [];
+        // Only append extras if 2 or 1 planet layout is selected (NOT threePerRow)
+        if (!threePerRow) {
+            if (comboStar && cuspalStarlordOf.length > 0) {
+                extras.push(`<span style="background:rgba(11, 244, 230, 0.1); color:#0bf4e6; border:1px solid #0bf4e6; padding:2px 6px; border-radius:4px; display:inline-block; font-size:13px;">${formatNadiNumbers(cuspalStarlordOf.join(","))}</span>`);
+            }
+            if (comboSub && cuspalSublordOf.length > 0) {
+                extras.push(`<span style="background:rgba(250, 204, 21, 0.1); color:#facc15; border:1px solid #facc15; padding:2px 6px; border-radius:4px; display:inline-block; font-size:13px;">${formatNadiNumbers(cuspalSublordOf.join(","))}</span>`);
+            }
+            if (comboSubSub && cuspalSubSublordOf.length > 0) {
+                extras.push(`<span style="background:rgba(255, 136, 0, 0.1); color:#ff8800; border:1px solid #ff8800; padding:2px 6px; border-radius:4px; display:inline-block; font-size:13px;">${formatNadiNumbers(cuspalSubSublordOf.join(","))}</span>`);
+            }
+        }
+        return extras;
+    }
+
     container.innerHTML = "";
     
     planetsOrder.forEach(pCode => {
@@ -7630,63 +7960,54 @@ function renderNakshatraNadiTab() {
 
         const card = document.createElement("div");
         card.style.cssText = `
-            background: #111; 
-            border: 1px solid var(--grid-line); 
-            border-radius: 6px; 
-            padding: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+            background: #111; border: 1px solid var(--grid-line); 
+            border-radius: 6px; padding: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.5);
         `;
 
-        let html = `
-            <div style="font-weight:900; color:var(--grid-line); font-size:16px; margin-bottom:8px; border-bottom:2px solid #333; padding-bottom:6px; text-align:center; text-transform:uppercase;">
-                ${NADI_NAMES[pCode]} Nadi Script
-            </div>
-        `;
+        let html = `<div style="font-weight:900; color:var(--grid-line); font-size:16px; margin-bottom:8px; border-bottom:2px solid #333; padding-bottom:6px; text-align:center; text-transform:uppercase;">${NADI_NAMES[pCode]} Nadi Script</div>`;
         
-        
-		
-		
-		const pScript = getNadiScriptString(pCode, v);
+        const pScript = getNadiScriptString(pCode, v);
         const subScript = getNadiScriptString(lords.sub, v);
         const subSubScript = getNadiScriptString(lords.subSub, v);
 
-        // Untenented Logic (Hides Stars)
-        const hideUntenentedStars = document.getElementById("nadiUntenentedToggle")?.checked;
-        const emptyStar = hideUntenentedStars && pScript.includes("$");
-        const emptyStarOfSub = hideUntenentedStars && subScript.includes("$");
-        const emptyStarOfSubSub = hideUntenentedStars && subSubScript.includes("$");
+        const fullStarScript = getNadiScriptString(lords.star, v);
+        const fullStarOfSubScript = getNadiScriptString(starOfSub, v);
+        const fullStarOfSubSubScript = getNadiScriptString(starOfSubSub, v);
 
-        const starScriptToRender = emptyStar ? "" : getNadiScriptString(lords.star, v);
-        const starOfSubScriptToRender = emptyStarOfSub ? "" : getNadiScriptString(starOfSub, v);
-        const starOfSubSubScriptToRender = emptyStarOfSubSub ? "" : getNadiScriptString(starOfSubSub, v);
-
-        // 🟢 FIX: Tenented Logic now checks each level individually for its own $ symbol
-        const hideTenentedLevels = document.getElementById("nadiTenentedToggle")?.checked;
-        
         const pIsTenanted = !pScript.includes("$");
         const subIsTenanted = !subScript.includes("$");
         const subSubIsTenanted = !subSubScript.includes("$");
         
-        const pScriptToRender = (hideTenentedLevels && pIsTenanted) ? "" : pScript;
-        const subScriptToRender = (hideTenentedLevels && subIsTenanted) ? "" : subScript;
-        const subSubScriptToRender = (hideTenentedLevels && subSubIsTenanted) ? "" : subSubScript;
+        const pScriptToRender = (applyUntenentedRule && pIsTenanted) ? pScript.split(" - ")[0] : pScript;
+        const subScriptToRender = (applyUntenentedRule && subIsTenanted) ? subScript.split(" - ")[0] : subScript;
+        const subSubScriptToRender = (applyUntenentedRule && subSubIsTenanted) ? subSubScript.split(" - ")[0] : subSubScript;
 
-        html += buildRow("PL", pScriptToRender, "#0bf4e6");
-        html += buildRow("ST", starScriptToRender, "#0bf4e6");
-        html += buildRow("SL", subScriptToRender, "#facc15");
-        if (showSubStars) html += buildRow("⭐ SL", starOfSubScriptToRender, "#facc15");
-        html += buildRow("S-S", subSubScriptToRender, "#ffffff", !showSubStars);
-        if (showSubStars) html += buildRow("⭐ S-S", starOfSubSubScriptToRender, "#ffffff", true);
-		
-		
-		
-		
-		
-
+        // Pass the dynamically calculated Cuspal Extras for EACH SPECIFIC ROW'S PLANET
+        html += buildRow("PL", pScriptToRender, "#0bf4e6", false, getComboExtras(pCode));
+        html += buildRow("ST", fullStarScript, "#0bf4e6", false, getComboExtras(lords.star));
+        html += buildRow("SL", subScriptToRender, "#facc15", false, getComboExtras(lords.sub));
+        
+        if (showSubStars) {
+            html += buildRow("⭐ SL", fullStarOfSubScript, "#facc15", false, getComboExtras(starOfSub));
+        }
+        
+        html += buildRow("S-S", subSubScriptToRender, "#ff8800", !showSubStars, getComboExtras(lords.subSub));
+        
+        if (showSubStars) {
+            html += buildRow("⭐ S-S", fullStarOfSubSubScript, "#ff8800", true, getComboExtras(starOfSubSub));
+        }
+        
         card.innerHTML = html;
         container.appendChild(card);
     });
 }
+
+
+
+
+
+
+
 
 
 
@@ -7711,12 +8032,10 @@ function renderNakshatraNadiTab() {
             const sSel = document.getElementById("nadiSortSelect");
 
             if (isPlanetPivot) {
-                // FORCE: If a planet is the pivot, it MUST remain the first one in sorting!
                 if (sSel && sSel.value !== pivotVal) {
                     sSel.value = pivotVal;
                 }
             } else {
-                // STANDARD: If using 1-12 House Pivot, follow the Moon's Starlord
                 let currentStar = "Ke";
                 try { if (typeof moonStarLord !== "undefined" && moonStarLord) currentStar = moonStarLord; } catch(e) {}
                 if (currentStar === "Mo") currentStar = "Ch";
@@ -7727,6 +8046,7 @@ function renderNakshatraNadiTab() {
                 }
             }
 
+            // This line ensures everything automatically redraws during top-right bar changes!
             if (typeof renderNakshatraNadiTab === "function") {
                 renderNakshatraNadiTab();
             }
@@ -7799,25 +8119,202 @@ function handleNadiPivotChange() {
     Transit - Natal Mixer Kundali ▼
 </div>
 
-<div id="mixerWrapper" class="shoda-wrapper" style="display:none; padding-bottom: 40px; text-align: center;">
+<div id="mixerWrapper" class="shoda-wrapper" style="display:block; padding-bottom: 40px; text-align: center;">
     
     <div style="background:#0a0a0a; border:1px solid var(--grid-line); padding:18px 25px; margin-bottom:20px; display:inline-block; border-radius:4px;">
         <div style="color:var(--asc-yellow); font-weight:bold; margin-bottom:12px; font-size:19px; letter-spacing:0.5px;">Set Transit Date & Time (Auto-Fetches)</div>
-        <div style="display:flex; gap:15px; justify-content:center; align-items:center; flex-wrap:wrap;">
-            <input type="date" id="mixerDate" style="background:#111; color:#fff; border:1px solid var(--grid-line); padding:8px 12px; font-size:16px; font-weight:bold; cursor:pointer;">
-            <input type="time" id="mixerTime" step="1" value="12:00:00" style="background:#111; color:#fff; border:1px solid var(--grid-line); padding:8px 12px; font-size:16px; font-weight:bold; cursor:pointer;">
-            <button onclick="setMixerToNow()" style="padding:8px 16px; font-size:16px; background:var(--grid-line); color:#000; font-weight:bold; cursor:pointer; border:none; border-radius:4px;">Set to Now</button>
+		
+		
+		
+		
+		
+        <div style="display:flex; gap:8px; justify-content:center; align-items:center; flex-wrap:nowrap; white-space:nowrap;">
             
-            <span id="transitStatus" style="color:#10b981; font-weight:bold; font-size:16px; margin-left:10px; min-width:140px; text-align:left;"></span>
+            <input type="hidden" id="mixerDate">
+            <input type="hidden" id="mixerTime" value="12:00:00">
+
+            <div style="display:flex; gap:4px; align-items:center; background:#111; border:1px solid var(--grid-line); padding:6px 10px; border-radius:4px;">
+                <input type="text" id="mixD" placeholder="DD" maxlength="2" style="width:28px; text-align:center; background:transparent; color:#fff; border:none; outline:none; font-size:15px; font-weight:bold;" onkeydown="handleMixerSpin(event, 'D')" oninput="mixerJump(this, 'mixM', 2); syncMixerHidden()"> <span style="color:#555;">-</span>
+                <input type="text" id="mixM" placeholder="MM" maxlength="2" style="width:28px; text-align:center; background:transparent; color:#fff; border:none; outline:none; font-size:15px; font-weight:bold;" onkeydown="handleMixerSpin(event, 'M')" oninput="mixerJump(this, 'mixY', 2); syncMixerHidden()"> <span style="color:#555;">-</span>
+                <input type="text" id="mixY" placeholder="YYYY" maxlength="4" style="width:42px; text-align:center; background:transparent; color:#fff; border:none; outline:none; font-size:15px; font-weight:bold;" onkeydown="handleMixerSpin(event, 'Y')" oninput="mixerJump(this, 'mixH', 4); syncMixerHidden()">
+            </div>
+
+            <div style="display:flex; gap:4px; align-items:center; background:#111; border:1px solid var(--grid-line); padding:6px 10px; border-radius:4px;">
+                <input type="text" id="mixH" placeholder="HH" maxlength="2" style="width:28px; text-align:center; background:transparent; color:#fff; border:none; outline:none; font-size:15px; font-weight:bold;" onkeydown="handleMixerSpin(event, 'h')" oninput="mixerJump(this, 'mixMin', 2); syncMixerHidden()"> <span style="color:#555;">:</span>
+                <input type="text" id="mixMin" placeholder="MM" maxlength="2" style="width:28px; text-align:center; background:transparent; color:#fff; border:none; outline:none; font-size:15px; font-weight:bold;" onkeydown="handleMixerSpin(event, 'm')" oninput="mixerJump(this, 'mixS', 2); syncMixerHidden()"> <span style="color:#555;">:</span>
+                <input type="text" id="mixS" placeholder="SS" maxlength="2" style="width:28px; text-align:center; background:transparent; color:#fff; border:none; outline:none; font-size:15px; font-weight:bold;" onkeydown="handleMixerSpin(event, 's')" oninput="syncMixerHidden()">
+            </div>
+
+            <button onclick="setMixerToNow()" style="padding:6px 12px; font-size:15px; background:var(--grid-line); color:#000; font-weight:bold; cursor:pointer; border:none; border-radius:4px;">Set to Now</button>
+            <button onclick="clearMixerDate()" style="padding:6px 12px; font-size:15px; background:#5a0008; color:#fff; font-weight:bold; cursor:pointer; border:1px solid var(--grid-line); border-radius:4px;">Clear</button>
+
+            <select id="mixerVargaSelect" onchange="renderMixer()" style="background:#111; color:#fff; border:1px solid var(--grid-line); padding:6px 10px; font-size:15px; font-weight:bold; cursor:pointer;">
+                <option value="1">D1 - Rasi</option>
+                <option value="10">D10 - Dasamsa</option>
+                <option value="9">D9 - Navamsa</option>
+                <option value="7">D7 - Saptamsa</option>
+                <option value="2">D2 - Hora</option>
+                <option value="4">D4 - Chaturthamsa</option>
+                <option value="8">D8 - Ashtamsa</option>
+                <option value="60">D60 - Shashtiamsa</option>
+                <option value="11">D11 - Rudramsa</option>
+                <option value="30">D30 - Trimshamsa</option>
+                <option value="21">D21 - Iyer Hora</option>
+                <option value="16">D16 - Shodashamsa</option>
+                <option value="6">D6 - Shashthamsa</option>
+                <option value="12">D12 - Dwadasamsa</option>
+                <option value="3">D3 - Drekkana</option>
+                <option value="24">D24 - Chaturvimshamsa</option>
+                <option value="27">D27 - Nakshatramsa</option>
+                <option value="20">D20 - Vimshamsa</option>
+                <option value="40">D40 - Khavedamsa</option>
+                <option value="45">D45 - Akshavedamsa</option>
+                <option value="5">D5 - Panchamsa</option>
+            </select>
+            
+            <span id="transitStatus" style="color:#10b981; font-weight:bold; font-size:15px; margin-left:5px; min-width:140px; text-align:left;"></span>
+        </div>
+
+        <script>
+        // Auto-Jump functionality for seamless typing
+        function mixerJump(input, nextId, maxLen) {
+            input.value = input.value.replace(/\D/g, ''); // Ensure only numbers are typed
+            if (input.value.length >= maxLen) {
+                document.getElementById(nextId).focus();
+            }
+        }
+
+        // Handles the Up/Down Arrow smart-rollover for all 6 boxes seamlessly
+        function handleMixerSpin(event, unit) {
+            if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+                event.preventDefault();
+                
+                let y = parseInt(document.getElementById("mixY").value) || new Date().getFullYear();
+                let m = parseInt(document.getElementById("mixM").value) || 1;
+                let d = parseInt(document.getElementById("mixD").value) || 1;
+                let h = parseInt(document.getElementById("mixH").value) || 12;
+                let min = parseInt(document.getElementById("mixMin").value) || 0;
+                let s = parseInt(document.getElementById("mixS").value) || 0;
+                
+                let dateObj = new Date(y, m - 1, d, h, min, s);
+                let dir = (event.key === "ArrowUp") ? 1 : -1;
+                
+                if (unit === 'Y') dateObj.setFullYear(dateObj.getFullYear() + dir);
+                if (unit === 'M') dateObj.setMonth(dateObj.getMonth() + dir);
+                if (unit === 'D') dateObj.setDate(dateObj.getDate() + dir);
+                if (unit === 'h') dateObj.setHours(dateObj.getHours() + dir);
+                if (unit === 'm') dateObj.setMinutes(dateObj.getMinutes() + dir);
+                if (unit === 's') dateObj.setSeconds(dateObj.getSeconds() + dir);
+                
+                document.getElementById("mixY").value = dateObj.getFullYear();
+                document.getElementById("mixM").value = String(dateObj.getMonth() + 1).padStart(2, '0');
+                document.getElementById("mixD").value = String(dateObj.getDate()).padStart(2, '0');
+                document.getElementById("mixH").value = String(dateObj.getHours()).padStart(2, '0');
+                document.getElementById("mixMin").value = String(dateObj.getMinutes()).padStart(2, '0');
+                document.getElementById("mixS").value = String(dateObj.getSeconds()).padStart(2, '0');
+                
+                syncMixerHidden();
+            }
+        }
+
+        // Keeps the hidden original inputs synced so autoFetchTransit works flawlessly
+        function syncMixerHidden(triggerFetch = true) {
+            if (!document.getElementById("mixY").value && !document.getElementById("mixM").value) return;
+
+            let y = (document.getElementById("mixY").value || new Date().getFullYear()).toString().padStart(4, '0');
+            let m = (document.getElementById("mixM").value || 1).toString().padStart(2, '0');
+            let d = (document.getElementById("mixD").value || 1).toString().padStart(2, '0');
+            let h = (document.getElementById("mixH").value || 0).toString().padStart(2, '0');
+            let min = (document.getElementById("mixMin").value || 0).toString().padStart(2, '0');
+            let s = (document.getElementById("mixS").value || 0).toString().padStart(2, '0');
+            
+            document.getElementById("mixerDate").value = `${y}-${m}-${d}`;
+            document.getElementById("mixerTime").value = `${h}:${min}:${s}`;
+            
+            // Trigger the fetch safely only when needed
+            if (triggerFetch && typeof autoFetchTransit === "function") autoFetchTransit();
+        }
+
+        // Clears ONLY the visual fields and places your cursor in the Day box
+        window.clearMixerDate = function() {
+            document.getElementById('mixY').value = '';
+            document.getElementById('mixM').value = '';
+            document.getElementById('mixD').value = '';
+            document.getElementById('mixerDate').value = '';
+            
+            document.getElementById('mixD').focus(); // Auto focus back to DD
+        };
+
+        // Custom override for Set to Now
+        // Custom override for Set to Now
+        window.setMixerToNow = function() {
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = String(now.getMonth() + 1).padStart(2, "0");
+            const d = String(now.getDate()).padStart(2, "0");
+            const hh = String(now.getHours()).padStart(2, "0");
+            const mm = String(now.getMinutes()).padStart(2, "0");
+            const ss = String(now.getSeconds()).padStart(2, "0");
+            
+            document.getElementById('mixerDate').value = `${y}-${m}-${d}`;
+            document.getElementById('mixerTime').value = `${hh}:${mm}:${ss}`;
+            
+            if (document.getElementById('mixY')) {
+                document.getElementById('mixY').value = y;
+                document.getElementById('mixM').value = m;
+                document.getElementById('mixD').value = d;
+                document.getElementById('mixH').value = hh;
+                document.getElementById('mixMin').value = mm;
+                document.getElementById('mixS').value = ss;
+            }
+            
+            // Trigger instant loading
+            if (typeof autoFetchTransit === "function") autoFetchTransit();
+        };
+
+        // IMMEDIATELY populate the visual boxes on DOM load
+        (function initMixerUI() {
+            const now = new Date();
+            document.getElementById('mixY').value = now.getFullYear();
+            document.getElementById('mixM').value = String(now.getMonth() + 1).padStart(2, "0");
+            document.getElementById('mixD').value = String(now.getDate()).padStart(2, "0");
+            document.getElementById('mixH').value = String(now.getHours()).padStart(2, "0");
+            document.getElementById('mixMin').value = String(now.getMinutes()).padStart(2, "0");
+            document.getElementById('mixS').value = String(now.getSeconds()).padStart(2, "0");
+            syncMixerHidden(false); 
+        })();
+        </script>
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
         </div>
     </div>
 
     <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; margin-bottom: 40px; width: 100%;">
+	
+
+
+
         <div id="sideNatalContainer" style="flex: 1; min-width: 300px; max-width: 450px;"></div>
         <div id="sideTransitContainer" style="flex: 1; min-width: 300px; max-width: 450px;"></div>
     </div>
 
-    <div style="max-width: 1000px; margin: 0 auto 10px auto; border: 1px solid var(--grid-line); background: #000; padding: 8px; color: var(--text-white); font-weight: bold; border-radius: 4px; text-align: center; font-size: 16px;">
+    <div id="innerOuterHeading" style="max-width: 1000px; margin: 50px auto 10px auto; border: 1px solid var(--grid-line); background: #000; padding: 8px; color: var(--text-white); font-weight: bold; border-radius: 4px; text-align: center; font-size: 16px;">
         INNER <span style="color:#facc15;">(NATAL)</span> | OUTER <span style="color:#ff8800;">(TRANSIT)</span>
     </div>
 
@@ -7875,23 +8372,60 @@ function setMixerToNow() {
     const mm = String(now.getMinutes()).padStart(2, "0");
     const ss = String(now.getSeconds()).padStart(2, "0");
     
+    // 1. Update the hidden inputs for the fetch engine
     document.getElementById('mixerDate').value = `${y}-${m}-${d}`;
     document.getElementById('mixerTime').value = `${hh}:${mm}:${ss}`;
-    autoFetchTransit();
+    
+    // 2. Safely update the new visual split boxes (if they exist)
+    if (document.getElementById('mixY')) {
+        document.getElementById('mixY').value = y;
+        document.getElementById('mixM').value = m;
+        document.getElementById('mixD').value = d;
+        document.getElementById('mixH').value = hh;
+        document.getElementById('mixMin').value = mm;
+        document.getElementById('mixS').value = ss;
+    }
+    
+    // 🔥 FIX: Pass 'true' here to force instant loading and bypass the 3s delay
+    autoFetchTransit(true);
 }
 
 document.getElementById("mixerDate").addEventListener("change", autoFetchTransit);
 document.getElementById("mixerTime").addEventListener("change", autoFetchTransit);
 
 function autoFetchTransit() {
-    clearTimeout(mixerDebounceTimer);
     const status = document.getElementById("transitStatus");
-    if (status) status.innerHTML = "Waiting... &#x23F3;";
     
-    mixerDebounceTimer = setTimeout(() => {
-        fetchTransitFromCloud();
-    }, 800);
+    // Prevent Server DOS on Cold Start
+    if (window._isFetchingNatal) {
+        if (status) status.innerHTML = "Waiting for Natal Data... &#x23F3;";
+        return;
+    }
+
+    // STRICT CHECK: Get visual input values
+    const mixY = document.getElementById("mixY")?.value;
+    const mixM = document.getElementById("mixM")?.value;
+    const mixD = document.getElementById("mixD")?.value;
+
+    // If any date field is empty, or the year isn't 4 digits long, ABORT fetch.
+    if (!mixY || !mixM || !mixD || mixY.length < 4) {
+        if (status) status.innerHTML = "<span style='color:#ff8800;'>Enter Full Date...</span>";
+        return;
+    }
+
+    // Lazy loading removed — fetches instantly only when the date is fully valid
+    if (status) status.innerHTML = "<span style='color:#10b981;'>Fetching Now... &#x23F3;</span>";
+    fetchTransitFromCloud();
 }
+
+
+
+
+
+
+
+
+
 
 async function fetchTransitFromCloud() {
     const status = document.getElementById("transitStatus");
@@ -7926,14 +8460,8 @@ async function fetchTransitFromCloud() {
     let latVal = latEl && latEl.value ? parseFloat(latEl.value) : 13.3190737;
     let lonVal = lonEl && lonEl.value ? parseFloat(lonEl.value) : 77.1326306;
 
-    let dynamicOffset = 330; 
-    try {
-        const tzResponse = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latVal}&longitude=${lonVal}&timezone=auto`);
-        const tzData = await tzResponse.json();
-        if (tzData && tzData.utc_offset_seconds !== undefined) {
-            dynamicOffset = tzData.utc_offset_seconds / 60; 
-        }
-    } catch (e) {}
+    // 🔥 FIX: Fast, safe timezone fetch for Transit
+    let dynamicOffset = await getDynamicTimezoneSafe(latVal, lonVal);
 
     const requestData = {
         year: y, month: m, day: d, hour: hr, minute: min, second: sec,
@@ -8026,6 +8554,7 @@ function buildStandardKundaliHTML(chartData, title, forcedAscIndex = null, pivot
         if (chartData[sIdx]) {
             chartData[sIdx].forEach(p => {
                 let name = modeKN ? (knMap[p.n] || p.n) : p.n;
+                if (p.r) name += " (R)";
                 let deg = Math.floor(p.d);
                 let mins = Math.floor((p.d * 60) % 60).toString().padStart(2, '0');
                 let color = pColors[p.n] || "#ffffff";
@@ -8044,6 +8573,12 @@ function buildStandardKundaliHTML(chartData, title, forcedAscIndex = null, pivot
     html += `</div></div>`;
     return html;
 }
+
+
+
+
+
+
 
 
 
@@ -8142,8 +8677,11 @@ function expandUIElements() {
 function renderMixer() {
     expandUIElements();
 
-    if (!window._vargaChartStore || !window._vargaChartStore[1]) {
-        document.getElementById("mixerContent").innerHTML = "<div style='color:#ff4444; font-weight:bold; margin-top: 20px;'>Please load Natal Profile data first...</div>";
+    // Grab the active Varga from the new dropdown (defaults to 1)
+    const v = parseInt(document.getElementById("mixerVargaSelect")?.value || "1");
+
+    if (!window._vargaChartStore || !window._vargaChartStore[v]) {
+        document.getElementById("mixerContent").innerHTML = `<div style='color:#ff4444; font-weight:bold; margin-top: 20px;'>Please load Natal Profile data first for D${v}...</div>`;
         return;
     }
     if (!window.transitRaw) return; 
@@ -8157,7 +8695,8 @@ function renderMixer() {
     const modeKP = document.getElementById('modeKP')?.checked;
     const useTrueNode = document.getElementById("useTrueNode")?.checked;
     
-    const natalChart = window._vargaChartStore[1];
+    // Pull the specific Divisional Natal Chart
+    const natalChart = window._vargaChartStore[v];
     let transitChart = Array(12).fill().map(() => []);
 
     let lagnaShifted = raw.lagna;
@@ -8185,26 +8724,46 @@ function renderMixer() {
         }
     }
 
-    let tKpShift = window._kpSignShift ? (window._kpSignShift[1] || 0) : 0;
-    let mathematicalShift = pivotBaseDeg % 30;
-
-    
-	
-	
-	
-	
-	
-	
-	
-	
-	let pList = [...validPlanets];
+    let pList = [...validPlanets];
     pList.push(useTrueNode ? "Rahu_true" : "Rahu");
     pList.push(useTrueNode ? "Ketu_true" : "Ketu");
 
+    // Helper to process Varga positioning for Transits to match Natal math
+    function getVargaPlacement(rawDeg, vNum) {
+        if (vNum === 1) return { sign: Math.floor(rawDeg / 30), deg: rawDeg % 30, full: rawDeg };
+        if (vNum === 30) {
+            const sign = Math.floor(rawDeg / 30);
+            const deg = rawDeg % 30;
+            const isOdd = (sign % 2 === 0);
+            let start, length, targetSign;
+            if (isOdd) {
+                if (deg < 5) { start = 0; length = 5; targetSign = 0; }
+                else if (deg < 10) { start = 5; length = 5; targetSign = 10; }
+                else if (deg < 18) { start = 10; length = 8; targetSign = 8; }
+                else if (deg < 25) { start = 18; length = 7; targetSign = 2; }
+                else { start = 25; length = 5; targetSign = 6; }
+            } else {
+                if (deg < 5) { start = 0; length = 5; targetSign = 1; }
+                else if (deg < 12) { start = 5; length = 7; targetSign = 5; }
+                else if (deg < 20) { start = 12; length = 8; targetSign = 11; }
+                else if (deg < 25) { start = 20; length = 5; targetSign = 9; }
+                else { start = 25; length = 5; targetSign = 7; }
+            }
+            const rel = deg - start;
+            const finalDeg = (rel / length) * 30;
+            return { sign: targetSign, deg: finalDeg, full: targetSign * 30 + finalDeg };
+        }
+        const targetSign = getVSign(rawDeg, vNum);
+        const finalDeg = (rawDeg * vNum) % 30;
+        return { sign: targetSign, deg: finalDeg, full: targetSign * 30 + finalDeg };
+    }
+
+    let pivotVData = getVargaPlacement(pivotBaseDeg, v);
+
     // 1. Determine the VISUAL Anchor for the Pivot Marker
     let isShiftActive = document.getElementById("shiftedLagnaToggle")?.checked;
-    let pivotDegInSign = pivotBaseDeg % 30;
-    let pivotSign = Math.floor(pivotBaseDeg / 30);
+    let pivotDegInSign = pivotVData.deg;
+    let pivotSign = pivotVData.sign;
     
     // In KP mode, if degree >= 15, the visual marker snaps to 0° of the NEXT sign
     let shiftOffset = (modeKP && isShiftActive && pivotDegInSign >= 15) ? 1 : 0;
@@ -8225,7 +8784,7 @@ function renderMixer() {
         }
     }
 
-    // 3. 🟢 THE FIX: Calculate Transit Planets relative to the EXACT Raw Degree of the Pivot
+    // 3. Calculate Transit Planets relative to EXACT Varga Degree
     const hideMinor = document.getElementById("mixerHideMinor")?.checked;
     const minorPlanets = ["Sy", "Ch", "Ma", "Bu", "Ve"];
 
@@ -8235,44 +8794,37 @@ function renderMixer() {
 
         let finalSign = 0;
         let finalDeg = 0;
+        
+        let pVData = getVargaPlacement(rawDeg, v);
 
         if (modeKP) {
-            // Measure distance from the EXACT raw degree (e.g., Pisces 20° 58')
-            let relativeDeg = (rawDeg - pivotBaseDeg + 360) % 360;
+            // Measure distance from the EXACT varga degree
+            let relativeDeg = (pVData.full - pivotVData.full + 360) % 360;
             let houseOffset = Math.floor(relativeDeg / 30);
             
-            // Drop into the correct visual box based on that exact 30° slice
             finalSign = (forcedTransitAscIdx + houseOffset) % 12;
             finalDeg = relativeDeg % 30; 
         } else {
-            // Sign-to-Sign: Keep actual absolute zodiac positions
-            finalSign = Math.floor(rawDeg / 30);
-            finalDeg = rawDeg % 30;
+            // Sign-to-Sign: Keep actual absolute zodiac positions in Varga
+            finalSign = pVData.sign;
+            finalDeg = pVData.deg;
         }
 
         let code = pKey.split('_')[0]; 
         code = (code === "Surya") ? "Sy" : code.substring(0,2);
         
-        // Hide the 5 fast-moving minor planets from the transit chart if checked
         if (hideMinor && minorPlanets.includes(code)) return;
         
-        transitChart[finalSign].push({ n: code, d: finalDeg, isAsc: false });
+        let isRetro = window.transitRaw.planets_retro && window.transitRaw.planets_retro[pKey] ? true : false;
+        
+        transitChart[finalSign].push({ n: code, d: finalDeg, isAsc: false, r: isRetro });
     });
 
     transitChart.forEach((h, i) => i <= 5 ? h.sort((a,b) => a.d - b.d) : h.sort((a,b) => b.d - a.d));
-	
-	
-	
-	
-	
-	
-	
-	
-	
 
-    // RENDER SIDE-BY-SIDE
-    document.getElementById("sideNatalContainer").innerHTML = buildStandardKundaliHTML(natalChart, "Natal Chart (D1)", forcedTransitAscIdx, pivotVal);
-    document.getElementById("sideTransitContainer").innerHTML = buildStandardKundaliHTML(transitChart, "Transit Chart (D1)", forcedTransitAscIdx, pivotVal);
+    // RENDER SIDE-BY-SIDE (Dynamic Titles based on Varga)
+    document.getElementById("sideNatalContainer").innerHTML = buildStandardKundaliHTML(natalChart, `Natal Chart (D${v})`, forcedTransitAscIdx, pivotVal);
+    document.getElementById("sideTransitContainer").innerHTML = buildStandardKundaliHTML(transitChart, `Transit Chart (D${v})`, forcedTransitAscIdx, pivotVal);
 
     
 	
@@ -8395,6 +8947,7 @@ const calcH = (base, p) => p >= 3 ? (p + 2) * 25 : base;
         let nPlanets = natalChart[i] ? natalChart[i].map(p => {
             let color = pColors[p.n] || "#ffffff";
             let name = modeKN ? (knMap[p.n] || p.n) : p.n;
+            if (p.r) name += " (R)";
             let deg = Math.floor(p.d);
             let min = Math.floor((p.d * 60) % 60).toString().padStart(2, '0');
             
@@ -8417,6 +8970,7 @@ const calcH = (base, p) => p >= 3 ? (p + 2) * 25 : base;
         let tPlanets = transitChart[i] ? transitChart[i].map(p => {
             let color = pColors[p.n] || "#ffffff";
             let name = modeKN ? (knMap[p.n] || p.n) : p.n;
+            if (p.r) name += " (R)";
             let deg = Math.floor(p.d);
             let min = Math.floor((p.d * 60) % 60).toString().padStart(2, '0');
             
@@ -8439,7 +8993,248 @@ const calcH = (base, p) => p >= 3 ? (p + 2) * 25 : base;
 
     html += `</div>`;
     document.getElementById("mixerContent").innerHTML = html;
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	// =========================================================
+    // NEW: DIRECTIONAL CHART ENGINE (NATAL + TRANSIT)
+    // =========================================================
+    const dirEast = [];  // Signs/Houses 1, 5, 9
+    const dirSouth = []; // Signs/Houses 2, 6, 10
+    const dirWest = [];  // Signs/Houses 3, 7, 11
+    const dirNorth = []; // Signs/Houses 4, 8, 12
+
+    // --- NEW: House Grouping Arrays ---
+    const grpMovable = []; // Houses 1, 4, 7, 10
+    const grpFixed = [];   // Houses 2, 5, 8, 11
+    const grpDual = [];    // Houses 3, 6, 9, 12
+
+    // --- Fetch Directional Checkbox States ---
+    let dirHideMajorEl = document.getElementById("dirHideMajorTransit");
+    let dirHideMajorChecked = dirHideMajorEl ? dirHideMajorEl.checked : false;
+
+    let dirHideMinorEl = document.getElementById("dirHideMinorTransit");
+    let dirHideMinorChecked = dirHideMinorEl ? dirHideMinorEl.checked : true; // Default ON
+    // ----------------------------------------------
+
+    const pushToDirection = (pKey, rawDeg, isTransit) => {
+        if (rawDeg === undefined || rawDeg === null) return;
+        
+        let code = pKey.split('_')[0];
+        let shortCode = (code === "Surya") ? "Sy" : code.substring(0,2);
+        
+        // 1. Respect Custom Directional Transit Toggles
+        if (isTransit) {
+            const isMinor = minorPlanets.includes(shortCode);
+            if (isMinor && dirHideMinorChecked) return;
+            if (!isMinor && dirHideMajorChecked) return;
+        }
+
+        // 2. Use FULL NAME for display
+        let fullName = code;
+
+        // Calculate precise varga sign and degree
+        const pVData = getVargaPlacement(rawDeg, v);
+        let groupIndex = 0;
+        let displayDeg = 0;
+        let houseNum = 0;
+
+        // 3. Obey KP vs Sign Mode & Calculate Exact House Number
+        if (modeKP) {
+            // KP Mode: Group by House relative to the Pivot (incorporates Shift)
+            let relativeDeg = (pVData.full - pivotVData.full + 360) % 360;
+            let houseOffset = Math.floor(relativeDeg / 30);
+            groupIndex = houseOffset; 
+            displayDeg = relativeDeg % 30; 
+            houseNum = houseOffset + 1; // Strictly House Number
+        } else {
+            // Sign Mode: Group strictly by Absolute Zodiac Sign
+            groupIndex = pVData.sign; 
+            displayDeg = pVData.deg; 
+            // Calculate Sign-Based House relative to the Ascendant Sign
+            houseNum = (pVData.sign - forcedTransitAscIdx + 12) % 12 + 1; 
+        }
+        
+        let isRetro = false;
+        if (isTransit) {
+            isRetro = window.transitRaw.planets_retro && window.transitRaw.planets_retro[pKey] ? true : false;
+        } else {
+            isRetro = raw.planets_retro && raw.planets_retro[pKey] ? true : false;
+        }
+
+        let labelName = (modeKN ? (knMap[code] || fullName) : fullName) + (isRetro ? " (R)" : "");
+
+        // 4. Apply Colors: Vibrant Teal for Natal, Vibrant Yellow for Transit
+        let label = isTransit ? `T - ${labelName}` : labelName;
+        let color = isTransit ? "#ffea00" : "#18ffff"; // Yellow and Teal
+
+        const obj = { label: label, deg: displayDeg, color: color, houseNum: houseNum };
+
+        // --- DIRECTIONAL ASSIGNMENT (1,5,9 etc.) ---
+        const rem = groupIndex % 4;
+        if (rem === 0) dirEast.push(obj);        
+        else if (rem === 1) dirSouth.push(obj);  
+        else if (rem === 2) dirWest.push(obj);   
+        else if (rem === 3) dirNorth.push(obj);  
+
+        // --- NEW: 1,4,7,10 ASSIGNMENT BASED STRICTLY ON HOUSENUM ---
+        if ([1, 4, 7, 10].includes(houseNum)) grpMovable.push(obj);
+        else if ([2, 5, 8, 11].includes(houseNum)) grpFixed.push(obj);
+        else if ([3, 6, 9, 12].includes(houseNum)) grpDual.push(obj);
+    };
+
+    // 1. Populate Natal Planets
+    const nPlanetsToUse = ["Surya", "Chandra", "Mangala", "Budha", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu"];
+    nPlanetsToUse.forEach(p => {
+        let rawDeg = (window._shiftedPlanetsGlobal && window._shiftedPlanetsGlobal[p] !== undefined)
+            ? window._shiftedPlanetsGlobal[p]
+            : (raw.planets[p] || 0);
+        pushToDirection(p, rawDeg, false);
+    });
+
+    // 2. Populate Transit Planets
+    pList.forEach(pKey => {
+        let rawDeg = tPlanets[pKey];
+        pushToDirection(pKey, rawDeg, true);
+    });
+
+    // 3. Sort all arrays strictly by ascending degrees
+    const sortFn = (a, b) => a.deg - b.deg;
+    dirEast.sort(sortFn);
+    dirSouth.sort(sortFn);
+    dirWest.sort(sortFn);
+    dirNorth.sort(sortFn);
+    
+    grpMovable.sort(sortFn);
+    grpFixed.sort(sortFn);
+    grpDual.sort(sortFn);
+
+    // 4. HTML Renderer (With Dynamic Subtitles for KP vs Sign Mode)
+    const renderDirBox = (title, signSubtitle, kpSubtitle, arr, headerGradient) => {
+        let boxHtml = `<div style="background:#111; border:1px solid var(--grid-line); border-radius:6px; padding-bottom:12px; min-height:180px; display:flex; flex-direction:column; align-items:center; overflow:hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.5); width: 100%;">`;
+        
+        // Dynamically choose subtitle based on KP Mode vs Sign Mode
+        let activeSubtitle = modeKP ? kpSubtitle : signSubtitle;
+        // white-space: nowrap forces it into a single line without wrapping
+        let subtitleHtml = `<div style="color:#f0f0f0; font-size:17px; font-weight:bold; letter-spacing:0.5px; margin-top:4px; text-shadow: 2px 2px 3px rgba(0,0,0,1); white-space: nowrap;">${activeSubtitle}</div>`;
+        
+        // Colored Gradient Banner for the Header
+        boxHtml += `<div style="background:${headerGradient}; width:100%; text-align:center; padding:15px 0; margin-bottom:12px; border-bottom:2px solid #222;">
+            <div style="color:#ffffff; font-weight:900; font-size:24px; text-shadow: 2px 2px 4px rgba(0,0,0,1); letter-spacing:1px;">${title}</div>
+            ${subtitleHtml}
+        </div>`;
+
+        arr.forEach(p => {
+            let d = Math.floor(p.deg);
+            let m = Math.floor((p.deg * 60) % 60).toString().padStart(2, '0');
+            boxHtml += `<div style="color:${p.color}; font-size:16px; font-weight:bold; margin:4px 0; letter-spacing:0.5px; text-shadow: 1px 1px 1px #000;">${p.label} ${d}°${m}' <span style="color:#bbb; font-size:16px; font-weight:500;">(House ${p.houseNum})</span></div>`;
+        });
+        boxHtml += `</div>`;
+        return boxHtml;
+    };
+
+    // Helper to calculate the dynamic sign names for the new boxes
+    const signListFull = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
+    const getDynamicSignString = (hArr) => hArr.map(h => signListFull[(forcedTransitAscIdx + h - 1) % 12]).join(", ");
+
+    
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	// 5. Construct Grid (Passing both Sign and KP subtitles)
+    let dirHtml = `
+    <div style="max-width: 1400px; margin: 0 auto; width: 100%; padding: 0 20px; box-sizing: border-box;">
+        
+        <div style="height: 100px; width: 100%;"></div>
+
+        <div style="color:var(--grid-line); font-weight:900; font-size:22px; text-align:center; margin-bottom:15px; text-transform:uppercase; letter-spacing:1px; border-bottom: 2px solid #333; padding-bottom: 10px;">Directional Grouping (D${v})</div>
+        
+        <div style="text-align: center; margin-bottom: 30px; display: flex; justify-content: center; gap: 20px;">
+            <label style="cursor:pointer; color:#ffea00; font-weight:bold; font-size:16px; display:flex; align-items:center; gap:8px;">
+                <input type="checkbox" id="dirHideMajorTransit" onchange="renderMixer()" ${dirHideMajorChecked ? "checked" : ""}> Hide Major Transit
+            </label>
+            <label style="cursor:pointer; color:#ffea00; font-weight:bold; font-size:16px; display:flex; align-items:center; gap:8px;">
+                <input type="checkbox" id="dirHideMinorTransit" onchange="renderMixer()" ${dirHideMinorChecked ? "checked" : ""}> Hide Minor Transit
+            </label>
+        </div>
+
+        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 20px; align-items: start; width: 100%;">
+            <div></div> ${renderDirBox("NORTH", "Cancer, Scorpio, Pisces", "( 4, 8, 12 ) Houses", dirNorth, "linear-gradient(135deg, #001a4d, #004080)")}
+            <div></div> ${renderDirBox("WEST", "Gemini, Libra, Aquarius", "( 3, 7, 11 ) Houses", dirWest, "linear-gradient(135deg, #2b0c5a, #5f1092)")}
+            <div style="display:flex; justify-content:center; align-items:center; color:#555; font-weight:bold; text-align:center; font-size:24px; text-transform:uppercase; letter-spacing:2px; height: 100%; min-height:180px;">D${v}<br>Directional</div>
+            ${renderDirBox("EAST", "Aries, Leo, Sagittarius", "( 1, 5, 9 ) Houses", dirEast, "linear-gradient(135deg, #660000, #cc0000)")}
+            <div></div> ${renderDirBox("SOUTH", "Taurus, Virgo, Capricorn", "( 2, 6, 10 ) Houses", dirSouth, "linear-gradient(135deg, #003b1f, #007f3f)")}
+            <div></div> 
+        </div>
+
+        <div style="height: 130px; width: 100%;"></div>
+
+        <div style="color:var(--grid-line); font-weight:900; font-size:22px; text-align:center; margin-bottom:30px; text-transform:uppercase; letter-spacing:1px; border-bottom: 2px solid #333; padding-bottom: 10px;">House Grouping (D${v})</div>
+        
+        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 20px; align-items: start; width: 100%;">
+            ${renderDirBox("1, 4, 7, 10", getDynamicSignString([1, 4, 7, 10]), "( 1, 4, 7, 10 ) Houses", grpMovable, "linear-gradient(135deg, #6b1414, #991f1f)")}
+            ${renderDirBox("2, 5, 8, 11", getDynamicSignString([2, 5, 8, 11]), "( 2, 5, 8, 11 ) Houses", grpFixed, "linear-gradient(135deg, #144d2b, #1f7a45)")}
+            ${renderDirBox("3, 6, 9, 12", getDynamicSignString([3, 6, 9, 12]), "( 3, 6, 9, 12 ) Houses", grpDual, "linear-gradient(135deg, #2b144d, #451f7a)")}
+        </div>
+
+        <div style="height: 130px; width: 100%;"></div>
+
+    </div>
+    `;
+	
+	
+	
+	
+	
+	
+	
+	
+
+// 6. Inject securely BEFORE the Inner/Outer heading
+    let dirContainer = document.getElementById("directionalChartContainer");
+    if (!dirContainer) {
+        dirContainer = document.createElement("div");
+        dirContainer.id = "directionalChartContainer";
+        
+        let wrapper = document.getElementById("mixerWrapper");
+        let targetHeading = document.getElementById("innerOuterHeading");
+        
+        // 🔥 FIX: Let the heading find its actual parent to prevent the crash
+        if (targetHeading && targetHeading.parentNode) {
+            targetHeading.parentNode.insertBefore(dirContainer, targetHeading);
+        } else if (wrapper) {
+            wrapper.appendChild(dirContainer);
+        }
+    }
+    dirContainer.innerHTML = dirHtml;
 }
+
+
+
+
+
+
+
 
 
 
@@ -8552,6 +9347,79 @@ window.addEventListener("DOMContentLoaded", () => {
     syncFromDecimal();
 });
 </script>
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+/* =========================================================
+   UNIVERSAL INFINITE SCROLL ENGINE (ALL DROPDOWNS)
+========================================================= */
+(function attachUniversalDropdownLoop() {
+    
+    // 1. Universal Keyboard Loop (Up/Down Arrows)
+    document.addEventListener('keydown', function(e) {
+        if (e.target.tagName === 'SELECT' && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+            e.preventDefault(); // Stop native browser block
+            
+            const select = e.target;
+            const max = select.options.length - 1;
+
+            if (e.key === 'ArrowDown') {
+                select.selectedIndex = (select.selectedIndex === max) ? 0 : select.selectedIndex + 1;
+            } else if (e.key === 'ArrowUp') {
+                select.selectedIndex = (select.selectedIndex === 0) ? max : select.selectedIndex - 1;
+            }
+            
+            // Magically trigger whichever onchange event this specific dropdown has!
+            select.dispatchEvent(new Event('change'));
+        }
+    });
+
+    // 2. Universal Mouse Wheel Loop (Hover over closed dropdown)
+    document.addEventListener('wheel', function(e) {
+        if (e.target.tagName === 'SELECT') {
+            e.preventDefault(); // Stop page from scrolling
+            
+            const select = e.target;
+            const max = select.options.length - 1;
+
+            if (e.deltaY > 0) {
+                select.selectedIndex = (select.selectedIndex === max) ? 0 : select.selectedIndex + 1;
+            } else if (e.deltaY < 0) {
+                select.selectedIndex = (select.selectedIndex === 0) ? max : select.selectedIndex - 1;
+            }
+            
+            // Magically trigger whichever onchange event this specific dropdown has!
+            select.dispatchEvent(new Event('change'));
+        }
+    }, { passive: false }); // Passive: false is required to allow e.preventDefault() on scroll
+
+})();
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
