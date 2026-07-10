@@ -6998,14 +6998,33 @@ function loadCloudProfile(event) {
             Untenented
         </label>
 
+        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:#ff3366;">
+            <input type="checkbox" id="nadiLocalShiftToggle" checked onchange="renderNakshatraNadiTab()">
+            Shift
+        </label>
+    </div>
+
+    <!-- NEW RAHU/KETU GRANULAR CONTROL ROW -->
+    <div style="text-align:center; margin-bottom:25px; font-weight:800; display:flex; justify-content:center; flex-wrap:wrap; gap:25px;">
+        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:#ff9933;">
+            <input type="checkbox" id="nadiRaKeDispToggle" onchange="renderNakshatraNadiTab()">
+            RaKe Dispositor
+        </label>
+        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:#ff9933;">
+            <input type="checkbox" id="nadiRaKeConjToggle" checked onchange="renderNakshatraNadiTab()">
+            RaKe Conjunct
+        </label>
         <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:#ff9933;">
             <input type="checkbox" id="nadiRaKeAspToggle" checked onchange="renderNakshatraNadiTab()">
             RaKe Asp
         </label>
-
-        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:#ff3366;">
-            <input type="checkbox" id="nadiLocalShiftToggle" checked onchange="renderNakshatraNadiTab()">
-            Shift
+        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:#10b981;">
+            <input type="checkbox" id="nadiRaKeCuspalConjToggle" onchange="renderNakshatraNadiTab()">
+            RaKe Cuspal Conj
+        </label>
+        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:#10b981;">
+            <input type="checkbox" id="nadiRaKeAspHouseToggle" onchange="renderNakshatraNadiTab()">
+            RaKe Asp House Based
         </label>
     </div>
 	
@@ -7279,10 +7298,23 @@ window.toggleNadiHighlight = function(num, type, btnEl) {
     renderNakshatraNadiTab();
 };
 
+
+
+
+
+
+
 window.formatNadiNumbers = function(numStr) {
     if (!numStr || numStr === "-" || numStr === "") return numStr;
-    let nums = numStr.split(",");
     
+    // NEW: Handle distinct planetary + separated groups for Ra/Ke
+    if (numStr.includes("+")) {
+        let groups = numStr.split("+");
+        let formattedGroups = groups.map(g => window.formatNadiNumbers(g.trim()));
+        return formattedGroups.join(" <span style='color:#0bf4e6; font-weight:900; font-size:16px; margin:0 4px;'>+</span> ");
+    }
+
+    let nums = numStr.split(",");
     const hideUnselected = document.getElementById("nadiHideUnselectedToggle")?.checked;
 
     let formatted = nums.map(n => {
@@ -7305,6 +7337,17 @@ window.formatNadiNumbers = function(numStr) {
     if (formatted.length === 0) return "-";
     return formatted.join(" <span style='color:#777; font-size: 15px;'>,</span> ");
 };
+
+
+
+
+
+
+
+
+
+    
+    
 
 // -----------------------------------------------------
 
@@ -7483,6 +7526,20 @@ function getNadiAbsoluteLongitude(pCode, v) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // STRICT PLACEMENT & SHIFTING ENGINE
 function getNadiScriptString(pCode, v) {
     const NADI_NAMES = { Sy:"Surya", Ch:"Chandra", Ma:"Mangala", Bu:"Budha", Ju:"Jupiter", Ve:"Venus", Sa:"Saturn", Ra:"Rahu", Ke:"Ketu" };
@@ -7515,62 +7572,112 @@ function getNadiScriptString(pCode, v) {
 
         if (v !== 1) {
             // ==========================================
-            // ðŸ”’ STRICT SIGN MODE LOCK FOR VARGAS (D2-D60)
-            // Completely ignores KP toggle and visual chart
+            //  KP MODE PLACEMENT FIX FOR VARGAS (D2-D60)
             // ==========================================
             let targetDeg = getNadiAbsoluteLongitude(targetPlanet, v);
             let pivotDeg = isPlanetPivot ? getNadiAbsoluteLongitude(pivotStr, v) : window._nadiVargaBaseDegree;
             
             if (targetDeg !== -1 && pivotDeg !== undefined && pivotDeg !== -1) {
                 let pSign = Math.floor(targetDeg / 30);
-                let baseSign = Math.floor(pivotDeg / 30);
-                t_placedHouse = ((pSign - baseSign + 12) % 12) + 1;
+                let pureBaseSign = Math.floor(pivotDeg / 30);
+                let lordshipBaseSign = pureBaseSign;
+
+                // FIX: Restored Shift Logic for Vargas in KP Mode
+                if (SHIFTED_LAGNA) {
+                    if (isPlanetPivot) {
+                        if ((pivotDeg % 30) >= 15) lordshipBaseSign = (pureBaseSign + 1) % 12;
+                    } else {
+                        let shiftAmount = (window._kpSignShift && window._kpSignShift[v] !== undefined) ? window._kpSignShift[v] : ((pivotDeg % 30) >= 15 ? 1 : 0);
+                        lordshipBaseSign = (pureBaseSign + shiftAmount) % 12;
+                    }
+                }
+                
+                const modeKP = document.getElementById("modeKP")?.checked;
+                
+                if (modeKP) {
+                    // Exact 30-degree slice distance for KP Mode Equal Houses
+                    let relDeg = (targetDeg - pivotDeg + 360) % 360;
+                    t_placedHouse = Math.floor(relDeg / 30) + 1;
+                } else {
+                    // Standard Sign-to-Sign jump for Vedic/Sign Mode
+                    t_placedHouse = ((pSign - pureBaseSign + 12) % 12) + 1;
+                }
                 
                 function getHousesOfVarga(lord) {
                     let houses = [];
                     for(let h=1; h<=12; h++) {
-                        let hSign = (baseSign + h - 1) % 12 + 1;
+                        let hSign = (lordshipBaseSign + h - 1) % 12 + 1;
                         if (signLords[hSign] === lord) houses.push(h);
                     }
                     return houses;
                 }
                 
                 if (targetPlanet === "Ra" || targetPlanet === "Ke") {
-                    let dispositor = signLords[pSign + 1];
-                    t_lordships = getHousesOfVarga(dispositor);
-                    let dispDeg = getNadiAbsoluteLongitude(dispositor, v);
-                    if (dispDeg !== -1) {
-                        let dispSign = Math.floor(dispDeg / 30);
-                        let dispPlaced = ((dispSign - baseSign + 12) % 12) + 1;
-                        t_lordships.unshift(dispPlaced);
+                    const includeDisp = document.getElementById("nadiRaKeDispToggle")?.checked;
+                    if (includeDisp) {
+                        let dispositor = signLords[pSign + 1];
+                        t_lordships = getHousesOfVarga(dispositor);
+                        let dispDeg = getNadiAbsoluteLongitude(dispositor, v);
+                        if (dispDeg !== -1) {
+                            if (modeKP) {
+                                let dispRelDeg = (dispDeg - pivotDeg + 360) % 360;
+                                let dispPlaced = Math.floor(dispRelDeg / 30) + 1;
+                                t_lordships.unshift(dispPlaced);
+                            } else {
+                                let dispSign = Math.floor(dispDeg / 30);
+                                let dispPlaced = ((dispSign - pureBaseSign + 12) % 12) + 1;
+                                t_lordships.unshift(dispPlaced);
+                            }
+                        }
+                    } else {
+                        t_lordships = [];
                     }
                 } else {
                     t_lordships = getHousesOfVarga(targetPlanet);
                 }
             }
-        } else if (isSignMode) {
+        }
+		else if (isSignMode) {
             let planetSignIdx = getChartSignIndex(targetPlanet);
             let baseSignIdx = isPlanetPivot ? getChartSignIndex(pivotStr) : getChartSignIndex("ASC");
             
+            let lordshipBaseIdx = baseSignIdx;
+            
+            // FIX: Restored Shift Logic for Sign Mode 
+            if (SHIFTED_LAGNA && baseSignIdx !== -1) {
+                if (isPlanetPivot) {
+                    let pDeg = getNadiAbsoluteLongitude(pivotStr, v);
+                    if (pDeg !== -1 && (pDeg % 30) >= 15) lordshipBaseIdx = (lordshipBaseIdx + 1) % 12;
+                } else {
+                    let shiftAmount = (window._kpSignShift && window._kpSignShift[v] !== undefined) ? window._kpSignShift[v] : 0;
+                    lordshipBaseIdx = (lordshipBaseIdx + shiftAmount) % 12;
+                }
+            }
+
             if (planetSignIdx !== -1 && baseSignIdx !== -1) {
                 t_placedHouse = ((planetSignIdx - baseSignIdx + 12) % 12) + 1;
 
                 function getSignModeHousesOf(lord) {
                     let houses = [];
                     for (let h = 1; h <= 12; h++) {
-                        let hSign = (baseSignIdx + h - 1) % 12;
+                        let hSign = (lordshipBaseIdx + h - 1) % 12;
                         if (signLords[hSign + 1] === lord) houses.push(h);
                     }
                     return houses;
                 }
 
                 if (targetPlanet === "Ra" || targetPlanet === "Ke") {
-                    let dispositor = signLords[planetSignIdx + 1];
-                    t_lordships = getSignModeHousesOf(dispositor);
-                    let dispSignIdx = getChartSignIndex(dispositor);
-                    if (dispSignIdx !== -1) {
-                        let dispPlaced = ((dispSignIdx - baseSignIdx + 12) % 12) + 1;
-                        t_lordships.unshift(dispPlaced); 
+                    const includeDisp = document.getElementById("nadiRaKeDispToggle")?.checked;
+                    if (includeDisp) {
+                        let dispositor = signLords[planetSignIdx + 1];
+                        t_lordships = getSignModeHousesOf(dispositor);
+                        let dispSignIdx = getChartSignIndex(dispositor);
+                        if (dispSignIdx !== -1) {
+                            let dispPlaced = ((dispSignIdx - baseSignIdx + 12) % 12) + 1;
+                            t_lordships.unshift(dispPlaced); 
+                        }
+                    } else {
+                        t_lordships = [];
                     }
                 } else {
                     t_lordships = getSignModeHousesOf(targetPlanet);
@@ -7602,25 +7709,32 @@ function getNadiScriptString(pCode, v) {
                     }
 
                     if (targetPlanet === "Ra" || targetPlanet === "Ke") {
-                        let nodeDeg = getNadiAbsoluteLongitude(targetPlanet, v);
-                        if (nodeDeg !== -1) {
-                            let nodeSign = Math.floor(nodeDeg / 30);
-                            let dispositor = signLords[nodeSign + 1];
-                            t_lordships = getHousesOfPivot(dispositor);
+                        const includeDisp = document.getElementById("nadiRaKeDispToggle")?.checked;
+                        if (includeDisp) {
+                            let nodeDeg = getNadiAbsoluteLongitude(targetPlanet, v);
+                            if (nodeDeg !== -1) {
+                                let nodeSign = Math.floor(nodeDeg / 30);
+                                let dispositor = signLords[nodeSign + 1];
+                                t_lordships = getHousesOfPivot(dispositor);
 
-                            let dispDeg = getNadiAbsoluteLongitude(dispositor, v);
-                            if (dispDeg !== -1) {
-                                let dDiff = (dispDeg - pivotDeg + 360) % 360;
-                                let dispPlaced = Math.floor(dDiff / 30) + 1;
-                                t_lordships.unshift(dispPlaced);
+                                let dispDeg = getNadiAbsoluteLongitude(dispositor, v);
+                                if (dispDeg !== -1) {
+                                    let dDiff = (dispDeg - pivotDeg + 360) % 360;
+                                    let dispPlaced = Math.floor(dDiff / 30) + 1;
+                                    t_lordships.unshift(dispPlaced);
+                                }
                             }
+                        } else {
+                            t_lordships = [];
                         }
                     } else {
                         t_lordships = getHousesOfPivot(targetPlanet);
                     }
 
                     const cuspalConjToggle = document.getElementById("nadiCuspalConjToggle")?.checked;
-                    if (cuspalConjToggle && v === 1) {
+                    const rakeCuspalConjToggle = document.getElementById("nadiRaKeCuspalConjToggle")?.checked;
+                    
+                    if (v === 1) {
                         const applyCuspalConjunctionNew = (tp) => {
                             let absDeg = getNadiAbsoluteLongitude(tp, v);
                             if (absDeg !== -1) {
@@ -7633,13 +7747,20 @@ function getNadiScriptString(pCode, v) {
                             }
                         };
 
-                        applyCuspalConjunctionNew(targetPlanet);
-                        if (targetPlanet === "Ra" || targetPlanet === "Ke") {
-                            let nodeDeg = getNadiAbsoluteLongitude(targetPlanet, v);
-                            if (nodeDeg !== -1) {
-                                let nodeSign = Math.floor(nodeDeg / 30);
-                                let dispositor = signLords[nodeSign + 1];
-                                if (dispositor) applyCuspalConjunctionNew(dispositor);
+                        if (targetPlanet !== "Ra" && targetPlanet !== "Ke") {
+                            if (cuspalConjToggle) applyCuspalConjunctionNew(targetPlanet);
+                        } else {
+                            if (rakeCuspalConjToggle) {
+                                applyCuspalConjunctionNew(targetPlanet);
+                            }
+                            const includeDisp = document.getElementById("nadiRaKeDispToggle")?.checked;
+                            if (includeDisp && cuspalConjToggle) { 
+                                let nodeDeg = getNadiAbsoluteLongitude(targetPlanet, v);
+                                if (nodeDeg !== -1) {
+                                    let nodeSign = Math.floor(nodeDeg / 30);
+                                    let dispositor = signLords[nodeSign + 1];
+                                    if (dispositor) applyCuspalConjunctionNew(dispositor);
+                                }
                             }
                         }
                     }
@@ -7669,26 +7790,33 @@ function getNadiScriptString(pCode, v) {
                     return houses;
                 }
 
-                if (targetPlanet === "Ra" || targetPlanet === "Ke") {
-                    let pureSign = -1;
-                    for (let i = 0; i < 12; i++) {
-                        let obj = chart[i].find(x => x.n === targetPlanet);
-                        if (obj && obj.pureSign !== undefined) pureSign = obj.pureSign;
-                    }
-                    if (pureSign !== -1) {
-                        let dispositor = signLords[pureSign + 1];
-                        t_lordships = getHousesOf(dispositor);
-                        let dispPlaced = window._shodaBhava[v][dispositor];
-                        if (dispPlaced && dispPlaced !== "-") {
-                            t_lordships.unshift(dispPlaced);
+				if (targetPlanet === "Ra" || targetPlanet === "Ke") {
+                    const includeDisp = document.getElementById("nadiRaKeDispToggle")?.checked;
+                    if (includeDisp) {
+                        let pureSign = -1;
+                        for (let i = 0; i < 12; i++) {
+                            let obj = chart[i].find(x => x.n === targetPlanet);
+                            if (obj && obj.pureSign !== undefined) pureSign = obj.pureSign;
                         }
+                        if (pureSign !== -1) {
+                            let dispositor = signLords[pureSign + 1];
+                            t_lordships = getHousesOf(dispositor);
+                            let dispPlaced = window._shodaBhava[v][dispositor];
+                            if (dispPlaced && dispPlaced !== "-") {
+                                t_lordships.unshift(dispPlaced);
+                            }
+                        }
+                    } else {
+                        t_lordships = [];
                     }
                 } else {
                     t_lordships = getHousesOf(targetPlanet);
                 }
 
                 const cuspalConjToggle = document.getElementById("nadiCuspalConjToggle")?.checked;
-                if (cuspalConjToggle && v === 1) {
+                const rakeCuspalConjToggle = document.getElementById("nadiRaKeCuspalConjToggle")?.checked;
+                
+                if (v === 1) {
                     let activeCusps = null;
                     if (typeof currentCusps !== "undefined" && currentCusps && Object.keys(currentCusps).length > 0) {
                         activeCusps = currentCusps;
@@ -7712,16 +7840,23 @@ function getNadiScriptString(pCode, v) {
                             }
                         };
 
-                        applyCuspalConjunction(targetPlanet);
-                        if (targetPlanet === "Ra" || targetPlanet === "Ke") {
-                            let pureSign = -1;
-                            for (let i = 0; i < 12; i++) {
-                                let obj = chart[i].find(x => x.n === targetPlanet);
-                                if (obj && obj.pureSign !== undefined) pureSign = obj.pureSign;
+                        if (targetPlanet !== "Ra" && targetPlanet !== "Ke") {
+                            if (cuspalConjToggle) applyCuspalConjunction(targetPlanet);
+                        } else {
+                            if (rakeCuspalConjToggle) {
+                                applyCuspalConjunction(targetPlanet);
                             }
-                            if (pureSign !== -1) {
-                                let dispositor = signLords[pureSign + 1];
-                                if (dispositor) applyCuspalConjunction(dispositor);
+                            const includeDisp = document.getElementById("nadiRaKeDispToggle")?.checked;
+                            if (includeDisp && cuspalConjToggle) {
+                                let pureSign = -1;
+                                for (let i = 0; i < 12; i++) {
+                                    let obj = chart[i].find(x => x.n === targetPlanet);
+                                    if (obj && obj.pureSign !== undefined) pureSign = obj.pureSign;
+                                }
+                                if (pureSign !== -1) {
+                                    let dispositor = signLords[pureSign + 1];
+                                    if (dispositor) applyCuspalConjunction(dispositor);
+                                }
                             }
                         }
                     }
@@ -7735,116 +7870,127 @@ function getNadiScriptString(pCode, v) {
     let placedHouse = base.h;
     let lordships = base.l;
 
-    // ðŸ›¡ï¸ NEW: Create an immunity list for placed houses so they are never removed
     let immuneHouses = new Set();
     if (placedHouse !== "-" && placedHouse != null) {
         immuneHouses.add(parseInt(placedHouse));
     }
 
-    // --- NEW: RAHU/KETU ASPECT LOGIC (Strict KP House to House rules) ---
+    // --- RAHU/KETU GRANULAR SCRIPT COMPILER ---
+    let rakeGroups = [];
+    if (pCode === "Ra" || pCode === "Ke") {
+        if (base.l.length > 0) rakeGroups.push(base.l); // Dispositor goes first
+    }
+
     const rakeAspToggle = document.getElementById("nadiRaKeAspToggle")?.checked;
-    if ((pCode === "Ra" || pCode === "Ke") && rakeAspToggle) {
-        let nodeBhava = window._shodaBhava && window._shodaBhava[v] ? parseInt(window._shodaBhava[v][pCode]) : null;
-        if (nodeBhava && !isNaN(nodeBhava)) {
-            // EXCEPTION: Only True Planets can aspect the Nodes. Nodes do NOT aspect each other.
+    const rakeConjToggle = document.getElementById("nadiRaKeConjToggle")?.checked;
+    const rakeAspHouseToggle = document.getElementById("nadiRaKeAspHouseToggle")?.checked;
+
+    if (pCode === "Ra" || pCode === "Ke") {
+        // Toggle dictates if we look at Sign arrays or House arrays for Aspects/Conjunctions
+        let dataSource = rakeAspHouseToggle ? window._shodaBhava[v] : window._shodaRashi[v]; 
+        
+        let nodeBase = dataSource ? parseInt(dataSource[pCode]) : null;
+        if (nodeBase && !isNaN(nodeBase)) {
             const truePlanets = ["Sy", "Ch", "Ma", "Bu", "Ju", "Ve", "Sa"];
             truePlanets.forEach(ap => {
-                let apBhava = window._shodaBhava[v][ap];
-                if (!apBhava || apBhava === "-") return;
+                let apBase = dataSource[ap];
+                if (!apBase || apBase === "-") return;
                 
-                // Calculate physical House-to-House distance from Planet to Node
-                // Example: Saturn in 5, Rahu in 7 -> (7 - 5 + 12) % 12 + 1 = 3 (Saturn's 3rd aspect)
-                let dist = (nodeBhava - parseInt(apBhava) + 12) % 12 + 1;
+                // Absolute distance (Works dynamically for both Sign-to-Sign and House-to-House)
+                let dist = (nodeBase - parseInt(apBase) + 12) % 12 + 1;
                 
-                let aspects = [7]; // Standard for Sy, Ch, Bu, Ve
+                let isConj = (dist === 1); 
+                let aspects = [7]; 
                 if (ap === "Ma") aspects = [4, 7, 8];
                 if (ap === "Ju") aspects = [5, 7, 9];
                 if (ap === "Sa") aspects = [3, 7, 10]; 
+                let isAsp = aspects.includes(dist);
                 
-                if (aspects.includes(dist)) {
+                if ((isConj && rakeConjToggle) || (isAsp && rakeAspToggle)) {
                     let apScript = getPlanetBaseScript(ap);
-                    // Add the aspecting planet's placed house and lordships into the Node's script
+                    let nums = [];
                     if (apScript.h !== "-" && apScript.h != null) {
-                        lordships.push(apScript.h);
-                        immuneHouses.add(parseInt(apScript.h)); // ðŸ›¡ï¸ Grant immunity to aspecting planet's placed house
+                        nums.push(apScript.h);
+                        immuneHouses.add(parseInt(apScript.h)); 
                     }
-                    lordships.push(...apScript.l);
+                    nums.push(...apScript.l);
+                    if (nums.length > 0) rakeGroups.push(nums);
                 }
             });
         }
     }
-    // ---------------------------------------------------------------------
 
     let allowDuplicates = document.getElementById("nadiAllowDuplicatesToggle")?.checked;
-    
-    // EXCEPTION: Never allow duplicates for Rahu and Ketu to prevent massive, messy scripts
-    if (pCode === "Ra" || pCode === "Ke") {
-        allowDuplicates = false;
-    }
+    if (pCode === "Ra" || pCode === "Ke") allowDuplicates = false;
 
     if (allowDuplicates && placedHouse !== "-" && placedHouse != null) {
         lordships.push(placedHouse);
     }
 
     // =================================================================
-    // ðŸ”¥ NEW: REMOVE OCCUPIED HOUSES LOGIC (2+ Planets Rule)
+    // REMOVE OCCUPIED HOUSES LOGIC (2+ Planets Rule)
     // =================================================================
     const removeOccupiedToggle = document.getElementById("nadiRemoveOccupiedToggle")?.checked;
+    let houseCounts = {};
     if (removeOccupiedToggle) {
-        let houseCounts = {};
         const allPlanetsList = ["Sy", "Ch", "Ma", "Bu", "Ju", "Ve", "Sa", "Ra", "Ke"];
-        
-        // 1. Count exactly how many planets are sitting in each house
         allPlanetsList.forEach(p => {
             let pScript = getPlanetBaseScript(p);
             if (pScript.h !== "-" && pScript.h != null) {
                 let hNum = parseInt(pScript.h);
-                if (!houseCounts[hNum]) {
-                    houseCounts[hNum] = 0;
-                }
+                if (!houseCounts[hNum]) houseCounts[hNum] = 0;
                 houseCounts[hNum]++;
             }
         });
-        
-        // 2. Filter out lordship houses ONLY if they have 2 or more planets
-        // ðŸ›¡ï¸ FIX: Sparing ALL immune placed houses (both its own, and aspecting planets')
-        lordships = lordships.filter(h => {
-            let hNum = parseInt(h);
-            let isHeavilyOccupied = (houseCounts[hNum] >= 2);
-            return !isHeavilyOccupied || immuneHouses.has(hNum);
-        });
     }
-    // =================================================================
 
     let rotatedPlacedHouse = placedHouse;
-    let rotatedLordships = [...lordships];
-
-    if (!isPlanetPivot) {
-        const pivotHouse = parseInt(pivotStr);
-        function rotateHouse(h) {
-            if (h === "-" || h == null) return "-";
-            let num = parseInt(h);
-            if (isNaN(num)) return h;
+    function rotateHouse(h) {
+        if (h === "-" || h == null) return "-";
+        let num = parseInt(h);
+        if (isNaN(num)) return h;
+        if (!isPlanetPivot) {
+            const pivotHouse = parseInt(pivotStr);
             return ((num - pivotHouse + 12) % 12) + 1;
         }
-
+        return num;
+    }
+    
+    if (!isPlanetPivot) {
         rotatedPlacedHouse = rotateHouse(placedHouse);
-        rotatedLordships = lordships.map(rotateHouse);
     }
 
-    let lordsToProcess = allowDuplicates ? rotatedLordships : [...new Set(rotatedLordships)];
-    lordsToProcess = lordsToProcess.filter(x => x !== "-" && x != null).sort((a,b) => Number(a) - Number(b));
-    let lordsStr = lordsToProcess.join(",");
+    let lordsStr = "";
 
-    
-	
-	
-	
-	
-	
-	
-	
-	// ðŸŸ¢ FIX: Untenanted $ Symbol is now PERMANENT (ignores checkbox)
+    if (pCode === "Ra" || pCode === "Ke") {
+        let finalGroups = [];
+        rakeGroups.forEach(group => {
+            let rotatedGroup = group.map(rotateHouse);
+            let validGroup = rotatedGroup.filter(h => {
+                let hNum = parseInt(h);
+                let isHeavilyOccupied = (houseCounts[hNum] >= 2);
+                return !removeOccupiedToggle || (!isHeavilyOccupied || immuneHouses.has(hNum));
+            });
+            
+            if (!allowDuplicates) validGroup = [...new Set(validGroup)];
+            validGroup = validGroup.filter(x => x !== "-" && x != null).sort((a,b) => Number(a) - Number(b));
+            
+            if (validGroup.length > 0) finalGroups.push(validGroup.join(","));
+        });
+        lordsStr = finalGroups.join(" + ");
+    } else {
+        let rotatedLordships = lordships.map(rotateHouse);
+        let validLords = rotatedLordships.filter(h => {
+            let hNum = parseInt(h);
+            let isHeavilyOccupied = (houseCounts[hNum] >= 2);
+            return !removeOccupiedToggle || (!isHeavilyOccupied || immuneHouses.has(hNum));
+        });
+        
+        if (!allowDuplicates) validLords = [...new Set(validLords)];
+        validLords = validLords.filter(x => x !== "-" && x != null).sort((a,b) => Number(a) - Number(b));
+        lordsStr = validLords.join(",");
+    }
+
     let isUntented = false;
     const pNamesList = ["Sy", "Ch", "Ma", "Bu", "Ju", "Ve", "Sa", "Ra", "Ke"];
     
@@ -7861,13 +8007,6 @@ function getNadiScriptString(pCode, v) {
         }
         isUntented = !tented;
     }
-	
-	
-	
-	
-	
-	
-	
 
     let finalName = NADI_NAMES[pCode] || pCode;
     if (isUntented) finalName += " $";
@@ -7876,6 +8015,29 @@ function getNadiScriptString(pCode, v) {
     if (lordsStr) result += ` - ${lordsStr}`;
     return result;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -8007,7 +8169,18 @@ function renderNakshatraNadiTab() {
             }
 
             const modeKN = document.getElementById("modeKN")?.checked;
-            const planetNameMapKN = { Sy: "à²°à²µà²¿", Ch: "à²šà²‚à²¦à³à²°", Ma: "à²•à³à²œ", Bu: "à²¬à³à²§", Ju: "à²—à³à²°à³", Ve: "à²¶à³à²•à³à²°", Sa: "à²¶à²¨à²¿", Ra: "à²°à²¾à²¹à³", Ke: "à²•à³‡à²¤à³", ASC: "à²²à²—à³à²¨" };
+            const planetNameMapKN = {
+					Sy: "\u0CB0\u0CB5\u0CBF",
+					Ch: "\u0C9A\u0C82\u0CA6\u0CCD\u0CB0",
+					Ma: "\u0C95\u0CC1\u0C9C",
+					Bu: "\u0CAC\u0CC1\u0CA7",
+					Ju: "\u0C97\u0CC1\u0CB0\u0CC1",
+					Ve: "\u0CB6\u0CC1\u0C95\u0CCD\u0CB0",
+					Sa: "\u0CB6\u0CA8\u0CBF",
+					Ra: "\u0CB0\u0CBE\u0CB9\u0CC1",
+					Ke: "\u0C95\u0CC7\u0CA4\u0CC1",
+					ASC: "\u0CB2\u0C97\u0CCD\u0CA8"
+				};
             const showLordship = document.getElementById("showLordship")?.checked;
             const kpData = typeof computeKPForVarga === "function" ? computeKPForVarga(v) : {};
 
@@ -8079,8 +8252,8 @@ function renderNakshatraNadiTab() {
 
                         if (p.isAsc) {
                             const mins = Math.floor((p.d * 60) % 60).toString().padStart(2, '0');
-                            displayStr = `ASC ${Math.floor(p.d)}Â°${mins}â€²`;
-                            if (modeKN) displayStr = `à²²à²—à³à²¨ ${Math.floor(p.d)}Â°${mins}â€²`;
+                            displayStr = `ASC ${Math.floor(p.d)}°${mins}'`;
+                            if (modeKN) displayStr = `\u0CB2\u0C97\u0CCD\u0CA8 ${Math.floor(p.d)}&deg;${mins}'`;
                         } else {
                             let placedHouse = ((sIdx - ascIndex + 12) % 12) + 1;
                             const mins = Math.floor((p.d * 60) % 60).toString().padStart(2, '0'); 
@@ -8089,10 +8262,10 @@ function renderNakshatraNadiTab() {
                                 let lordshipsArr = getPlanetLordshipLocal(p.n).filter(x => x !== "-" && x != null);
                                 let uniqueLords = [...new Set(lordshipsArr)].sort((a, b) => Number(a) - Number(b));
                                 let lordStr = uniqueLords.length > 0 ? `${placedHouse}-${uniqueLords.join(",")}` : `${placedHouse}`;
-                                displayStr = `${name} ${Math.floor(p.d)}Â°${mins}â€² - ${lordStr}`;
+                                displayStr = `${name} ${Math.floor(p.d)}&deg;${mins}' - ${lordStr}`;
                             } else {
                                 const kp = kpData[p.n] || {};
-                                displayStr = `${name} ${Math.floor(p.d)}Â°${mins}â€² | ${kp.star || "-"} / ${kp.sub || "-"} / ${kp.subsub || "-"}`;
+                                displayStr = `${name} ${Math.floor(p.d)}°${mins}' | ${kp.star || "-"} / ${kp.sub || "-"} / ${kp.subsub || "-"}`;
                             }
                         }
                         h.innerHTML += `<div class="${lineClass}" style="font-size:15px; color:#fff; white-space:normal;">${displayStr}</div>`;
@@ -8154,23 +8327,62 @@ function renderNakshatraNadiTab() {
         return (vSign * 30) + vDeg;
     }
 
+    // ==========================================
+    // UNIVERSAL PIVOT ROTATION ENGINE
+    // ==========================================
+    const pivotStr = document.getElementById("nadiHousePivot")?.value || "1";
+    const isPlanetPivot = ["Sy", "Ch", "Ma", "Ra", "Ju", "Sa", "Bu", "Ke", "Ve"].includes(pivotStr);
 
+    let effectivePivotHouse = 1;
 
+    // Convert Planet Pivot dynamically to its occupied Placidus/Varga house
+    if (isPlanetPivot) {
+        if (v === 1 && window._shodaBhava && window._shodaBhava[v] && window._shodaBhava[v][pivotStr]) {
+            effectivePivotHouse = parseInt(window._shodaBhava[v][pivotStr]);
+        } else {
+            let lagnaRaw = 0;
+            if (typeof raw !== "undefined" && raw) {
+                const aya = document.getElementById('aya')?.value || 'Lahiri';
+                if (raw.ayanamshas && raw.ayanamshas[aya] && raw.ayanamshas[aya].lagna !== undefined) {
+                    lagnaRaw = parseFloat(raw.ayanamshas[aya].lagna);
+                } else if (raw.lagna !== undefined) {
+                    lagnaRaw = parseFloat(raw.lagna);
+                }
+            }
+            let isShiftActive = document.getElementById("shiftedLagnaToggle")?.checked;
+            if (isShiftActive && typeof originalDateTime !== "undefined" && currentDateTime) {
+                let diffMinutes = (currentDateTime - originalDateTime) / 60000;
+                lagnaRaw = (lagnaRaw + (diffMinutes * 0.25)) % 360;
+                if (lagnaRaw < 0) lagnaRaw += 360;
+            }
+            let ascVargaDeg = getCuspVargaLongitude(lagnaRaw, v);
+            let pDeg = getNadiAbsoluteLongitude(pivotStr, v);
 
+            if (ascVargaDeg !== -1 && pDeg !== -1) {
+                let diff = (pDeg - ascVargaDeg + 360) % 360;
+                effectivePivotHouse = Math.floor(diff / 30) + 1;
+            }
+        }
+        if (isNaN(effectivePivotHouse) || effectivePivotHouse < 1) effectivePivotHouse = 1;
+    } else {
+        effectivePivotHouse = parseInt(pivotStr) || 1;
+    }
 
+    // Global mathematically sound rotation handler
+    function rotateHouse(h) {
+        if (h === "-" || h == null) return "-";
+        let num = parseInt(h);
+        if (isNaN(num)) return h;
+        return ((num - effectivePivotHouse + 12) % 12) + 1;
+    }
 
-
-
-
-
-
-   // ==========================================
+    // ==========================================
     // CUSPAL PROJECTION ENGINE (D1 vs VARGAS)
     // ==========================================
     let vargaCusps = {};
 
+    // Generate absolute base cusps relative to original Ascendant
     if (v === 1) {
-        // ðŸ”´ D1: STRICTLY UNEQUAL HOUSES (PLACIDUS/SRIPATHI) ðŸ”´
         let baseCusps = null;
         if (typeof currentCusps !== "undefined" && currentCusps) {
             baseCusps = currentCusps;
@@ -8187,55 +8399,34 @@ function renderNakshatraNadiTab() {
             }
         }
     } else {
-        // ðŸ”´ VARGAS (D2-D60): STRICTLY EQUAL HOUSES (30Â° EACH) - MATH LOCKED ðŸ”´
-        let pivotStr = document.getElementById("nadiHousePivot")?.value || "1";
-        const isPlanetPivot = ["Sy", "Ch", "Ma", "Ra", "Ju", "Sa", "Bu", "Ke", "Ve"].includes(pivotStr);
-
-        let vargaBaseDegree = 0;
-
-        if (isPlanetPivot) {
-            vargaBaseDegree = getNadiAbsoluteLongitude(pivotStr, v);
-            if (vargaBaseDegree === -1) vargaBaseDegree = 0; 
-        } else {
-            // ðŸ”’ PURE MATH ENGINE: Bypass UI chart entirely to prevent KP Mode contamination
-            let lagnaRaw = 0;
-            if (typeof raw !== "undefined" && raw) {
-                const aya = document.getElementById('aya')?.value || 'Lahiri';
-                if (raw.ayanamshas && raw.ayanamshas[aya] && raw.ayanamshas[aya].lagna !== undefined) {
-                    lagnaRaw = parseFloat(raw.ayanamshas[aya].lagna);
-                } else if (raw.lagna !== undefined) {
-                    lagnaRaw = parseFloat(raw.lagna);
-                }
+        let lagnaRaw = 0;
+        if (typeof raw !== "undefined" && raw) {
+            const aya = document.getElementById('aya')?.value || 'Lahiri';
+            if (raw.ayanamshas && raw.ayanamshas[aya] && raw.ayanamshas[aya].lagna !== undefined) {
+                lagnaRaw = parseFloat(raw.ayanamshas[aya].lagna);
+            } else if (raw.lagna !== undefined) {
+                lagnaRaw = parseFloat(raw.lagna);
             }
-            
-            let isShiftActive = document.getElementById("shiftedLagnaToggle")?.checked;
-            if (isShiftActive && typeof originalDateTime !== "undefined" && typeof currentDateTime !== "undefined" && originalDateTime && currentDateTime) {
-                let diffMs = currentDateTime - originalDateTime;
-                let diffMinutes = diffMs / 60000;
-                lagnaRaw += (diffMinutes * 0.25);
-            }
-
-            while(lagnaRaw < 0) lagnaRaw += 360;
-            while(lagnaRaw >= 360) lagnaRaw -= 360;
-
-            vargaBaseDegree = getCuspVargaLongitude(lagnaRaw, v);
+        }
+        
+        let isShiftActive = document.getElementById("shiftedLagnaToggle")?.checked;
+        if (isShiftActive && typeof originalDateTime !== "undefined" && currentDateTime) {
+            let diffMs = currentDateTime - originalDateTime;
+            let diffMinutes = diffMs / 60000;
+            lagnaRaw += (diffMinutes * 0.25);
         }
 
-        // EXPOSE GLOBALLY for getNadiScriptString
+        while(lagnaRaw < 0) lagnaRaw += 360;
+        while(lagnaRaw >= 360) lagnaRaw -= 360;
+
+        let vargaBaseDegree = getCuspVargaLongitude(lagnaRaw, v);
         window._nadiVargaBaseDegree = vargaBaseDegree;
 
-        // Project exactly 30Â° per house starting from the perfectly math-locked Varga Base Degree
         for (let c = 1; c <= 12; c++) {
             let exactCuspDeg = (vargaBaseDegree + (c - 1) * 30) % 360;
             vargaCusps[c] = getKpLordsNadi(exactCuspDeg);
         }
     }
-	
-	
-	
-	
-	
-
 
     // ==========================================
     // RENDER NADI TABLE
@@ -8255,7 +8446,6 @@ function renderNakshatraNadiTab() {
     const isCenter = document.getElementById("nadiCenterAlignToggle")?.checked;
     const alignText = isCenter ? "center" : "left";
 
-    // GRID LAYOUT TOGGLE
     const threePerRow = document.getElementById("nadiThreePerRowToggle")?.checked;
     const twoPerRow = document.getElementById("nadiTwoPerRowToggle")?.checked;
     
@@ -8264,10 +8454,9 @@ function renderNakshatraNadiTab() {
     } else if (twoPerRow) {
         container.style.gridTemplateColumns = "repeat(2, 1fr)";
     } else {
-        container.style.gridTemplateColumns = "1fr"; // One Planet Per Column 
+        container.style.gridTemplateColumns = "1fr"; 
     }
 
-    // ROW BUILDER (Appends Cuspal Lordships with `+`)
     function buildRow(label, scriptStr, colorCode, noBottomBorder = false, extraLords = []) {
         if (scriptStr.includes("ERR")) scriptStr = "Data Error";
         const borderStyle = noBottomBorder ? 'none' : '1px solid #555';
@@ -8277,11 +8466,9 @@ function renderNakshatraNadiTab() {
         let house = formatNadiNumbers(parts[1] || "");
         let lords = formatNadiNumbers(parts[2] || "");
 
-        // Inject the combined Boxed Cuspal lordships directly inside their styled span
         if (extraLords && extraLords.length > 0) {
             let validExtras = extraLords.filter(e => e.trim() !== "" && !e.includes(">-</span>"));
             if (validExtras.length > 0) {
-                // Light grey (#dddddd) plus symbol for clarity
                 lords += " <span style='color:#dddddd; font-weight:900; font-size:16px; margin:0 4px;'>+</span> " + validExtras.join(" <span style='color:#dddddd; font-weight:900; font-size:16px; margin:0 4px;'>+</span> ");
             }
         }
@@ -8300,12 +8487,10 @@ function renderNakshatraNadiTab() {
 
     const applyUntenentedRule = document.getElementById("nadiUntenentedToggle")?.checked;
     
-    // Combo Checkbox states
     const comboStar = document.getElementById("nadiComboStarToggle")?.checked;
     const comboSub = document.getElementById("nadiComboSubToggle")?.checked;
     const comboSubSub = document.getElementById("nadiComboSubSubToggle")?.checked;
 
-    // Helper Function to Extract and Style Cuspal Interlinks per target planet
     function getComboExtras(targetPlanet) {
         let cuspalStarlordOf = [];
         let cuspalSublordOf = [];
@@ -8313,14 +8498,18 @@ function renderNakshatraNadiTab() {
         
         for (let c = 1; c <= 12; c++) {
             if (vargaCusps[c]) {
-                if (vargaCusps[c].star === targetPlanet) cuspalStarlordOf.push(c);
-                if (vargaCusps[c].sub === targetPlanet) cuspalSublordOf.push(c);
-                if (vargaCusps[c].subSub === targetPlanet) cuspalSubSublordOf.push(c);
+                let rotatedC = rotateHouse(c); // Apply Universal Rotation
+                if (vargaCusps[c].star === targetPlanet) cuspalStarlordOf.push(rotatedC);
+                if (vargaCusps[c].sub === targetPlanet) cuspalSublordOf.push(rotatedC);
+                if (vargaCusps[c].subSub === targetPlanet) cuspalSubSublordOf.push(rotatedC);
             }
         }
+        
+        cuspalStarlordOf.sort((a,b)=>a-b);
+        cuspalSublordOf.sort((a,b)=>a-b);
+        cuspalSubSublordOf.sort((a,b)=>a-b);
 
         let extras = [];
-        // Only append extras if 2 or 1 planet layout is selected (NOT threePerRow)
         if (!threePerRow) {
             if (comboStar && cuspalStarlordOf.length > 0) {
                 extras.push(`<span style="background:rgba(11, 244, 230, 0.1); color:#0bf4e6; border:1px solid #0bf4e6; padding:2px 6px; border-radius:4px; display:inline-block; font-size:13px;">${formatNadiNumbers(cuspalStarlordOf.join(","))}</span>`);
@@ -8333,6 +8522,347 @@ function renderNakshatraNadiTab() {
             }
         }
         return extras;
+    }
+
+    // Unified script generator pulling purely from original Ascendant framework
+    function getNadiScriptString(pCode, vNum) {
+        const NADI_NAMES = { Sy:"Surya", Ch:"Chandra", Ma:"Mangala", Bu:"Budha", Ju:"Jupiter", Ve:"Venus", Sa:"Saturn", Ra:"Rahu", Ke:"Ketu" };
+        if (pCode === "ERR") return "Data Missing";
+        
+        const chart = window._vargaChartStore ? window._vargaChartStore[vNum] : null;
+        if (!chart) return `${NADI_NAMES[pCode] || pCode} - Pending`;
+
+        const signLords = {1:"Ma",2:"Ve",3:"Bu",4:"Ch",5:"Sy",6:"Bu",7:"Ve",8:"Ma",9:"Ju",10:"Sa",11:"Sa",12:"Ju"};
+        const SHIFTED_LAGNA = document.getElementById("nadiLocalShiftToggle")?.checked;
+        const isSignMode = document.getElementById("modeSign2Sign")?.checked;
+        const modeKP = document.getElementById("modeKP")?.checked;
+
+        function getChartSignIndex(code) {
+            for (let i = 0; i < 12; i++) {
+                if (code === "ASC") {
+                    if (chart[i].find(x => x.isAsc)) return i;
+                } else {
+                    if (chart[i].find(x => x.n === code)) return i;
+                }
+            }
+            return -1;
+        }
+
+        function getPlanetBaseScript(targetPlanet) {
+            let t_placedHouse = "-";
+            let t_lordships = [];
+
+            if (vNum !== 1) {
+                let targetDeg = getNadiAbsoluteLongitude(targetPlanet, vNum);
+                let ascVargaDeg = window._nadiVargaBaseDegree;
+                
+                if (targetDeg !== -1 && ascVargaDeg !== -1) {
+                    let pureBaseSign = Math.floor(ascVargaDeg / 30);
+                    let lordshipBaseSign = pureBaseSign;
+
+                    if (SHIFTED_LAGNA) {
+                        let shiftAmount = (window._kpSignShift && window._kpSignShift[vNum] !== undefined) ? window._kpSignShift[vNum] : 0;
+                        lordshipBaseSign = (pureBaseSign + shiftAmount) % 12;
+                    }
+                    
+                    if (modeKP) {
+                        let relDeg = (targetDeg - ascVargaDeg + 360) % 360;
+                        t_placedHouse = Math.floor(relDeg / 30) + 1;
+                    } else {
+                        let pSign = Math.floor(targetDeg / 30);
+                        t_placedHouse = ((pSign - pureBaseSign + 12) % 12) + 1;
+                    }
+                    
+                    function getHousesOfVarga(lord) {
+                        let houses = [];
+                        for(let h=1; h<=12; h++) {
+                            let hSign = (lordshipBaseSign + h - 1) % 12 + 1;
+                            if (signLords[hSign] === lord) houses.push(h);
+                        }
+                        return houses;
+                    }
+                    
+                    if (targetPlanet === "Ra" || targetPlanet === "Ke") {
+                        const includeDisp = document.getElementById("nadiRaKeDispToggle")?.checked;
+                        if (includeDisp) {
+                            let pSign = Math.floor(targetDeg / 30);
+                            let dispositor = signLords[pSign + 1];
+                            t_lordships = getHousesOfVarga(dispositor);
+                            let dispDeg = getNadiAbsoluteLongitude(dispositor, vNum);
+                            if (dispDeg !== -1) {
+                                if (modeKP) {
+                                    let dispRelDeg = (dispDeg - ascVargaDeg + 360) % 360;
+                                    let dispPlaced = Math.floor(dispRelDeg / 30) + 1;
+                                    t_lordships.unshift(dispPlaced);
+                                } else {
+                                    let dispSign = Math.floor(dispDeg / 30);
+                                    let dispPlaced = ((dispSign - pureBaseSign + 12) % 12) + 1;
+                                    t_lordships.unshift(dispPlaced);
+                                }
+                            }
+                        } else {
+                            t_lordships = [];
+                        }
+                    } else {
+                        t_lordships = getHousesOfVarga(targetPlanet);
+                    }
+                }
+            } else if (isSignMode) {
+                let planetSignIdx = getChartSignIndex(targetPlanet);
+                let baseSignIdx = getChartSignIndex("ASC");
+                let lordshipBaseIdx = baseSignIdx;
+                
+                if (SHIFTED_LAGNA && baseSignIdx !== -1) {
+                    let shiftAmount = (window._kpSignShift && window._kpSignShift[vNum] !== undefined) ? window._kpSignShift[vNum] : 0;
+                    lordshipBaseIdx = (lordshipBaseIdx + shiftAmount) % 12;
+                }
+
+                if (planetSignIdx !== -1 && baseSignIdx !== -1) {
+                    t_placedHouse = ((planetSignIdx - baseSignIdx + 12) % 12) + 1;
+
+                    function getSignModeHousesOf(lord) {
+                        let houses = [];
+                        for (let h = 1; h <= 12; h++) {
+                            let hSign = (lordshipBaseIdx + h - 1) % 12;
+                            if (signLords[hSign + 1] === lord) houses.push(h);
+                        }
+                        return houses;
+                    }
+
+                    if (targetPlanet === "Ra" || targetPlanet === "Ke") {
+                        const includeDisp = document.getElementById("nadiRaKeDispToggle")?.checked;
+                        if (includeDisp) {
+                            let dispositor = signLords[planetSignIdx + 1];
+                            t_lordships = getSignModeHousesOf(dispositor);
+                            let dispSignIdx = getChartSignIndex(dispositor);
+                            if (dispSignIdx !== -1) {
+                                let dispPlaced = ((dispSignIdx - baseSignIdx + 12) % 12) + 1;
+                                t_lordships.unshift(dispPlaced); 
+                            }
+                        } else {
+                            t_lordships = [];
+                        }
+                    } else {
+                        t_lordships = getSignModeHousesOf(targetPlanet);
+                    }
+                }
+            } else {
+                let pureAscSign = window._pureAscSigns && window._pureAscSigns[vNum] !== undefined ? window._pureAscSigns[vNum] : 0;
+                let shiftAmount = 0;
+                if (SHIFTED_LAGNA && window._kpSignShift && window._kpSignShift[vNum] !== undefined) {
+                    shiftAmount = window._kpSignShift[vNum];
+                }
+                let ascData = { placementSign: pureAscSign, lordshipSign: (pureAscSign + shiftAmount) % 12 };
+                
+                if (window._shodaBhava && window._shodaBhava[vNum] && window._shodaBhava[vNum][targetPlanet]) {
+                    t_placedHouse = window._shodaBhava[vNum][targetPlanet];
+                }
+
+                function getHousesOf(lord) {
+                    let houses = [];
+                    for (let h = 1; h <= 12; h++) {
+                        let hSign = ((ascData.lordshipSign + h - 1) % 12) + 1; 
+                        if (signLords[hSign] === lord) houses.push(h);
+                    }
+                    return houses;
+                }
+
+                if (targetPlanet === "Ra" || targetPlanet === "Ke") {
+                    const includeDisp = document.getElementById("nadiRaKeDispToggle")?.checked;
+                    if (includeDisp) {
+                        let pPureSign = -1;
+                        for (let i = 0; i < 12; i++) {
+                            let obj = chart[i].find(x => x.n === targetPlanet);
+                            if (obj && obj.pureSign !== undefined) pPureSign = obj.pureSign;
+                        }
+                        if (pPureSign !== -1) {
+                            let dispositor = signLords[pPureSign + 1];
+                            t_lordships = getHousesOf(dispositor);
+                            let dispPlaced = window._shodaBhava[vNum][dispositor];
+                            if (dispPlaced && dispPlaced !== "-") {
+                                t_lordships.unshift(dispPlaced);
+                            }
+                        }
+                    } else {
+                        t_lordships = [];
+                    }
+                } else {
+                    t_lordships = getHousesOf(targetPlanet);
+                }
+
+                const cuspalConjToggle = document.getElementById("nadiCuspalConjToggle")?.checked;
+                const rakeCuspalConjToggle = document.getElementById("nadiRaKeCuspalConjToggle")?.checked;
+                
+                let activeCusps = null;
+                if (typeof currentCusps !== "undefined" && currentCusps && Object.keys(currentCusps).length > 0) {
+                    activeCusps = currentCusps;
+                } else if (window.raw && window.raw.ayanamshas) {
+                    const aya = document.getElementById('aya')?.value || 'Lahiri';
+                    if(window.raw.ayanamshas[aya].cusps) activeCusps = window.raw.ayanamshas[aya].cusps;
+                }
+
+                if (activeCusps) {
+                    const applyCuspalConjunction = (tp) => {
+                        let absDeg = getNadiAbsoluteLongitude(tp, vNum);
+                        if (absDeg !== -1) {
+                            for(let c = 1; c <= 12; c++){
+                                let cuspDeg = activeCusps[c];
+                                if (cuspDeg !== undefined) {
+                                    let diff = Math.abs(absDeg - parseFloat(cuspDeg));
+                                    if (diff > 180) diff = 360 - diff;
+                                    if (diff <= 3.3333) t_lordships.push(c);
+                                }
+                            }
+                        }
+                    };
+
+                    if (targetPlanet !== "Ra" && targetPlanet !== "Ke") {
+                        if (cuspalConjToggle) applyCuspalConjunction(targetPlanet);
+                    } else {
+                        if (rakeCuspalConjToggle) applyCuspalConjunction(targetPlanet);
+                        const includeDisp = document.getElementById("nadiRaKeDispToggle")?.checked;
+                        if (includeDisp && cuspalConjToggle) { 
+                            let pPureSign = -1;
+                            for (let i = 0; i < 12; i++) {
+                                let obj = chart[i].find(x => x.n === targetPlanet);
+                                if (obj && obj.pureSign !== undefined) pPureSign = obj.pureSign;
+                            }
+                            if (pPureSign !== -1) {
+                                let dispositor = signLords[pPureSign + 1];
+                                if (dispositor) applyCuspalConjunction(dispositor);
+                            }
+                        }
+                    }
+                }
+            }
+            return { h: t_placedHouse, l: t_lordships };
+        }
+
+        let base = getPlanetBaseScript(pCode);
+        let placedHouse = base.h;
+        let lordships = base.l;
+
+        let immuneHouses = new Set();
+        if (placedHouse !== "-" && placedHouse != null) {
+            immuneHouses.add(parseInt(placedHouse));
+        }
+
+        let rakeGroups = [];
+        if (pCode === "Ra" || pCode === "Ke") {
+            if (base.l.length > 0) rakeGroups.push(base.l); 
+        }
+
+        const rakeAspToggle = document.getElementById("nadiRaKeAspToggle")?.checked;
+        const rakeConjToggle = document.getElementById("nadiRaKeConjToggle")?.checked;
+        const rakeAspHouseToggle = document.getElementById("nadiRaKeAspHouseToggle")?.checked;
+
+        if (pCode === "Ra" || pCode === "Ke") {
+            let dataSource = rakeAspHouseToggle ? window._shodaBhava[vNum] : window._shodaRashi[vNum]; 
+            let nodeBase = dataSource ? parseInt(dataSource[pCode]) : null;
+            if (nodeBase && !isNaN(nodeBase)) {
+                const truePlanets = ["Sy", "Ch", "Ma", "Bu", "Ju", "Ve", "Sa"];
+                truePlanets.forEach(ap => {
+                    let apBase = dataSource[ap];
+                    if (!apBase || apBase === "-") return;
+                    let dist = (nodeBase - parseInt(apBase) + 12) % 12 + 1;
+                    
+                    let isConj = (dist === 1); 
+                    let aspects = [7]; 
+                    if (ap === "Ma") aspects = [4, 7, 8];
+                    if (ap === "Ju") aspects = [5, 7, 9];
+                    if (ap === "Sa") aspects = [3, 7, 10]; 
+                    let isAsp = aspects.includes(dist);
+                    
+                    if ((isConj && rakeConjToggle) || (isAsp && rakeAspToggle)) {
+                        let apScript = getPlanetBaseScript(ap);
+                        let nums = [];
+                        if (apScript.h !== "-" && apScript.h != null) {
+                            nums.push(apScript.h);
+                            immuneHouses.add(parseInt(apScript.h)); 
+                        }
+                        nums.push(...apScript.l);
+                        if (nums.length > 0) rakeGroups.push(nums);
+                    }
+                });
+            }
+        }
+
+        let allowDuplicates = document.getElementById("nadiAllowDuplicatesToggle")?.checked;
+        if (pCode === "Ra" || pCode === "Ke") allowDuplicates = false;
+
+        if (allowDuplicates && placedHouse !== "-" && placedHouse != null) {
+            lordships.push(placedHouse);
+        }
+
+        const removeOccupiedToggle = document.getElementById("nadiRemoveOccupiedToggle")?.checked;
+        let houseCounts = {};
+        if (removeOccupiedToggle) {
+            const allPlanetsList = ["Sy", "Ch", "Ma", "Bu", "Ju", "Ve", "Sa", "Ra", "Ke"];
+            allPlanetsList.forEach(p => {
+                let pScript = getPlanetBaseScript(p);
+                if (pScript.h !== "-" && pScript.h != null) {
+                    let hNum = parseInt(pScript.h);
+                    if (!houseCounts[hNum]) houseCounts[hNum] = 0;
+                    houseCounts[hNum]++;
+                }
+            });
+        }
+
+        // Apply Universal Final Rotation Math
+        let rotatedPlacedHouse = rotateHouse(placedHouse);
+        let lordsStr = "";
+
+        if (pCode === "Ra" || pCode === "Ke") {
+            let finalGroups = [];
+            rakeGroups.forEach(group => {
+                let validGroup = group.filter(h => {
+                    let hNum = parseInt(h);
+                    let isHeavilyOccupied = (houseCounts[hNum] >= 2);
+                    return !removeOccupiedToggle || (!isHeavilyOccupied || immuneHouses.has(hNum));
+                });
+                
+                let rotatedGroup = validGroup.map(rotateHouse);
+                if (!allowDuplicates) rotatedGroup = [...new Set(rotatedGroup)];
+                rotatedGroup = rotatedGroup.filter(x => x !== "-" && x != null).sort((a,b) => Number(a) - Number(b));
+                
+                if (rotatedGroup.length > 0) finalGroups.push(rotatedGroup.join(","));
+            });
+            lordsStr = finalGroups.join(" + ");
+        } else {
+            let validLords = lordships.filter(h => {
+                let hNum = parseInt(h);
+                let isHeavilyOccupied = (houseCounts[hNum] >= 2);
+                return !removeOccupiedToggle || (!isHeavilyOccupied || immuneHouses.has(hNum));
+            });
+            
+            let rotatedLordships = validLords.map(rotateHouse);
+            if (!allowDuplicates) rotatedLordships = [...new Set(rotatedLordships)];
+            rotatedLordships = rotatedLordships.filter(x => x !== "-" && x != null).sort((a,b) => Number(a) - Number(b));
+            lordsStr = rotatedLordships.join(",");
+        }
+
+        let isUntented = false;
+        const pNamesList = ["Sy", "Ch", "Ma", "Bu", "Ju", "Ve", "Sa", "Ra", "Ke"];
+        if (pNamesList.includes(pCode)) {
+            let tented = false;
+            for (let p of pNamesList) {
+                let deg = getNadiAbsoluteLongitude(p, vNum); 
+                if (deg !== -1) {
+                    let starlordCode = getKpLordsNadi(deg).star;
+                    if (starlordCode === pCode) {
+                        tented = true; break;
+                    }
+                }
+            }
+            isUntented = !tented;
+        }
+
+        let finalName = NADI_NAMES[pCode] || pCode;
+        if (isUntented) finalName += " $";
+
+        let result = `${finalName} - ${rotatedPlacedHouse}`;
+        if (lordsStr) result += ` - ${lordsStr}`;
+        return result;
     }
 
     container.innerHTML = "";
@@ -8364,23 +8894,18 @@ function renderNakshatraNadiTab() {
         const subIsTenanted = !subScript.includes("$");
         const subSubIsTenanted = !subSubScript.includes("$");
         
-        // Base levels never lose their numbers
-        // Base levels never lose their numbers
         const pScriptToRender = pScript;
         const subScriptToRender = subScript;
         const subSubScriptToRender = subSubScript;
 
-        // Starlord levels keep name only (numbers stripped) if the rule is ON and base is Untenanted ($)
         const starScriptToRender = (applyUntenentedRule && !pIsTenanted) ? fullStarScript.split(" - ")[0] : fullStarScript;
         const starOfSubScriptToRender = (applyUntenentedRule && !subIsTenanted) ? fullStarOfSubScript.split(" - ")[0] : fullStarOfSubScript;
         const starOfSubSubScriptToRender = (applyUntenentedRule && !subSubIsTenanted) ? fullStarOfSubSubScript.split(" - ")[0] : fullStarOfSubSubScript;
 
-        // Strip cuspal interlinks if we are emptying the numbers
         const starExtras = (applyUntenentedRule && !pIsTenanted) ? [] : getComboExtras(lords.star);
         const subStarExtras = (applyUntenentedRule && !subIsTenanted) ? [] : getComboExtras(starOfSub);
         const subSubStarExtras = (applyUntenentedRule && !subSubIsTenanted) ? [] : getComboExtras(starOfSubSub);
 
-        // Render Rows
         html += buildRow("PL", pScriptToRender, "#0bf4e6", false, getComboExtras(pCode));
         html += buildRow("ST", starScriptToRender, "#0bf4e6", false, starExtras);
         html += buildRow("SL", subScriptToRender, "#facc15", false, getComboExtras(lords.sub));
@@ -8399,9 +8924,6 @@ function renderNakshatraNadiTab() {
         container.appendChild(card);
     });
 }
-
-
-
 
 
 
