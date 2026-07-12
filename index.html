@@ -4472,18 +4472,12 @@ function render(v, chart) {
 
 
 
-					/* =========================
-					   LORDSHIP ENGINE
-					========================= */
-
+					
 					/* =========================
 					   LORDSHIP ENGINE
 					========================= */
 
 					function getPlanetLordship(pCode){
-
-						const SHIFTED=document.getElementById("shiftedLagnaToggle")?.checked;
-
 						/* sign lords */
 						const signLords={
 							1:"Ma",2:"Ve",3:"Bu",4:"Ch",
@@ -4491,30 +4485,17 @@ function render(v, chart) {
 							9:"Ju",10:"Sa",11:"Sa",12:"Ju"
 						};
 
-						let ascSign = window._ascSigns?.[v] ?? 0;
-
-						/* get real asc degree */
-						let ascDeg = 0;
-
-						for(let i=0;i<12;i++){
-							const ascObj = chart[i].find(p=>p.isAsc);
-							if(ascObj){
-								ascSign = i;
-								ascDeg = ascObj.d;
-								break;
-							}
-						}
-
-						
-
-						/* convert to 1-12 */
-						const ascIndex=ascSign+1;
+						/* FIX: Do NOT hardcode the search for p.isAsc here!
+						   Use `ascIndex` from the outer render() scope which 
+						   already correctly holds the index (0-11) of the chosen pivot.
+						*/
+						const pivotSignNum = ascIndex + 1; // Convert 0-11 to 1-12
 
 						/* normal planets */
 						function housesOfLord(lord){
 							const arr=[];
 							for(let h=1;h<=12;h++){
-								const signOfHouse=((ascIndex+h-2)%12)+1;
+								const signOfHouse = ((pivotSignNum + h - 2) % 12) + 1;
 								if(signLords[signOfHouse]===lord){
 									arr.push(h);
 								}
@@ -4522,17 +4503,6 @@ function render(v, chart) {
 							return arr;
 						}
 
-
-
-
-
-
-
-
-
-
-
-						/* Rahu / Ketu dispositor (WORKS FOR ALL VARGAS) */
 						/* Rahu / Ketu dispositor (WORKS FOR ALL VARGAS) */
 						if(pCode==="Ra" || pCode==="Ke"){
 
@@ -4549,7 +4519,7 @@ function render(v, chart) {
 
 							if(!pObj) return [];
 
-							/* ðŸ”¥ KP IMMUNE FIX: Use pureSign instead of shifted chart position */
+							/* KP IMMUNE FIX: Use pureSign instead of shifted chart position */
 							if(pObj.pureSign !== undefined){
 								signPlaced = pObj.pureSign + 1; // Convert 0-11 to 1-12
 							} else {
@@ -4570,7 +4540,8 @@ function render(v, chart) {
 							for(let i=0;i<12;i++){
 								const obj = chart[i].find(p=>p.n===dispositor);
 								if(obj){
-									dispositorHouse = ((i - ascSign + 12) % 12) + 1;
+									// FIX: Calculate distance relative to the Pivot
+									dispositorHouse = ((i - ascIndex + 12) % 12) + 1;
 									break;
 								}
 							}
@@ -4578,14 +4549,12 @@ function render(v, chart) {
 							if (dispositorHouse) {
 								return [dispositorHouse, ...lordHouses];
 							}
-							/* ------------------------------------------- */
 
 							return lordHouses;
 						}
 
-						// ðŸ‘‡ THIS WAS ACCIDENTALLY DELETED! ðŸ‘‡
 						return housesOfLord(pCode);
-					}		
+					}	
 					
 					
 					const r = (!useKN && p.r && !document.getElementById("showLordship")?.checked) ? ' (R)' : '';
