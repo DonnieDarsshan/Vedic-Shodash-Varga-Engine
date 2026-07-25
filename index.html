@@ -74,7 +74,7 @@
 		justify-content: center;
 		height: 100%;
 		position: relative;
-		padding: 10px 8px;   /* ðŸ”’ inner breathing space */
+		padding: 10px 8px;   /* 🔒 inner breathing space */
 		box-sizing: border-box;
 	}
 	
@@ -288,7 +288,7 @@
 					color:#ffffff !important;
 				}
 
-				/* Intersection â†’ Use Violet Priority */
+				/* Intersection &rarr; Use Violet Priority */
 				.mem-cross{
 					background:#2e004f !important;
 					color:#ffffff !important;
@@ -427,7 +427,7 @@
 		
 		
 		/* ============================= */
-		/* ACTIVE STATES â€” FINAL COLORS  */
+		/* ACTIVE STATES — FINAL COLORS  */
 		/* ============================= */
 
 		.vim-maha.active{
@@ -455,7 +455,8 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		font-size: 14px;
+		font-size: 20px; /* Increased size for better visibility */
+		color: #ffcc00;  /* Standard yellow to match your theme */
 	}
 	
 	
@@ -791,15 +792,24 @@
             </div>
         </div>
         
-        <div class="form-group">
-            <span>&#x1F4CD; Standard Places</span>
-            <select id="locationPreset" onchange="applyPresetLocation()" style="width: 180px;">
-                <option value="manual">Manual GPS (Default)</option>
-                <option value="13.3190737,77.1326306">Tumakuru</option>
-                <option value="12.918880,77.634986">Bengaluru</option>
-                <option value="13.315527,76.942059">Gubbi</option>
-                <option value="12.304776,76.655108">Mysore</option>
-            </select>
+        <div class="form-group" style="flex-direction: row; gap: 25px; align-items: flex-end; flex: 1;">
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+                <span>&#x1F4CD; Standard Places</span>
+                <select id="locationPreset" onchange="applyPresetLocation()" style="width: 180px;">
+                    <option value="manual">Manual GPS (Default)</option>
+                    <option value="13.3190737,77.1326306">Tumakuru</option>
+                    <option value="12.918880,77.634986">Bengaluru</option>
+                    <option value="13.315527,76.942059">Gubbi</option>
+                    <option value="12.304776,76.655108">Mysore</option>
+                </select>
+            </div>
+            
+            <!-- NEW AGE DISPLAY DISPLAY -->
+            <div style="padding-bottom: 2px;">
+                <span id="liveAgeDisplay" style="color: #facc15; font-weight: bold; font-size: 16px; background: #111; border: 1px solid var(--grid-line); padding: 5px 15px; border-radius: 4px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.6); white-space: nowrap;">
+                    Age :&nbsp; -- years &nbsp;:&nbsp; -- months &nbsp;:&nbsp; -- days
+                </span>
+            </div>
         </div>
 
         </div> <div class="fetch-row" style="border-top: 1px solid #333; padding-top: 15px; width: 100%;">
@@ -817,23 +827,23 @@
             <div style="display:flex; gap:20px; align-items:center;">
                 
                 <div style="display:flex; gap:6px; align-items:center; background:#111; border:1px solid var(--grid-line); padding:4px 8px;">
-                    <input type="text" id="latDeg" style="width:35px; text-align:center; background:transparent; border:none; color:var(--asc-yellow); outline:none; font-weight:bold;" oninput="syncFromDMS()">Â°
+                    <input type="text" id="latDeg" style="width:35px; text-align:center; background:transparent; border:none; color:var(--asc-yellow); outline:none; font-weight:bold;" oninput="syncFromDMS()">&deg;
                     <select id="latDir" style="background:transparent; border:none; color:var(--text-white); outline:none; cursor:pointer; font-weight:bold; font-size:14px;" onchange="syncFromDMS()">
                         <option value="N">N</option>
                         <option value="S">S</option>
                     </select>
-                    <input type="text" id="latMin" style="width:35px; text-align:center; background:transparent; border:none; color:var(--asc-yellow); outline:none; font-weight:bold;" oninput="syncFromDMS()">â€²
-                    <input type="text" id="latSec" style="width:45px; text-align:center; background:transparent; border:none; color:var(--asc-yellow); outline:none; font-weight:bold;" oninput="syncFromDMS()">â€³
+                    <input type="text" id="latMin" style="width:35px; text-align:center; background:transparent; border:none; color:var(--asc-yellow); outline:none; font-weight:bold;" oninput="syncFromDMS()">&prime;
+                    <input type="text" id="latSec" style="width:45px; text-align:center; background:transparent; border:none; color:var(--asc-yellow); outline:none; font-weight:bold;" oninput="syncFromDMS()">&Prime;
                 </div>
 
                 <div style="display:flex; gap:6px; align-items:center; background:#111; border:1px solid var(--grid-line); padding:4px 8px;">
-                    <input type="text" id="lonDeg" style="width:35px; text-align:center; background:transparent; border:none; color:var(--asc-yellow); outline:none; font-weight:bold;" oninput="syncFromDMS()">Â°
+                    <input type="text" id="lonDeg" style="width:35px; text-align:center; background:transparent; border:none; color:var(--asc-yellow); outline:none; font-weight:bold;" oninput="syncFromDMS()">&deg;
                     <select id="lonDir" style="background:transparent; border:none; color:var(--text-white); outline:none; cursor:pointer; font-weight:bold; font-size:14px;" onchange="syncFromDMS()">
                         <option value="E">E</option>
                         <option value="W">W</option>
                     </select>
-                    <input type="text" id="lonMin" style="width:35px; text-align:center; background:transparent; border:none; color:var(--asc-yellow); outline:none; font-weight:bold;" oninput="syncFromDMS()">â€²
-                    <input type="text" id="lonSec" style="width:45px; text-align:center; background:transparent; border:none; color:var(--asc-yellow); outline:none; font-weight:bold;" oninput="syncFromDMS()">â€³
+                    <input type="text" id="lonMin" style="width:35px; text-align:center; background:transparent; border:none; color:var(--asc-yellow); outline:none; font-weight:bold;" oninput="syncFromDMS()">&prime;
+                    <input type="text" id="lonSec" style="width:45px; text-align:center; background:transparent; border:none; color:var(--asc-yellow); outline:none; font-weight:bold;" oninput="syncFromDMS()">&Prime;
                 </div>
 
             </div>
@@ -1008,7 +1018,7 @@
 		</label>
 
 		<label style="margin-left:6px;">
-		<input type="checkbox" id="showLordship" onchange="calc()" checked> Lordship
+		<input type="checkbox" id="showLordship" onchange="calc()" checked> Lordship / Retro
 		</label>
 		
 		<label style="margin-left:6px; color:#10b981; font-weight:bold;">
@@ -1017,23 +1027,23 @@
 	</div>
 
 	<div class="controls" style="margin-top: -20px; margin-bottom: 40px;">
-		<label style="color:var(--asc-yellow); font-weight:bold; cursor:pointer; margin-right: 15px;">
-			<input type="checkbox" id="modeVedic" onchange="enforceSingleMode('modeVedic')"> Vedic
-		</label>
-		<label style="color:var(--asc-yellow); font-weight:bold; cursor:pointer;">
-			<input type="checkbox" id="hideAllAge" onchange="calc()"> Hide Age
-		</label>
-		<label style="color:var(--asc-yellow); font-weight:bold; cursor:pointer;">
-			<input type="checkbox" id="hideBhuktiAge" onchange="calc()" checked> Hide Bukthi Age
-		</label>
-	</div>
+    <label style="color:var(--asc-yellow); font-weight:bold; cursor:pointer; margin-right: 15px;">
+        <input type="checkbox" id="modeVedic" onchange="enforceSingleMode('modeVedic')"> Vedic
+    </label>
+    <label style="color:var(--asc-yellow); font-weight:bold; cursor:pointer; margin-right: 15px;">
+        <input type="checkbox" id="hideAllAge" onchange="calc()"> Hide Age
+    </label>
+    <label style="color:var(--asc-yellow); font-weight:bold; cursor:pointer;">
+        <input type="checkbox" id="hideBhuktiAge" onchange="calc()" checked> Hide Bukthi Age
+    </label>
+</div>
 	
 	
 	
 	<div class="vim-wrapper">
 
 	<div class="vim-heading" onclick="toggleVim()">
-		Vimshottari Dasha â–¼
+		Vimshottari Dasha &#9660;
 	</div>
 
 	<div class="vim-find-bar">
@@ -1054,12 +1064,12 @@
 	<div id="vimContainer" class="vim-row" style="display:none;">
 
 		<div class="vim-col">
-			<div class="vim-title">Vimshottari Dasha â€“ Chandra</div>
+			<div class="vim-title">Vimshottari Dasha – Chandra</div>
 			<div id="vimChandra"></div>
 		</div>
 
 		<div class="vim-col">
-			<div class="vim-title">Vimshottari Dasha â€“ Lagna</div>
+			<div class="vim-title">Vimshottari Dasha – Lagna</div>
 			<div id="vimLagna"></div>
 		</div>
 
@@ -1188,20 +1198,531 @@ document.getElementById("toolEndDate").addEventListener("change", calcToolDateDi
 
 
 <div class="division-title" onclick="toggleDivision()">
-	Divisional Charts â–¶
+    Divisional Charts &#9654;
 </div>
 
-
-
-
-
-
-
-
-
-
-
 <div id="out" class="chart-grid" style="display:none;"></div>
+
+<button id="floatBtnDivCharts" onclick="toggleDivision(); document.querySelector('.division-title[onclick=\'toggleDivision()\']').scrollIntoView({behavior:'smooth', block:'start'});" 
+    style="display:none; position:fixed; bottom:20px; right:20px; z-index:9999; background:#000; color:var(--grid-line); border:1px solid var(--grid-line); padding:5px 10px; font-weight:900; font-size:12px; border-radius:4px; cursor:pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">
+    ▲
+</button>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="division-title" onclick="toggleSignVsKp()">
+    Divisional Chart : Sign Vs KP &#9660;
+</div>
+
+<div id="signVsKpWrapper" class="shoda-wrapper" style="display:none; padding-bottom: 40px;">
+    <div id="signVsKpContainer" style="display: flex; flex-direction: column; gap: 40px; width: 100%; box-sizing: border-box;"></div>
+</div>
+
+<button id="floatBtnSignKP" onclick="toggleSignVsKp(); document.querySelector('.division-title[onclick=\'toggleSignVsKp()\']').scrollIntoView({behavior:'smooth', block:'start'});" 
+    style="display:none; position:fixed; bottom:55px; right:20px; z-index:9999; background:#000; color:#10b981; border:1px solid #10b981; padding:5px 10px; font-weight:900; font-size:12px; border-radius:4px; cursor:pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">
+    ▲
+</button>
+
+
+
+
+
+
+
+
+
+<script>
+function toggleSignVsKp() {
+    const box = document.getElementById("signVsKpWrapper");
+    const floatBtn = document.getElementById("floatBtnSignKP");
+    if(!box) return;
+    const isOpening = (box.style.display === "none");
+    box.style.display = isOpening ? "block" : "none";
+    if (isOpening) {
+        if(floatBtn) floatBtn.style.display = "block";
+        renderSignVsKp();
+    } else {
+        if(floatBtn) floatBtn.style.display = "none";
+    }
+}
+
+
+
+function renderSignVsKp() {
+    const container = document.getElementById("signVsKpContainer");
+    if (!container) return;
+    container.innerHTML = "";
+
+    if (!raw) {
+        container.innerHTML = "<div style='color:#ff4444; font-weight:bold; text-align:center;'>Please load Natal Profile data first...</div>";
+        return;
+    }
+
+    const aya = document.getElementById('aya')?.value || 'Lahiri';
+    const d = raw.ayanamshas[aya];
+    const pNames = ["Surya", "Chandra", "Mangala", "Budha", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu"];
+    const rData = d.planets_retro || {};
+    const pivot = document.getElementById('pivot')?.value || "ASC";
+    const SHIFTED_LAGNA = document.getElementById("shiftedLagnaToggle")?.checked;
+    
+    let lagnaShifted = d.lagna;
+    let globalAscShift = 0;
+    if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
+        const diffMs = currentDateTime - originalDateTime;
+        const diffMinutes = diffMs / 60000;
+        globalAscShift = diffMinutes * 0.25;
+        lagnaShifted = (lagnaShifted + globalAscShift) % 360;
+        if (lagnaShifted < 0) lagnaShifted += 360;
+    }
+
+    const shiftedPlanets = { ...d.planets };
+    if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
+        const diffMs = currentDateTime - originalDateTime;
+        const diffDays = (diffMs / 60000) / 1440;
+        const PLANET_SPEED = { Surya:0.9856, Chandra:13.176, Mangala:0.524, Budha:1.2, Jupiter:0.083, Venus:1.18, Saturn:0.033, Rahu:-0.05295, Ketu:-0.05295 };
+        pNames.forEach(p => {
+            if (PLANET_SPEED[p]) {
+                shiftedPlanets[p] = (shiftedPlanets[p] + PLANET_SPEED[p] * diffDays) % 360;
+                if (shiftedPlanets[p] < 0) shiftedPlanets[p] += 360;
+            }
+        });
+    }
+
+    if (document.getElementById("useTrueNode")?.checked) {
+        if (d.planets["Rahu_true"] !== undefined) shiftedPlanets["Rahu"] = d.planets["Rahu_true"];
+        if (d.planets["Ketu_true"] !== undefined) shiftedPlanets["Ketu"] = d.planets["Ketu_true"];
+        if (d.planets_retro && d.planets_retro["Rahu_true"] !== undefined) rData["Rahu"] = d.planets_retro["Rahu_true"];
+        if (d.planets_retro && d.planets_retro["Ketu_true"] !== undefined) rData["Ketu"] = d.planets_retro["Ketu_true"];
+    }
+
+    // Helper to get pure unshifted ZODIAC sign for Lordship accuracy
+    function getPureVargaSign(deg, vNum) {
+        if (vNum === 1) return Math.floor(deg / 30);
+        if (vNum === 30) {
+            const sign = Math.floor(deg / 30);
+            const dInSign = deg % 30;
+            const isOdd = (sign % 2 === 0);
+            let start, length, targetSign;
+            if (isOdd) {
+                if (dInSign < 5) { start = 0; length = 5; targetSign = 0; }
+                else if (dInSign < 10) { start = 5; length = 5; targetSign = 10; }
+                else if (dInSign < 18) { start = 10; length = 8; targetSign = 8; }
+                else if (dInSign < 25) { start = 18; length = 7; targetSign = 2; }
+                else { start = 25; length = 5; targetSign = 6; }
+            } else {
+                if (dInSign < 5) { start = 0; length = 5; targetSign = 1; }
+                else if (dInSign < 12) { start = 5; length = 7; targetSign = 5; }
+                else if (dInSign < 20) { start = 12; length = 8; targetSign = 11; }
+                else if (dInSign < 25) { start = 20; length = 5; targetSign = 9; }
+                else { start = 25; length = 5; targetSign = 7; }
+            }
+            return targetSign;
+        }
+        if (vNum === 5) {
+            const sign = Math.floor(deg / 30);
+            const dInSign  = deg % 30;
+            const part = Math.floor(dInSign / 6);
+            const isOdd = (sign % 2 === 0);
+            const oddCycle = [0, 10, 8, 2, 6];
+            const evenCycle = [1, 5, 11, 9, 7];
+            return isOdd ? oddCycle[part] : evenCycle[part];
+        }
+        return getVSign(deg, vNum);
+    }
+
+    const vList = [1, 10, 9, 7, 2, 4, 8, 60, 11, 30, 21, 16, 6, 12, 3, 24, 27, 20, 40, 45, 5];
+    
+    // Clean names with no extra words
+    const vargaNames = {
+        1: "Rasi", 2: "Hora", 3: "Drekkana", 4: "Chaturthamsa", 5: "Panchamsa",
+        6: "Shashthamsa", 7: "Saptamsa", 8: "Ashtamsa", 9: "Navamsha", 10: "Dashamsha",
+        11: "Rudramsa", 12: "Dwadasamsa", 16: "Shodashamsa", 20: "Vimshamsa", 
+        21: "Iyer Hora", 24: "Chaturvimshamsa", 27: "Nakshatramsa", 30: "Trimshamsa", 
+        40: "Khavedamsa", 45: "Akshavedamsa", 60: "Shashtiamsa"
+    };
+
+    let html = "";
+
+    vList.forEach(v => {
+        const chartSign = Array(12).fill().map(() => []);
+        const chartKP = Array(12).fill().map(() => []);
+        
+        // ------------------
+        // 1. SIGN MODE CHART
+        // ------------------
+        let ascSign_S, ascDeg_S;
+        if (v === 30) {
+            const sign = Math.floor(lagnaShifted / 30);
+            const deg = lagnaShifted % 30;
+            const isOdd = (sign % 2 === 0);
+            let start, length, targetSign;
+            if (isOdd) {
+                if (deg < 5) { start = 0; length = 5; targetSign = 0; }
+                else if (deg < 10) { start = 5; length = 5; targetSign = 10; }
+                else if (deg < 18) { start = 10; length = 8; targetSign = 8; }
+                else if (deg < 25) { start = 18; length = 7; targetSign = 2; }
+                else { start = 25; length = 5; targetSign = 6; }
+            } else {
+                if (deg < 5) { start = 0; length = 5; targetSign = 1; }
+                else if (deg < 12) { start = 5; length = 7; targetSign = 5; }
+                else if (deg < 20) { start = 12; length = 8; targetSign = 11; }
+                else if (deg < 25) { start = 20; length = 5; targetSign = 9; }
+                else { start = 25; length = 5; targetSign = 7; }
+            }
+            ascSign_S = targetSign;
+            ascDeg_S = ((deg - start) / length) * 30;
+        } else if (v === 5) {
+            const sign = Math.floor(lagnaShifted / 30);
+            const deg  = lagnaShifted % 30;
+            const part = Math.floor(deg / 6);
+            const isOdd = (sign % 2 === 0);
+            const oddCycle = [0, 10, 8, 2, 6];
+            const evenCycle = [1, 5, 11, 9, 7];
+            ascSign_S = isOdd ? oddCycle[part] : evenCycle[part];
+            ascDeg_S = (deg % 6) / 6 * 30;
+        } else {
+            ascSign_S = v === 1 ? Math.floor(lagnaShifted / 30) : getVSign(lagnaShifted, v);
+            ascDeg_S = v === 1 ? lagnaShifted % 30 : (lagnaShifted * v) % 30;
+        }
+
+        chartSign[ascSign_S].push({ n: "ASC", d: ascDeg_S, isAsc: true });
+
+        pNames.forEach(p => {
+            const deg = shiftedPlanets[p];
+            const label = p === "Surya" ? "Sy" : p.substring(0, 2);
+            let pSign_S, pDeg_S;
+            const pureZodiacSign = getPureVargaSign(deg, v);
+
+            if (v === 30) {
+                const sign = Math.floor(deg / 30);
+                let dInSign = deg % 30;
+                const isOdd = (sign % 2 === 0);
+                let start, length, targetSign;
+                if (isOdd) {
+                    if (dInSign < 5) { start = 0; length = 5; targetSign = 0; }
+                    else if (dInSign < 10) { start = 5; length = 5; targetSign = 10; }
+                    else if (dInSign < 18) { start = 10; length = 8; targetSign = 8; }
+                    else if (dInSign < 25) { start = 18; length = 7; targetSign = 2; }
+                    else { start = 25; length = 5; targetSign = 6; }
+                } else {
+                    if (dInSign < 5) { start = 0; length = 5; targetSign = 1; }
+                    else if (dInSign < 12) { start = 5; length = 7; targetSign = 5; }
+                    else if (dInSign < 20) { start = 12; length = 8; targetSign = 11; }
+                    else if (dInSign < 25) { start = 20; length = 5; targetSign = 9; }
+                    else { start = 25; length = 5; targetSign = 7; }
+                }
+                pSign_S = targetSign;
+                pDeg_S = ((dInSign - start) / length) * 30;
+            } else if (v === 5) {
+                const sign = Math.floor(deg / 30);
+                const dInSign  = deg % 30;
+                const part = Math.floor(dInSign / 6);
+                const isOdd = (sign % 2 === 0);
+                const oddCycle = [0, 10, 8, 2, 6];
+                const evenCycle = [1, 5, 11, 9, 7];
+                pSign_S = isOdd ? oddCycle[part] : evenCycle[part];
+                pDeg_S = (dInSign % 6) / 6 * 30;
+            } else {
+                pSign_S = v === 1 ? Math.floor(deg / 30) : getVSign(deg, v);
+                pDeg_S = v === 1 ? deg % 30 : (deg * v) % 30;
+            }
+            chartSign[pSign_S].push({ n: label, d: pDeg_S, isAsc: false, pureSign: pureZodiacSign });
+        });
+
+        // ------------------
+        // 2. KP MODE CHART (LOCKED TO NO SHIFT)
+        // ------------------
+        let baseDeg = lagnaShifted;
+        if (pivot !== "ASC") baseDeg = d.planets[pivot];
+
+        let ascSign_K, ascDeg_K;
+
+        if (v === 30) {
+            let ascD30Sign, ascD30Deg;
+            {
+                const sign = Math.floor(lagnaShifted / 30);
+                const deg = lagnaShifted % 30;
+                const isOdd = (sign % 2 === 0);
+                let start, length, targetSign;
+                if (isOdd) {
+                    if (deg < 5) { start = 0; length = 5; targetSign = 0; }
+                    else if (deg < 10) { start = 5; length = 5; targetSign = 10; }
+                    else if (deg < 18) { start = 10; length = 8; targetSign = 8; }
+                    else if (deg < 25) { start = 18; length = 7; targetSign = 2; }
+                    else { start = 25; length = 5; targetSign = 6; }
+                } else {
+                    if (deg < 5) { start = 0; length = 5; targetSign = 1; }
+                    else if (deg < 12) { start = 5; length = 7; targetSign = 5; }
+                    else if (deg < 20) { start = 12; length = 8; targetSign = 11; }
+                    else if (deg < 25) { start = 20; length = 5; targetSign = 9; }
+                    else { start = 25; length = 5; targetSign = 7; }
+                }
+                ascD30Sign = targetSign;
+                ascD30Deg = ((deg - start) / length) * 30;
+            }
+
+            let pivotD30Sign, pivotD30Deg;
+            if (pivot === "ASC") {
+                pivotD30Sign = ascD30Sign;
+                pivotD30Deg = ascD30Deg;
+            } else {
+                const pivotRawDeg = d.planets[pivot];
+                const sign = Math.floor(pivotRawDeg / 30);
+                const deg = pivotRawDeg % 30;
+                const isOdd = (sign % 2 === 0);
+                let start, length, targetSign;
+                if (isOdd) {
+                    if (deg < 5) { start = 0; length = 5; targetSign = 0; }
+                    else if (deg < 10) { start = 5; length = 5; targetSign = 10; }
+                    else if (deg < 18) { start = 10; length = 8; targetSign = 8; }
+                    else if (deg < 25) { start = 18; length = 7; targetSign = 2; }
+                    else { start = 25; length = 5; targetSign = 6; }
+                } else {
+                    if (deg < 5) { start = 0; length = 5; targetSign = 1; }
+                    else if (deg < 12) { start = 5; length = 7; targetSign = 5; }
+                    else if (deg < 20) { start = 12; length = 8; targetSign = 11; }
+                    else if (deg < 25) { start = 20; length = 5; targetSign = 9; }
+                    else { start = 25; length = 5; targetSign = 7; }
+                }
+                pivotD30Sign = targetSign;
+                pivotD30Deg = ((deg - start) / length) * 30;
+            }
+            
+            // NO SHIFT LOGIC - strictly align signs based on the degrees
+            let lagnaDegKP = ascD30Sign * 30 + ascD30Deg - pivotD30Deg;
+            if (lagnaDegKP < 0) lagnaDegKP += 360;
+
+            if (pivot === "ASC") {
+                ascSign_K = pivotD30Sign;
+                ascDeg_K = 0;
+            } else {
+                ascSign_K = Math.floor(lagnaDegKP / 30);
+                ascDeg_K = lagnaDegKP % 30;
+            }
+            chartKP[ascSign_K].push({ n: "ASC", d: ascDeg_K, isAsc: true });
+
+            pNames.forEach(p => {
+                const rawDeg = d.planets[p];
+                const sign = Math.floor(rawDeg / 30);
+                const deg = rawDeg % 30;
+                const isOdd = (sign % 2 === 0);
+                let start, length, targetSign;
+                if (isOdd) {
+                    if (deg < 5) { start = 0; length = 5; targetSign = 0; }
+                    else if (deg < 10) { start = 5; length = 5; targetSign = 10; }
+                    else if (deg < 18) { start = 10; length = 8; targetSign = 8; }
+                    else if (deg < 25) { start = 18; length = 7; targetSign = 2; }
+                    else { start = 25; length = 5; targetSign = 6; }
+                } else {
+                    if (deg < 5) { start = 0; length = 5; targetSign = 1; }
+                    else if (deg < 12) { start = 5; length = 7; targetSign = 5; }
+                    else if (deg < 20) { start = 12; length = 8; targetSign = 11; }
+                    else if (deg < 25) { start = 20; length = 5; targetSign = 9; }
+                    else { start = 25; length = 5; targetSign = 7; }
+                }
+                const rel = deg - start;
+                const targetDegD30 = (rel / length) * 30;
+                let full = targetSign * 30 + targetDegD30;
+                let newDeg = full - pivotD30Deg;
+                if (newDeg < 0) newDeg += 360;
+                
+                let pSign_K = Math.floor(newDeg / 30);
+                let pDeg_K = newDeg % 30;
+                if (pivot !== "ASC" && p === pivot) pDeg_K = 0;
+                const label = p === "Surya" ? "Sy" : p.substring(0, 2);
+                
+                const pureZodiacSign = getPureVargaSign(shiftedPlanets[p], v);
+                chartKP[pSign_K].push({ n: label, d: pDeg_K, isAsc: false, pureSign: pureZodiacSign });
+            });
+        } else {
+            const pSign = getVSign(baseDeg, v);
+            const pDeg  = (baseDeg * v) % 30;
+
+            const ascSignV = getVSign(lagnaShifted, v);
+            const ascDegV  = (lagnaShifted * v) % 30;
+            let lagnaDegKP = (ascSignV * 30 + ascDegV) - pDeg;
+            if (lagnaDegKP < 0) lagnaDegKP += 360;
+
+            if (pivot === "ASC") {
+                ascSign_K = pSign;
+                ascDeg_K = 0;
+            } else {
+                ascSign_K = Math.floor(lagnaDegKP / 30);
+                ascDeg_K = lagnaDegKP % 30;
+            }
+            chartKP[ascSign_K].push({ n: "ASC", d: ascDeg_K, isAsc: true });
+
+            pNames.forEach(p => {
+                const rawDeg = (p === pivot && pivot !== "ASC") ? baseDeg : d.planets[p];
+                const sign = getVSign(rawDeg, v);
+                const deg  = (rawDeg * v) % 30;
+                let newDeg = (sign * 30 + deg) - pDeg;
+                if (newDeg < 0) newDeg += 360;
+
+                let pSign_K = Math.floor(newDeg / 30);
+                let pDeg_K = newDeg % 30;
+                if (pivot !== "ASC" && p === pivot) pDeg_K = 0;
+                const label = p === "Surya" ? "Sy" : p.substring(0, 2);
+                
+                const pureZodiacSign = getPureVargaSign(shiftedPlanets[p], v);
+                chartKP[pSign_K].push({ n: label, d: pDeg_K, isAsc: false, pureSign: pureZodiacSign });
+            });
+        }
+
+        chartSign.forEach((h, i) => i <= 5 ? h.sort((a,b) => a.d - b.d) : h.sort((a,b) => b.d - a.d));
+        chartKP.forEach((h, i) => i <= 5 ? h.sort((a,b) => a.d - b.d) : h.sort((a,b) => b.d - a.d));
+
+        let vTitleName = vargaNames[v] || "";
+
+        // 🔥 FIX: Re-introduced fully unconstrained flexbox widths to fill space!
+        html += `
+        <div style="display: flex; gap: 40px; width: 100%; box-sizing: border-box;">
+            <div style="flex: 1; min-width: 0;">
+                ${buildSimpleKundaliHTML(chartSign, `D${v} - ${vTitleName}`, pivot)}
+            </div>
+            <div style="flex: 1; min-width: 0;">
+                ${buildSimpleKundaliHTML(chartKP, `D${v} - ${vTitleName}`, pivot)}
+            </div>
+        </div>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
+function buildSimpleKundaliHTML(chartData, title, pivotVal) {
+    let html = `<div class="varga-card" style="width: 100%; border: 2px solid var(--grid-line); background:#111;"><div class="varga-title" style="margin-top:0; font-size:1.3em; font-weight:900; padding:10px 8px;">${title}</div><div class="kundali">`;
+    const houseMap = [11, 0, 1, 2, 10, -1, -1, 3, 9, -1, -1, 4, 8, 7, 6, 5];
+    
+    let ascIndex = 0;
+    for (let i = 0; i < 12; i++) {
+        if (chartData[i] && chartData[i].some(p => (pivotVal === "ASC" ? p.isAsc : p.n === (pivotVal==="Surya"?"Sy":pivotVal.substring(0,2))))) { 
+            ascIndex = i; 
+            break; 
+        }
+    }
+
+    const modeKN = document.getElementById("modeKN")?.checked;
+    const knMap = { Sy: "\u0CB0\u0CB5\u0CBF", Ch: "\u0C9A\u0C82\u0CA6\u0CCD\u0CB0", Ma: "\u0C95\u0CC1\u0C9C", Bu: "\u0CAC\u0CC1\u0CA7", Ju: "\u0C97\u0CC1\u0CB0\u0CC1", Ve: "\u0CB6\u0CC1\u0C95\u0CCD\u0CB0", Sa: "\u0CB6\u0CA8\u0CBF", Ra: "\u0CB0\u0CBE\u0CB9\u0CC1", Ke: "\u0C95\u0CC7\u0CA4\u0CC1", ASC: "\u0CB2\u0C97\u0CCD\u0CA8" };
+    const pColors = { Sy: "#ffffff", Ch: "#ffffff", Ma: "#ffffff", Bu: "#ffffff", Ve: "#ffffff", Ju: "#facc15", Sa: "#facc15", Ra: "#facc15", Ke: "#facc15", ASC: "#0bf4e6" };
+
+    const signLords = { 1:"Ma",2:"Ve",3:"Bu",4:"Ch", 5:"Sy",6:"Bu",7:"Ve",8:"Ma", 9:"Ju",10:"Sa",11:"Sa",12:"Ju" };
+    const pivotSignNum = ascIndex + 1;
+    
+    function getPlanetLordship(pCode) {
+        function housesOfLord(lord) {
+            const arr = [];
+            for(let h=1; h<=12; h++) {
+                const signOfHouse = ((pivotSignNum + h - 2) % 12) + 1;
+                if(signLords[signOfHouse] === lord) arr.push(h);
+            }
+            return arr;
+        }
+        if(pCode === "Ra" || pCode === "Ke") {
+            let pObj = null;
+            for(let i=0; i<12; i++) {
+                pObj = chartData[i].find(p => p.n === pCode);
+                if(pObj) break;
+            }
+            if(!pObj) return [];
+            let signPlaced = pObj.pureSign !== undefined ? pObj.pureSign + 1 : 1;
+            const dispositor = signLords[signPlaced];
+            const lordHouses = housesOfLord(dispositor);
+            
+            let dispositorHouse = null;
+            for(let i=0; i<12; i++) {
+                const obj = chartData[i].find(p => p.n === dispositor);
+                if(obj) { dispositorHouse = ((i - ascIndex + 12) % 12) + 1; break; }
+            }
+            if (dispositorHouse) return [dispositorHouse, ...lordHouses];
+            return lordHouses;
+        }
+        return housesOfLord(pCode);
+    }
+
+    houseMap.forEach(sIdx => {
+        if (sIdx === -1) {
+            html += `<div class="center-box"></div>`;
+            return;
+        }
+        let hClass = sIdx === ascIndex ? "house asc-house" : "house";
+        const houseNum = ((sIdx - ascIndex + 12) % 12) + 1;
+        
+        html += `<div class="${hClass}" style="min-height:100px;"><div class="house-num">${houseNum}</div>`;
+        
+        if (chartData[sIdx]) {
+            chartData[sIdx].forEach(p => {
+                let name = modeKN ? (knMap[p.n] || p.n) : p.n;
+                let color = pColors[p.n] || "#ffffff";
+                let pivotCode = pivotVal === "Surya" ? "Sy" : pivotVal.substring(0,2);
+                
+                if (p.isAsc) {
+                    // Only ASC gets degrees
+                    let deg = Math.floor(p.d);
+                    let mins = Math.floor((p.d * 60) % 60).toString().padStart(2, '0');
+                    html += `<div style="color:#0bf4e6; font-size:16px; font-weight:700; margin:3px 0; white-space:nowrap;">ASC ${deg}&deg;${mins}&prime;</div>`;
+                } else {
+                    // Planets (including pivot) get Lordships and NO retro (Rx) symbol
+                    let lordsArr = getPlanetLordship(p.n).filter(x => x !== "-" && x != null);
+                    let uniqueLords = [...new Set(lordsArr)].sort((a,b) => Number(a) - Number(b));
+                    let lordStr = uniqueLords.join(",");
+                    let lordStrWithPlaced = lordStr ? `${houseNum}-${lordStr}` : `${houseNum}`;
+                    
+                    let finalColor = (p.n === pivotCode) ? "#0bf4e6" : color;
+                    
+                    html += `<div style="color:${finalColor}; font-size:16px; font-weight:700; margin:3px 0; white-space:nowrap;">${name}&nbsp;&nbsp;${lordStrWithPlaced}</div>`;
+                }
+            });
+        }
+        html += `</div>`;
+    });
+    html += `</div></div>`;
+    return html;
+}
+
+(function hookSignVsKpIntoCalc() {
+    const originalCalc = window.calc;
+    window.calc = function() {
+        if (typeof originalCalc === "function") originalCalc();
+        try {
+            const box = document.getElementById("signVsKpWrapper");
+            if (box && box.style.display === "block" && typeof renderSignVsKp === "function") {
+                renderSignVsKp();
+            }
+        } catch(e) {}
+    };
+})();
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1265,7 +1786,7 @@ document.getElementById("toolEndDate").addEventListener("change", calcToolDateDi
 </style>
 
 <div class="division-title" onclick="toggleVedicAspects()">
-    Vedic Aspects & Specific Chart â–¼
+    Vedic Aspects & Specific Chart &#9660;
 </div>
 
 <div id="vedicAspectsWrapper" class="shoda-wrapper" style="display:none; padding-bottom: 20px;">
@@ -1325,7 +1846,7 @@ function toggleVedicAspects() {
     box.style.display = isOpening ? "block" : "none";
 
     if (isOpening) {
-        renderVedicAspectsTab(); // ðŸ”¥ FORCE RENDER ON OPEN
+        renderVedicAspectsTab(); // 🔥 FORCE RENDER ON OPEN
     }
 }
 
@@ -1385,7 +1906,7 @@ function renderVedicAspectsTab() {
 	const rashiData = window._shodaRashi[v];
 	if (!rashiData) return;
 
-	// ðŸ”¥ KP DATA (FIX)
+	// 🔥 KP DATA (FIX)
 	const kpData = computeKPForVarga(v);
 
     /* ----------------------------------------------------
@@ -1410,7 +1931,19 @@ function renderVedicAspectsTab() {
     ];
 
     const modeKN = document.getElementById("modeKN")?.checked;
-    const planetNameMapKN = { Sy: "à²°à²µà²¿", Ch: "à²šà²‚à²¦à³à²°", Ma: "à²•à³à²œ", Bu: "à²¬à³à²§", Ju: "à²—à³à²°à³", Ve: "à²¶à³à²•à³à²°", Sa: "à²¶à²¨à²¿", Ra: "à²°à²¾à²¹à³", Ke: "à²•à³‡à²¤à³" };
+    const planetNameMapKN = {
+    Sy: "\u0CB0\u0CB5\u0CBF",           // ???
+    Ch: "\u0C9A\u0C82\u0CA6\u0CCD\u0CB0", // ?????
+    Ma: "\u0C95\u0CC1\u0C9C",           // ???
+    Bu: "\u0CAC\u0CC1\u0CA7",           // ???
+    Ju: "\u0C97\u0CC1\u0CB0\u0CC1",       // ????
+    Ve: "\u0CB6\u0CC1\u0C95\u0CCD\u0CB0", // ?????
+    Sa: "\u0CB6\u0CA8\u0CBF",           // ???
+    Ra: "\u0CB0\u0CBE\u0CB9\u0CC1",       // ????
+    Ke: "\u0C95\u0CC7\u0CA4\u0CC1",       // ????
+    ASC: "\u0CB2\u0C97\u0CCD\u0CA8",      // ????
+    Mn: "\u0CAE\u0CC1\u0C82\u0CA5\u0CBE"    // ?????
+	};
 
     const indicator = document.getElementById("vedicAspectStarlordIndicator");
     if (indicator) {
@@ -1441,14 +1974,14 @@ function renderVedicAspectsTab() {
     const modeKP = document.getElementById("modeKP")?.checked;
 	const kpShift = window._kpSignShift?.[v] || 0;
 
-	// ðŸ”¥ NEW: detect shift state
+	// 🔥 NEW: detect shift state
 	const isShiftActive = document.getElementById("shiftedLagnaToggle")?.checked;
 
 	planets.forEach(p => {
     if (visualPMap[p] === undefined) {
         let fallbackSign = parseInt(rashiData[p]) - 1;
 
-        // ðŸš« STRICT RULE: NEVER apply KP shift to planetary positions
+        // 🚫 STRICT RULE: NEVER apply KP shift to planetary positions
         // KP shift is ONLY for display logic, NOT for star/sub calculation
 
         visualPMap[p] = isNaN(fallbackSign) ? -1 : fallbackSign;
@@ -1560,7 +2093,7 @@ function renderVedicAspectsTab() {
     k.className = 'kundali';
     const m = [11, 0, 1, 2, 10, -1, -1, 3, 9, -1, -1, 4, 8, 7, 6, 5];
     
-    const showLordship = document.getElementById("showLordship")?.checked;
+    const showLordship = true; // IMMUNE TO CHECKBOX
     const includeAspects = document.getElementById("includeAspectsToggle")?.checked;
     const includeRaKeAspects = document.getElementById("includeRaKeAspectsToggle")?.checked;
     const pivot = document.getElementById('pivot')?.value || "ASC";
@@ -1588,56 +2121,63 @@ function renderVedicAspectsTab() {
                     if (p.isAsc) {
                         if (pivot === "ASC") lineClass = "p-line asc-line";
                         const mins = Math.floor((p.d * 60) % 60).toString().padStart(2, '0');
-                        h.innerHTML += `<div class="${lineClass}" style="font-size:16px;">ASC ${Math.floor(p.d)}Â°${mins}â€²</div>`;
+                        h.innerHTML += `<div class="${lineClass}" style="font-size:16px;">ASC ${Math.floor(p.d)}&deg;${mins}&prime;</div>`;
                     } else {
-                        const name = modeKN ? (planetNameMapKN[p.n] || p.n) : p.n;
-                        const r = (!modeKN && p.r && !showLordship) ? ' (R)' : '';
+                        
+						let name = modeKN ? (planetNameMapKN[p.n] || p.n) : p.n;
+                        if (p.r) name += ' (Rx)';
 
                         if (p.n === (pivot === "Surya" ? "Sy" : pivot.substring(0,2))) {
                             lineClass = "p-line pivot-line";
                         }
 
-                        // ðŸ”¥ PLACED HOUSE CALCULATION
+                        // 🔥 PLACED HOUSE CALCULATION
                         let placedHouse = ((sIdx - visualAscIdx + 12) % 12) + 1;
 
-                        // ðŸ”¥ ASPECT SCRIPT APPEND & SORT LOGIC
+                        
+						
+						
+						// 🔥 ASPECT SCRIPT APPEND & SORT LOGIC
                         let aspectStrings = [];
                         let isTargetRaKe = (p.n === "Ra" || p.n === "Ke");
                         let shouldApplyAspects = (isTargetRaKe && includeRaKeAspects) || (!isTargetRaKe && includeAspects);
                         
                         if (shouldApplyAspects && aspectsReceived[p.n]) {
                             aspectsReceived[p.n].forEach(pAspecting => {
-                                let aPlaced = getVisualHouse(visualPMap[pAspecting]);
-                                let aLords = getPlanetLordshipLocal(pAspecting);
+                                // Extract the placed house of the aspecting planet
+                                let aspPlacedHouse = getVisualHouse(visualPMap[pAspecting]);
                                 
-                                // Build unique array [Placed, Lord1, Lord2] and SORT numerically
-                                let scriptArr = [aPlaced, ...aLords].filter(x => x !== "-" && x != null);
-                                let uniqueScript = [...new Set(scriptArr)].sort((a, b) => Number(a) - Number(b));
-                                let scriptStr = uniqueScript.join(",");
+                                // Extract the lordship of the aspecting planet
+                                let aspLordsArr = getPlanetLordshipLocal(pAspecting).filter(x => x !== "-" && x != null);
+                                let aspUniqueLords = [...new Set(aspLordsArr)].sort((a, b) => Number(a) - Number(b));
                                 
-                                if (scriptStr) {
-                                    aspectStrings.push(scriptStr);
-                                }
+                                // Combine Placed House and Lordship (e.g., 3-7,10)
+                                let aspStr = aspUniqueLords.length > 0 ? `${aspPlacedHouse}-${aspUniqueLords.join(",")}` : `${aspPlacedHouse}`;
+                                aspectStrings.push(aspStr);
                             });
                         }
                         
+                        // Join multiple aspecting lords with " + " to match Nadi style grouping
                         let aspectSuffix = aspectStrings.length > 0 ? " + " + aspectStrings.join(" + ") : "";
 
                         let displayStr = "";
-                        const mins = Math.floor((p.d * 60) % 60).toString().padStart(2, '0'); // Calculate minutes here for both views
+                        const mins = Math.floor((p.d * 60) % 60).toString().padStart(2, '0'); 
                         
                         if (showLordship) {
-                            // Extract, Unique, and Sort Lordships numerically
                             let lordshipsArr = getPlanetLordshipLocal(p.n).filter(x => x !== "-" && x != null);
                             let uniqueLords = [...new Set(lordshipsArr)].sort((a, b) => Number(a) - Number(b));
-                            
-                            // Format: PlacedHouse-Lord1,Lord2
                             let lordStr = uniqueLords.length > 0 ? `${placedHouse}-${uniqueLords.join(",")}` : `${placedHouse}`;
                             
-                            displayStr = `${name} ${Math.floor(p.d)}Â°${mins}â€² - ${lordStr}${aspectSuffix}`;
+                            displayStr = `${name} ${Math.floor(p.d)}&deg;${mins}&prime; - ${lordStr}${aspectSuffix}`;
                         } else {
                             const kp = kpData[p.n] || {};
-							displayStr = `${name} ${Math.floor(p.d)}Â°${mins}â€² | ${kp.star || "-"} / ${kp.sub || "-"} / ${kp.subsub || "-"}${aspectSuffix}`;
+                            const extMap = { ...planetNameMapKN, "Jupiter": "ಗುರು", "Budha": "ಬುಧ", "Venus": "ಶುಕ್ರ", "Saturn": "ಶನಿ", "Mars": "ಕುಜ", "Moon": "ಚಂದ್ರ", "Sun": "ರವಿ", "Rahu": "ರಾಹು", "Ketu": "ಕೇತು", "Sy": "ರವಿ", "Ch": "ಚಂದ್ರ", "Ma": "ಕುಜ", "Bu": "ಬುಧ", "Ju": "ಗುರು", "Ve": "ಶುಕ್ರ", "Sa": "ಶನಿ", "Ra": "ರಾಹು", "Ke": "ಕೇತು" };
+                            
+                            const starName = modeKN ? (extMap[kp.star] || kp.star || "-") : (kp.star || "-");
+                            const subName = modeKN ? (extMap[kp.sub] || kp.sub || "-") : (kp.sub || "-");
+                            const subsubName = modeKN ? (extMap[kp.subsub] || kp.subsub || "-") : (kp.subsub || "-");
+                            
+                            displayStr = `${name} ${Math.floor(p.d)}&deg;${mins}&prime; | ${starName} / ${subName} / ${subsubName}${aspectSuffix}`;
                         }
 
                         h.innerHTML += `<div class="${lineClass}" style="font-size:15px; color:#fff; white-space:normal;">${displayStr}</div>`;
@@ -1883,7 +2423,7 @@ function attachVedicInteractions(tableId) {
 
 
 <div class="division-title" onclick="toggleTables()">
-	Divisional Tables â–¼
+	Divisional Tables &#9660;
 </div>
 
 <div id="divisionalTablesWrapper" class="shoda-wrapper" style="display:none;">
@@ -1952,7 +2492,7 @@ function attachVedicInteractions(tableId) {
 
 
 <div class="division-title" onclick="toggleLordTable()">
-	Lords Of Kundalis â–¼
+	Lords Of Kundalis &#9660;
 </div>
 
 <div id="lordWrapper" class="shoda-wrapper" style="display:none;">
@@ -1992,7 +2532,7 @@ function attachVedicInteractions(tableId) {
 
 
 <div class="division-title" onclick="toggleAshtakavarga()">
-    Sarvashtaka Varga Calculator â–¼
+    Sarvashtaka Varga Calculator &#9660;
 </div>
 
 <div id="ashtakavargaWrapper" class="shoda-wrapper" style="display:none; padding-bottom:50vh;">
@@ -2085,7 +2625,7 @@ function computeKPForVarga(v) {
 
             const planet = p.n;
 
-            // ðŸ”¥ FIX: Construct the TRUE 360Â° varga longitude!
+            // 🔥 FIX: Construct the TRUE 360&deg; varga longitude!
             // p.d is only 0-30. We must use pureSign (0-11) to get the exact placement.
             const signIndex = p.pureSign !== undefined ? p.pureSign : 0;
             const fullVargaDeg = (signIndex * 30) + p.d;
@@ -2125,9 +2665,9 @@ function getKPDetails(deg) {
         Ra:18, Ju:16, Sa:19, Bu:17
     };
 
-    const NAK_SIZE = 13 + 20/60; // 13Â°20'
+    const NAK_SIZE = 13 + 20/60; // 13&deg;20'
 
-    // ðŸ”¥ IMPORTANT: FULL 360Â° DEGREE
+    // 🔥 IMPORTANT: FULL 360&deg; DEGREE
     let fullDeg = ((deg % 360) + 360) % 360;
 
     // ==============================
@@ -2250,12 +2790,12 @@ function buildDateTime() {
 
 	if (!d || !t) return;
 
-	// If birth not set yet â†’ set it once
+	// If birth not set yet &rarr; set it once
 	if (!originalDateTime) {
 		originalDateTime = new Date(d + "T" + t);
 	}
 
-	// If current time not set â†’ clone birth
+	// If current time not set &rarr; clone birth
 	if (!currentDateTime) {
 		currentDateTime = new Date(originalDateTime);
 	}
@@ -2372,12 +2912,12 @@ function resetTime() {
 
     window.calc = function(){
 
-        // ðŸ” Run original engine first
+        // 🔁 Run original engine first
         if (typeof originalCalc === "function") {
             originalCalc();
         }
 
-        // ðŸ”¥ Then force Vedic refresh
+        // 🔥 Then force Vedic refresh
         try {
             if (typeof renderVedicAspectsTab === "function") {
                 renderVedicAspectsTab();
@@ -2400,16 +2940,16 @@ function resetTime() {
 	const pNames = ["Surya", "Chandra", "Mangala", "Budha", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu"];
 
 	const planetNameMapKN = {
-	Sy: "à²°à²µà²¿",
-	Ch: "à²šà²‚à²¦à³à²°",
-	Ma: "à²•à³à²œ",
-	Bu: "à²¬à³à²§",
-	Ju: "à²—à³à²°à³",
-	Ve: "à²¶à³à²•à³à²°",
-	Sa: "à²¶à²¨à²¿",
-	Ra: "à²°à²¾à²¹à³",
-	Ke: "à²•à³‡à²¤à³",
-	ASC: "à²²à²—à³à²¨"
+    Sy: "\u0CB0\u0CB5\u0CBF",
+    Ch: "\u0C9A\u0C82\u0CA6\u0CCD\u0CB0",
+    Ma: "\u0C95\u0CC1\u0C9C",
+    Bu: "\u0CAC\u0CC1\u0CA7",
+    Ju: "\u0C97\u0CC1\u0CB0\u0CC1",
+    Ve: "\u0CB6\u0CC1\u0C95\u0CCD\u0CB0",
+    Sa: "\u0CB6\u0CA8\u0CBF",
+    Ra: "\u0CB0\u0CBE\u0CB9\u0CC1",
+    Ke: "\u0C95\u0CC7\u0CA4\u0CC1",
+    ASC: "\u0CB2\u0C97\u0CCD\u0CA8"
 };
 
 
@@ -2509,7 +3049,7 @@ document.getElementById('fIn').onchange = (e) => {
     reader.onload = (f) => {
         raw = JSON.parse(f.target.result);
         
-        // ðŸ”¥ RESET ALL UI CONTROLS TO DEFAULT BEFORE PROCESSING ðŸ”¥
+        // 🔥 RESET ALL UI CONTROLS TO DEFAULT BEFORE PROCESSING 🔥
         resetAllControlsToDefault();
 
         updateHeader();
@@ -2527,7 +3067,7 @@ document.getElementById('fIn').onchange = (e) => {
         updateMiniClock();
         calc();
 
-        // ðŸ”¥ FORCE VEDIC SYSTEM INIT
+        // 🔥 FORCE VEDIC SYSTEM INIT
         initVedicAspectDropdown();
         renderVedicAspectsTab();
     };
@@ -2569,7 +3109,7 @@ function updateHeader() {
     if (raw.meta?.datetime_utc) {
         const utcDate = new Date(raw.meta.datetime_utc);
 
-        // ðŸ”¥ FIX: Use standard local time methods. 
+        // 🔥 FIX: Use standard local time methods. 
         // Because the JSON has a 'Z' (UTC format), standard methods will 
         // automatically convert the time to the user's local timezone (e.g., IST).
         const y = utcDate.getFullYear();
@@ -2601,10 +3141,10 @@ function updateHeader() {
 
 
 function getVSign(baseDeg, v) {
-	const sign = Math.floor(baseDeg / 30);   // 0â€“11
+	const sign = Math.floor(baseDeg / 30);   // 0–11
 	let deg  = baseDeg - (sign * 30);
 
-	// ðŸ”’ clamp to avoid D30 border spill
+	// 🔒 clamp to avoid D30 border spill
 	if (deg < 0) deg = 0;
 	if (deg >= 30) deg = 29.999999;
 
@@ -2613,13 +3153,13 @@ function getVSign(baseDeg, v) {
 	// BASIC / SPECIAL VARGAS
 	// -----------------------
 
-	// D1 â€“ Rasi
+	// D1 – Rasi
 	if (v === 1) return sign;
 
 
 
 
-	// D2 â€“ Hora (Raman)
+	// D2 – Hora (Raman)
 	if (v === 2) {
 	// JHora Raman Hora: 1st / 11th for all signs
 	return deg < 15 ? sign : (sign + 10) % 12;
@@ -2660,7 +3200,7 @@ function getVSign(baseDeg, v) {
 
 
 
-	// D3 â€“ Drekkana (cyclic)
+	// D3 – Drekkana (cyclic)
 	if (v === 3) {
 	const d = Math.floor(deg / 10);
 	if (d === 0) return sign;
@@ -2668,7 +3208,7 @@ function getVSign(baseDeg, v) {
 	return (sign + 8) % 12;
 	}
 
-	// D4 â€“ Chaturthamsa (cyclic)
+	// D4 – Chaturthamsa (cyclic)
 	if (v === 4) return (sign + Math.floor(deg / 7.5) * 3) % 12;
 
 	// -----------------------
@@ -2678,7 +3218,7 @@ function getVSign(baseDeg, v) {
 	
 	
  
-	   // D5 â€“ Panchamsa (Tattvic Mapping Fix)
+	   // D5 – Panchamsa (Tattvic Mapping Fix)
 	if (v === 5) {
 		const part = Math.floor(deg / 6); // 0, 1, 2, 3, or 4
 		const isOdd = (sign % 2 === 0);   // Ar(0), Ge(2), etc. are even indices (Odd signs)
@@ -2700,32 +3240,32 @@ function getVSign(baseDeg, v) {
 
 
 
-	// D6 â€“ Shashthamsa
+	// D6 – Shashthamsa
 	if (v === 6) return (sign * 6 + Math.floor(deg * 6 / 30)) % 12;
 
-	// D8 â€“ Ashtamsa
+	// D8 – Ashtamsa
 	if (v === 8) return (sign * 8 + Math.floor(deg * 8 / 30)) % 12;
 
-	// D9 â€“ Navamsa âœ… RESTORED WORKING LOGIC
+	// D9 – Navamsa ✅ RESTORED WORKING LOGIC
 	if (v === 9) return (sign * 9 + Math.floor(deg * 9 / 30)) % 12;
 
-	// D11 â€“ Rudramsa
+	// D11 – Rudramsa
 	if (v === 11) return (sign * 11 + Math.floor(deg * 11 / 30)) % 12;
 
-	// D12 â€“ Dwadasamsa
+	// D12 – Dwadasamsa
 	if (v === 12) {
 	const part = Math.floor(deg * 12 / 30);
 	return (sign + part) % 12;
 	}
 
 
-	// D16 â€“ Shodashamsa
+	// D16 – Shodashamsa
 	if (v === 16) return (sign * 16 + Math.floor(deg * 16 / 30)) % 12;
 
-	// D20 â€“ Vimshamsa
+	// D20 – Vimshamsa
 	if (v === 20) return (sign * 20 + Math.floor(deg * 20 / 30)) % 12;
 
-	// D24 â€“ Chaturvimshamsa (Surgical Fix)
+	// D24 – Chaturvimshamsa (Surgical Fix)
 	if (v === 24) {
 		const part = Math.floor(deg * 24 / 30);
 		const isOdd = (sign % 2 === 0);
@@ -2735,17 +3275,17 @@ function getVSign(baseDeg, v) {
 	}
 
 
-	// D27 â€“ Nakshatramsa
+	// D27 – Nakshatramsa
 	if (v === 27) return (sign * 27 + Math.floor(deg * 27 / 30)) % 12;
 
-	// D40 â€“ Khavedamsa
+	// D40 – Khavedamsa
 	if (v === 40) {
 		const part = Math.floor(deg * 40 / 30);
 		const base = (sign % 2 === 0) ? 0 : 6; // Odd: Aries(0), Even: Libra(6)
 		return (base + part) % 12;
 	}
 
-	// D45 â€“ Akshavedamsa
+	// D45 – Akshavedamsa
 	if (v === 45) {
 		const part = Math.floor(deg * 45 / 30);
 		let base;
@@ -2755,7 +3295,7 @@ function getVSign(baseDeg, v) {
 		return (base + part) % 12;
 	}
 
-	// D60 â€“ Shashtiamsa
+	// D60 – Shashtiamsa
 	if (v === 60) {
 	const part = Math.floor(deg * 60 / 30);
 	return (sign + part) % 12;
@@ -2765,13 +3305,13 @@ function getVSign(baseDeg, v) {
 	// CLASSICAL EXCEPTIONS
 	// -----------------------
 
-	// D7 â€“ Saptamsa (Odd/Even)
+	// D7 – Saptamsa (Odd/Even)
 	if (v === 7) {
 		const base = (sign % 2 === 0) ? sign : (sign + 6) % 12;
 		return (base + Math.floor(deg * 7 / 30)) % 12;
 	}
 
-	// D10 â€“ Dasamsa (Odd/Even)
+	// D10 – Dasamsa (Odd/Even)
 	if (v === 10) {
 		const base = (sign % 2 === 0) ? sign : (sign + 8) % 12;
 		return (base + Math.floor(deg / 3)) % 12;
@@ -2782,7 +3322,7 @@ function getVSign(baseDeg, v) {
 
 
 
-			// D30 â€“ Trimshamsa (traditional Parashara â€“ corrected)
+			// D30 – Trimshamsa (traditional Parashara – corrected)
 			if (v === 30) {
 				const isOdd = (sign % 2 === 0);
 
@@ -2797,7 +3337,7 @@ function getVSign(baseDeg, v) {
 					else if (deg < 12) return 5; // Virgo (Mercury)
 					else if (deg < 20) return 11; // Pisces (Jupiter)
 					else if (deg < 25) return 9;  // Capricorn (Saturn)
-					else return 7;                // Scorpio (Mars) â† FIXED
+					else return 7;                // Scorpio (Mars) ← FIXED
 				}
 			}
 
@@ -2863,7 +3403,7 @@ function getVargaPosSign(v) {
         } 
     }); 
     
-    // ðŸ”’ FIX 3: Use pure unshifted lagna instead of the shifted lagna to prevent rule recalculation
+    // 🔒 FIX 3: Use pure unshifted lagna instead of the shifted lagna to prevent rule recalculation
     posSign["Lagna"] = (window._pureAscSigns && window._pureAscSigns[v] !== undefined) 
                         ? window._pureAscSigns[v] 
                         : (window._ascSigns[v] !== undefined ? window._ascSigns[v] : 0); 
@@ -2931,7 +3471,7 @@ function renderVargaAshtakavarga() {
         return k; 
     }
     
-    // ðŸ”’ FIX 4: Determine exactly how many signs the array needs to rotate visually
+    // 🔒 FIX 4: Determine exactly how many signs the array needs to rotate visually
     let shiftAmount = 0;
     const modeKP = document.getElementById('modeKP')?.checked;
     if (modeKP) {
@@ -3056,11 +3596,11 @@ function buildLordshipDeciderTable(){
 	
 	
 	/* =========================================
-   HELPER â€” GET LORDSHIP OF PLANET
+   HELPER — GET LORDSHIP OF PLANET
 ========================================= */
 
 /* =========================================
-   HELPER â€” GET LORDSHIP OF PLANET
+   HELPER — GET LORDSHIP OF PLANET
 ========================================= */
 
 function getPlanetLordships(pCode){
@@ -3107,7 +3647,7 @@ function getPlanetLordships(pCode){
 
 
 /* =========================================
-   PLANET POSITIONS (HOUSE 1â€“12)  â† KP BASE
+   PLANET POSITIONS (HOUSE 1–12)  ← KP BASE
 ========================================= */
 
 const planetHouses={};
@@ -3177,7 +3717,7 @@ Object.keys(planetHouses).forEach(p=>{
 		if(p===q) return;
 
 		/* ----------------------------------
-		   REMOVE RAHU â†” KETU ASPECTS
+		   REMOVE RAHU ↔ KETU ASPECTS
 		---------------------------------- */
 		if(
 			(p==="Ra" && q==="Ke") ||
@@ -3295,7 +3835,7 @@ function addNodeRows(nodeCode){
 
     if(!placedHouse || !signPlaced) return;
 
-    /* sign number 1â€“12 */
+    /* sign number 1–12 */
     const dispositor = signLords[signPlaced];
 
     /* find which houses dispositor owns */
@@ -3324,7 +3864,7 @@ function addNodeRows(nodeCode){
         }
 
         html += `<tr>
-            <td>${planetLong[nodeCode]} â†’ ${planetLong[dispositor]}</td>
+            <td>${planetLong[nodeCode]} &rarr; ${planetLong[dispositor]}</td>
             <td>${lordHouse}</td>
             <td>${placedHouse}</td>
             <td>${result}</td>
@@ -3432,7 +3972,7 @@ addNodeRows("Ke");
 		while (lagnaShifted >= 360) lagnaShifted -= 360;
 	}
 
-	// ðŸ”¥ DYNAMIC CUSP SHIFTING ENGINE ðŸ”¥
+	// 🔥 DYNAMIC CUSP SHIFTING ENGINE 🔥
 	// This ensures Nakshatra Nadi Table instantly updates Cuspal Sublords & Sub-Subs on time change!
 	currentCusps = {};
 	if (d.cusps) {
@@ -3450,7 +3990,7 @@ addNodeRows("Ke");
 	
 	// ---------- Compute Starlords AFTER lagnaShifted is finalized ----------
 	function getStarLord(deg){
-		const nakSize = 13 + (20/60); // 13Â°20'
+		const nakSize = 13 + (20/60); // 13&deg;20'
 		const nak = Math.floor(deg / nakSize);
 		const lords = ["Ke","Ve","Sy","Mo","Ma","Ra","Ju","Sa","Bu"];
 		return lords[nak % 9];
@@ -3475,7 +4015,7 @@ moonStarLord = getStarLord(moonShifted);
 		
 	
 	   
-	   // -------- D1 Pivot 15Â° Rule --------
+	   // -------- D1 Pivot 15&deg; Rule --------
 		let pivotBaseDeg = lagnaShifted;
 
 		if (pivot !== "ASC") {
@@ -3560,7 +4100,7 @@ if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
 		});
 	}
 
-	// ðŸ‘‰ NEW LINE ADDED HERE: Export the pure degrees before KP mode touches them
+	// 👉 NEW LINE ADDED HERE: Export the pure degrees before KP mode touches them
 	window._shiftedPlanetsGlobal = { ...shiftedPlanets };
 
 	const rData = d.planets_retro || {};
@@ -3571,7 +4111,7 @@ if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
 		const chart = Array(12).fill().map(() => []);
 		let lagnaDeg;
 		
-		// ðŸ”’ FIX 1: Store pure unshifted Ascendant sign for SAV baseline
+		// 🔒 FIX 1: Store pure unshifted Ascendant sign for SAV baseline
 		if (!window._pureAscSigns) window._pureAscSigns = {};
 		window._pureAscSigns[v] = getVSign(d.lagna, v);
 		
@@ -3592,7 +4132,7 @@ if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
 
 		if (modeVedic) {
 			// =============================================
-			// VEDIC MODE LOGIC (15Â° Pivot Offset, No Sign Shift)
+			// VEDIC MODE LOGIC (15&deg; Pivot Offset, No Sign Shift)
 			// =============================================
 			let baseDeg = lagnaShifted;
 			if (pivot !== "ASC") {
@@ -3814,7 +4354,7 @@ if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
 					pivotD30Deg = (rel / length) * 30;
 				}
 				
-				// ðŸ”¥ D30 KP SHIFT LOGIC 
+				// 🔥 D30 KP SHIFT LOGIC 
 				let kpSignShift = 0;
 				if (SHIFTED_LAGNA && pivotD30Deg >= 15) {
 					kpSignShift = 1;
@@ -3931,7 +4471,7 @@ if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
 				
 				
 				// =============================================
-				// ðŸ”¥ KP MODE â€“ 15Â° SIGN SHIFT ENGINE (ALL VARGAS)
+				// 🔥 KP MODE – 15&deg; SIGN SHIFT ENGINE (ALL VARGAS)
 				// =============================================
 
 				let kpSignShift = 0;   // how many signs zodiac rotates
@@ -4054,7 +4594,7 @@ if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
 			const deg = planetDegs[p];
 			const label = (p === "Surya") ? "Sy" : p.substring(0,2);
 			
-			// ðŸ”’ PRESERVE PURE SIGN-MODE ZODIAC SIGN FOR LORDSHIP (KP IMMUNE)
+			// 🔒 PRESERVE PURE SIGN-MODE ZODIAC SIGN FOR LORDSHIP (KP IMMUNE)
 			const pureZodiacSign = getVSign(shiftedPlanets[p], v);
 
 			if (modeVedic) {
@@ -4078,11 +4618,11 @@ if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
 				let house = Math.floor(deg / 30);
 				let houseDeg = deg % 30;
 
-				// ðŸ”¥ apply KP sign rotation (same shift as ASC)
+				// 🔥 apply KP sign rotation (same shift as ASC)
 				const kpShift = window._kpSignShift?.[v] || 0;
 				house = (house + kpShift) % 12;
 
-				// force pivot planet to 0Â° in its sign
+				// force pivot planet to 0&deg; in its sign
 				if (pivot !== "ASC" && p === pivot) {
 					houseDeg = 0;
 				}
@@ -4165,7 +4705,7 @@ if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
 		// Sort houses
 		chart.forEach((h, i) => i <= 5 ? h.sort((a,b) => a.d - b.d) : h.sort((a,b) => b.d - a.d));
 		
-		// ðŸ”¥ DIRECT DATA LINK FOR VEDIC ASPECTS (NO SCRAPING) ðŸ”¥
+		// 🔥 DIRECT DATA LINK FOR VEDIC ASPECTS (NO SCRAPING) 🔥
 		if(!window._vargaChartStore) window._vargaChartStore = {};
 		window._vargaChartStore[v] = chart;
 		
@@ -4251,7 +4791,7 @@ if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
 
 					let houseNum;
 
-					// ðŸ”¥ FIX: Always use visual sign distance to ensure 100% consistency with Kundali.
+					// 🔥 FIX: Always use visual sign distance to ensure 100% consistency with Kundali.
 					// Bypassing static Placidus cusps stops Rahu/other planets from showing different houses 
 					// in Nadi Script vs the visual Kundali.
 					houseNum = ((signIndex - ascIndex + 12) % 12) + 1;
@@ -4265,13 +4805,13 @@ if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
 
 
 
-	// ---------- ZODIAC TABLE (FORCED PURE SIGN2SIGN â€” KP IMMUNE) ----------
+	// ---------- ZODIAC TABLE (FORCED PURE SIGN2SIGN — KP IMMUNE) ----------
 
 pNames.forEach(p=>{
 	const label = (p === "Surya") ? "Sy" : p.substring(0,2);
 	if(!window._shodaRashi[v][label]) return;
 
-	// ALWAYS use original raw longitude â€” ignore KP shifted planetDegs
+	// ALWAYS use original raw longitude — ignore KP shifted planetDegs
 	const rawDeg = d.planets[p];
 
 	// ALWAYS compute using pure Sign2Sign logic
@@ -4427,9 +4967,9 @@ function render(v, chart) {
 
 			// sort by degree
 			if(idx <= 5){
-				objects.sort((a,b)=>a.deg-b.deg);   // Aries â†’ Virgo (top â†’ bottom)
+				objects.sort((a,b)=>a.deg-b.deg);   // Aries &rarr; Virgo (top &rarr; bottom)
 			}else{
-				objects.sort((a,b)=>b.deg-a.deg);   // Libra â†’ Pisces (bottom â†’ top)
+				objects.sort((a,b)=>b.deg-a.deg);   // Libra &rarr; Pisces (bottom &rarr; top)
 			}
 
 			// render
@@ -4441,7 +4981,7 @@ function render(v, chart) {
 
 					h.innerHTML+=`
 					<div class="p-line" style="color:#10b981;">
-					C${obj.cusp} ${Math.floor(d)}Â°${Math.floor((d*60)%60).toString().padStart(2,'0')}â€²
+					C${obj.cusp} ${Math.floor(d)}&deg;${Math.floor((d*60)%60).toString().padStart(2,'0')}&prime;
 					</div>`;
 				}
 
@@ -4557,33 +5097,33 @@ function render(v, chart) {
 					}	
 					
 					
-					const r = (!useKN && p.r && !document.getElementById("showLordship")?.checked) ? ' (R)' : '';
+					const r = (!document.getElementById("showLordship")?.checked && p.r) ? ' (Rx)' : '';
 					const name=useKN?(planetNameMapKN[p.n]||p.n):p.n;
-
-
-
-
-
-
-
-
-
-
-
-
-			
-					
 
 					/* =========================
 					   PRINT PLANET LINE
 					========================= */
+                    
+                    let contentStr = "";
+                    let placedHouse = ((sIdx - ascIndex + 12) % 12) + 1;
 
-					h.innerHTML+=`<div class="${lineClass}" style="font-size:16px;">
-					${showLordship && !p.isAsc
-						? `${name} ${Math.floor(p.d)}Â° - ${getPlanetLordship(p.n).join(",")}`
-						: `${name} ${Math.floor(p.d)}Â°${Math.floor((p.d*60)%60).toString().padStart(2,'0')}â€²${r}`
-					}
-					</div>`;
+                    if (p.isAsc) {
+                        contentStr = `ASC ${Math.floor(p.d)}&deg;${Math.floor((p.d*60)%60).toString().padStart(2,'0')}&prime;`;
+                    } else {
+                        if (showLordship) {
+                            let lordshipsArr = getPlanetLordship(p.n).filter(x => x !== "-" && x != null);
+                            let uniqueLords = [...new Set(lordshipsArr)].sort((a, b) => Number(a) - Number(b));
+                            let lordStr = uniqueLords.join(",");
+
+                            let lordStrWithPlaced = lordStr ? `${placedHouse}-${lordStr}` : `${placedHouse}`;
+                            // Double non-breaking space (&nbsp;&nbsp;) enforces the exact 2-space gap natively in HTML
+                            contentStr = `${name}&nbsp;&nbsp;${lordStrWithPlaced}`;
+                        } else {
+                            contentStr = `${name} ${Math.floor(p.d)}&deg;${Math.floor((p.d*60)%60).toString().padStart(2,'0')}&prime;${r}`;
+                        }
+                    }
+
+					h.innerHTML+=`<div class="${lineClass}" style="font-size:16px;">${contentStr}</div>`;
 
 
 
@@ -4620,14 +5160,17 @@ function render(v, chart) {
 	
 	
 function toggleDivision(){
-	const out = document.getElementById("out");
-	if(!out) return;
+    const out = document.getElementById("out");
+    const floatBtn = document.getElementById("floatBtnDivCharts");
+    if(!out) return;
 
-	if(out.style.display === "none"){
-		out.style.display = "grid";
-	}else{
-		out.style.display = "none";
-	}
+    if(out.style.display === "none"){
+        out.style.display = "grid";
+        if(floatBtn) floatBtn.style.display = "block";
+    }else{
+        out.style.display = "none";
+        if(floatBtn) floatBtn.style.display = "none";
+    }
 }
 	
 	
@@ -4754,7 +5297,7 @@ function attachMemoryEvents(tableEl){
 				otherTable = document.querySelector("#bhavaTable table");
 			}
 			else{
-				// Lords table or any other table â†’ NO SYNC
+				// Lords table or any other table &rarr; NO SYNC
 				otherTable = null;
 			}
 
@@ -4795,7 +5338,7 @@ function attachMemoryEvents(tableEl){
 
 
 
-			// CLICK TOP HEADER â†’ TOGGLE COLUMN
+			// CLICK TOP HEADER &rarr; TOGGLE COLUMN
 			if(rIndex === 0 && cIndex > 0){
 
 				if(tableEl._activeCols.has(cIndex)){
@@ -4811,7 +5354,7 @@ function attachMemoryEvents(tableEl){
 				return;
 			}
 
-			// CLICK FIRST COLUMN â†’ TOGGLE ROW
+			// CLICK FIRST COLUMN &rarr; TOGGLE ROW
 			if(cIndex === 0 && rIndex > 0){
 
 				if(tableEl._activeRows.has(rIndex)){
@@ -4827,7 +5370,7 @@ function attachMemoryEvents(tableEl){
 				return;
 			}
 
-			// CLICK NORMAL CELL â†’ TOGGLE ONLY THAT CELL
+			// CLICK NORMAL CELL &rarr; TOGGLE ONLY THAT CELL
 			const key = rIndex + "-" + cIndex;
 
 			if(cell.classList.contains("mem-cell")){
@@ -5210,7 +5753,7 @@ if (firstPlanet && DBA.includes(firstPlanet)) {
 
 				const d = dignityMap[p];
 
-				// Convert to 1â€“12 system
+				// Convert to 1–12 system
 				const s = signIndex + 1;
 
 				// Mooltrikona priority
@@ -5519,9 +6062,9 @@ window._signShift = 0;
 
 
 const VIM_SYMBOLS = {
-  1:"â­",
-  2:"â–¶",
-  3:"â—†"
+  1: "\u2605", // ? (Star)
+  2: "\u25B6", // ? (Play/Right Arrow)
+  3: "\u25C6"  // ? (Diamond)
 };
 
 
@@ -5539,12 +6082,12 @@ function formatDateSmart(d){
   const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const mShort = months[d.getMonth()];
 
-  // checkbox ON â†’ yyyy-Mon
+  // checkbox ON &rarr; yyyy-Mon
   if(shortMode){
 	return `${y}-${mShort}`;
   }
 
-  // checkbox OFF â†’ yyyy-mm-dd
+  // checkbox OFF &rarr; yyyy-mm-dd
   return `${y}-${mNum}-${day}`;
 }
 
@@ -5566,7 +6109,7 @@ function buildFullDasha(containerId, baseDeg){
     }
     if(!currentDateTime) return;
 
-    // ðŸ”¥ FIX: Updated from 365.25 to highly precise Chaitra Paksha solar year to stop Vimshottari Date Drift
+    // 🔥 FIX: Updated from 365.25 to highly precise Chaitra Paksha solar year to stop Vimshottari Date Drift
     const MS_YEAR = 365.2421904 * 24 * 60 * 60 * 1000;
     const nakSize = 360/27;
     // ... [keep the rest of your buildFullDasha function exactly the same]
@@ -5617,11 +6160,11 @@ function buildFullDasha(containerId, baseDeg){
 	mahaRow.innerHTML=`
 	  <div class="vimSym"></div>
 	  <div style="${document.getElementById("modeKN")?.checked ? "font-weight:900;" : "font-weight:500;"}">
-		${document.getElementById("modeKN")?.checked ? "à²®à²¹à²¾à²¦à²¶à³† â€“ " + KN_NAMES[mahaLord] : "Mahadasha â€“ " + EN_NAMES[mahaLord]}
+		${document.getElementById("modeKN")?.checked ? "\u0CAE\u0CB9\u0CBE\u0CA6\u0CB6\u0CC6 \u2013 " + KN_NAMES[mahaLord] : "Mahadasha \u2013 " + EN_NAMES[mahaLord]}
 		</div>
 	  <div>${formatDateSmart(mahaCounter === 0 && originalDateTime ? originalDateTime : mahaStart)}</div>
 	  <div>${showMahaAge ? `(${ageStart} y)` : ''}</div>
-	  <div style="text-align:center;">â†’</div>
+	  <div style="text-align:center;">&rarr;</div>
 	  <div>${formatDateSmart(mahaEnd)}</div>
 	  <div>${showMahaAge ? `(${ageEnd} y)` : ''}</div>
 	`;
@@ -5663,11 +6206,11 @@ function buildFullDasha(containerId, baseDeg){
 	  bhuktiRow.innerHTML=`
 		<div class="vimSym"></div>
 		<div style="${document.getElementById("modeKN")?.checked ? "font-weight:900;" : "font-weight:500;"}">
-		${document.getElementById("modeKN")?.checked ? "à²­à³à²•à³à²¤à²¿ â€“ " + KN_NAMES[bhuktiLord] : "Bhukti â€“ " + EN_NAMES[bhuktiLord]}
+		${document.getElementById("modeKN")?.checked ? "\u0CAD\u0CC1\u0C95\u0CCD\u0CA4\u0CBF \u2013 " + KN_NAMES[bhuktiLord] : "Bhukti \u2013 " + EN_NAMES[bhuktiLord]}
 		</div>
 		<div>${formatDateSmart(bhuktiStart)}</div>
 		<div>${showBhuktiAge ? `(${bAgeStart} y)` : ''}</div>
-		<div style="text-align:center;">â†’</div>
+		<div style="text-align:center;">&rarr;</div>
 		<div>${formatDateSmart(bhuktiEnd)}</div>
 		<div>${showBhuktiAge ? `(${bAgeEnd} y)` : ''}</div>
 	  `;
@@ -5699,11 +6242,11 @@ function buildFullDasha(containerId, baseDeg){
 		line.innerHTML=`
 		  <div class="vimSym"></div>
 		  <div style="${document.getElementById("modeKN")?.checked ? "font-weight:900;" : "font-weight:500;"}">
-		${document.getElementById("modeKN")?.checked ? "à²…à²‚à²¤à²° â€“ " + KN_NAMES[antaraLord] : "Antara â€“ " + EN_NAMES[antaraLord]}
+		${document.getElementById("modeKN")?.checked ? "\u0C85\u0C82\u0CA4\u0CB0 \u2013 " + KN_NAMES[antaraLord] : "Antara \u2013 " + EN_NAMES[antaraLord]}
 		</div>
 		  <div>${formatDateSmart(antaraStart)}</div>
 		  <div></div>
-		  <div style="text-align:center;">â†’</div>
+		  <div style="text-align:center;">&rarr;</div>
 		  <div>${formatDateSmart(antaraEnd)}</div>
 		  <div></div>
 		`;
@@ -5811,15 +6354,15 @@ const EN_NAMES = {
 
 
 const KN_NAMES = {
-	Ke:"à²•à³‡à²¤à³",
-	Ve:"à²¶à³à²•à³à²°",
-	Sy:"à²°à²µà²¿",
-	Ch:"à²šà²‚à²¦à³à²°",
-	Ma:"à²•à³à²œ",
-	Ra:"à²°à²¾à²¹à³",
-	Ju:"à²—à³à²°à³",
-	Sa:"à²¶à²¨à²¿",
-	Bu:"à²¬à³à²§"
+    Ke: "\u0C95\u0CC7\u0CA4\u0CC1",
+    Ve: "\u0CB6\u0CC1\u0C95\u0CCD\u0CB0",
+    Sy: "\u0CB0\u0CB5\u0CBF",
+    Ch: "\u0C9A\u0C82\u0CA6\u0CCD\u0CB0",
+    Ma: "\u0C95\u0CC1\u0C9C",
+    Ra: "\u0CB0\u0CBE\u0CB9\u0CC1",
+    Ju: "\u0C97\u0CC1\u0CB0\u0CC1",
+    Sa: "\u0CB6\u0CA8\u0CBF",
+    Bu: "\u0CAC\u0CC1\u0CA7"
 };
 
 function toggleVim(){
@@ -5869,15 +6412,15 @@ function getRunningMaha(containerId){
 
 
 const KN_TO_EN = {
-	"à²°à²µà²¿":"Surya",
-	"à²šà²‚à²¦à³à²°":"Chandra",
-	"à²•à³à²œ":"Mangala",
-	"à²¬à³à²§":"Budha",
-	"à²—à³à²°à³":"Jupiter",
-	"à²¶à³à²•à³à²°":"Venus",
-	"à²¶à²¨à²¿":"Saturn",
-	"à²°à²¾à²¹à³":"Rahu",
-	"à²•à³‡à²¤à³":"Ketu"
+    "\u0CB0\u0CB5\u0CBF": "Surya",
+    "\u0C9A\u0C82\u0CA6\u0CCD\u0CB0": "Chandra",
+    "\u0C95\u0CC1\u0C9C": "Mangala",
+    "\u0CAC\u0CC1\u0CA7": "Budha",
+    "\u0C97\u0CC1\u0CB0\u0CC1": "Jupiter",
+    "\u0CB6\u0CC1\u0C95\u0CCD\u0CB0": "Venus",
+    "\u0CB6\u0CA8\u0CBF": "Saturn",
+    "\u0CB0\u0CBE\u0CB9\u0CC1": "Rahu",
+    "\u0C95\u0CC7\u0CA4\u0CC1": "Ketu"
 };
 
 
@@ -5941,7 +6484,7 @@ function highlightRunningMahaInTable(){
 	
 function highlightTodayVim(){
 
-  const today = new Date();   // â† use real system date like old project
+  const today = new Date();   // ← use real system date like old project
 
   document.querySelectorAll(".vimSym")
 	.forEach(s=>s.textContent="");
@@ -6105,7 +6648,7 @@ function expandVimForDate(containerId,targetDate){
 	// highlight
 	row.classList.add("active");
 
-	// always open maha â†’ bhukti
+	// always open maha &rarr; bhukti
 	if(level === 1){
 	  const bhuktiBox = row.nextElementSibling;
 	  if(bhuktiBox){
@@ -6126,7 +6669,7 @@ function expandVimForDate(containerId,targetDate){
 		  antaraBox.style.display="block";
 		  currentOpenBhuktiBox[containerId]=antaraBox;
 		}else{
-		  // if switching back to Bukthi â†’ force close antara
+		  // if switching back to Bukthi &rarr; force close antara
 		  antaraBox.style.display="none";
 		  currentOpenBhuktiBox[containerId]=null;
 		}
@@ -6147,19 +6690,19 @@ function expandVimForDate(containerId,targetDate){
 // render empty charts on first load
 window.addEventListener("load", () => {
     
-    // ðŸŸ¢ NEW: SILENT BACKGROUND PING TO WAKE RENDER SERVER INSTANTLY
+    // 🟢 NEW: SILENT BACKGROUND PING TO WAKE RENDER SERVER INSTANTLY
     fetch("https://donnie-astro-engine.onrender.com/")
         .then(() => console.log("Render server wake-up ping successful."))
         .catch(() => console.log("Render server is booting up in the background..."));
 
     setTodayVimDate(); // Now this will successfully run!
     
-    // ðŸ”¥ FIX: Delay Transit Auto-Fetch so it doesn't crash the server ping!
+    // 🔥 FIX: Delay Transit Auto-Fetch so it doesn't crash the server ping!
     setTimeout(() => {
         setMixerToNow();
     }, 3000);
 
-    initLordshipDropdown();   // â­ ADD THIS LINE HERE
+    initLordshipDropdown();   // ⭐ ADD THIS LINE HERE
 	
     initVedicAspectDropdown(); // <-- Add this here
     initNakshatraNadiDropdown(); // Initialize Nadi dropdowns for default open state
@@ -6228,7 +6771,7 @@ function attachInfiniteScroll(selectId, updateCallback) {
     });
 }
 
-// ðŸ”¥ Apply infinite keyboard & mouse scrolling to critical dropdowns!
+// 🔥 Apply infinite keyboard & mouse scrolling to critical dropdowns!
 attachInfiniteScroll('pivot', calc);
 attachInfiniteScroll('nadiSortSelect', renderNakshatraNadiTab);
 attachInfiniteScroll('nadiVargaSelect', handleNadiVargaChange);
@@ -6418,10 +6961,96 @@ function clearFetchData() {
 
 
 
+
+
+
+
+
+/* =========================================================
+   LIVE AGE CALCULATOR (FOR FETCHER)
+   ========================================================= */
+function calculateLiveAge() {
+    const d = parseInt(document.getElementById("onDay").value);
+    const m = parseInt(document.getElementById("onMonth").value);
+    const y = parseInt(document.getElementById("onYear").value);
+    const display = document.getElementById("liveAgeDisplay");
+
+    if (!display) return;
+
+    if (!d || !m || !y || y < 1000) {
+        display.innerHTML = "Age :&nbsp; -- years &nbsp;:&nbsp; -- months &nbsp;:&nbsp; -- days";
+        return;
+    }
+
+    const today = new Date();
+    const birthDate = new Date(y, m - 1, d);
+
+    let years = today.getFullYear() - birthDate.getFullYear();
+    let months = today.getMonth() - birthDate.getMonth();
+    let days = today.getDate() - birthDate.getDate();
+
+    // Borrow days from the previous month if negative
+    if (days < 0) {
+        months--;
+        days += new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+    }
+
+    // Borrow years from the year if months are negative
+    if (months < 0) {
+        years--;
+        months += 12;
+    }
+    
+    // Prevent negative overall age (future dates)
+    if (years < 0) {
+        display.innerHTML = "Age :&nbsp; -- years &nbsp;:&nbsp; -- months &nbsp;:&nbsp; -- days";
+        return;
+    }
+
+    display.innerHTML = `Age :&nbsp; ${years} years &nbsp;:&nbsp; ${months} months &nbsp;:&nbsp; ${days} days`;
+}
+
+// Attach event listeners so it calculates while you type or load profiles
+window.addEventListener("DOMContentLoaded", () => {
+    ['onDay', 'onMonth', 'onYear'].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) {
+            el.addEventListener('input', calculateLiveAge);
+            el.addEventListener('keyup', calculateLiveAge);
+        }
+    });
+});
+
+// Hook it into the loadCloudProfile function so it updates on JSON load
+const originalLoadCloudProfile = window.loadCloudProfile;
+window.loadCloudProfile = function(event) {
+    if (typeof originalLoadCloudProfile === "function") {
+        originalLoadCloudProfile(event);
+    }
+    setTimeout(calculateLiveAge, 100); // Give it a split second to parse the loaded JSON
+};
+
+// Hook it into the clearFetchData function so it resets when cleared
+const originalClearFetchData = window.clearFetchData;
+window.clearFetchData = function() {
+    if (typeof originalClearFetchData === "function") {
+        originalClearFetchData();
+    }
+    calculateLiveAge();
+};
+
+
+
+
+
+
+
+
+
 // ==========================================
-// ðŸ›¡ï¸ SAFE TIMEZONE FETCHER (ANTI-HANG)
+// 🛡️ SAFE TIMEZONE FETCHER (ANTI-HANG)
 // ==========================================
-window._isFetchingNatal = false; // ðŸ”’ Global lock to prevent server crashing
+window._isFetchingNatal = false; // 🔒 Global lock to prevent server crashing
 
 async function getDynamicTimezoneSafe(lat, lon) {
     try {
@@ -6460,13 +7089,13 @@ async function fetchFromCloud() {
     const lonVal = document.getElementById("onlineLon").value;
 
     if (!d || !m || !y || !hr || !min || !latVal || !lonVal) {
-        alert("âš ï¸ SYSTEM HALT: Please fill all Date, Time, and Location fields before fetching!");
+        alert("⚠️ SYSTEM HALT: Please fill all Date, Time, and Location fields before fetching!");
         return;
     }
 
-    window._isFetchingNatal = true; // ðŸ”’ Lock the server
+    window._isFetchingNatal = true; // 🔒 Lock the server
 
-    // ðŸ”¥ FIX: Fast, safe timezone fetch
+    // 🔥 FIX: Fast, safe timezone fetch
     let dynamicOffset = await getDynamicTimezoneSafe(latVal, lonVal);
 
     const requestData = {
@@ -6478,7 +7107,7 @@ async function fetchFromCloud() {
         second: parseInt(sec),
         lat: parseFloat(latVal),
         lon: parseFloat(lonVal),
-        timezone_offset: dynamicOffset, // ðŸ”¥ Dynamic offset applied here!
+        timezone_offset: dynamicOffset, // 🔥 Dynamic offset applied here!
         horary_mode: false 
     };
 
@@ -6563,7 +7192,7 @@ async function fetchFromCloud() {
 
             if (!raw.meta) {
                 const userName = document.getElementById("onName").value.trim() || "Cloud Fetched Chart";
-                // ðŸ”¥ FIX: Removed the 'Z' at the end of this string so the 
+                // 🔥 FIX: Removed the 'Z' at the end of this string so the 
                 // browser correctly treats fetched manual inputs as Local Time.
                 const dateStr = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}T${String(hr).padStart(2,'0')}:${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
                 raw.meta = { name: userName, datetime_utc: dateStr };
@@ -6587,11 +7216,11 @@ async function fetchFromCloud() {
             updateMiniClock();
             calc();
             
-            // âœ… CLEAN PARROT GREEN BUTTON
-            btn.innerHTML = "SUCCESS âœ“";
+            // ✅ CLEAN PARROT GREEN BUTTON
+            btn.innerHTML = "SUCCESS ✓";
             btn.classList.add("success");
 
-            // âœ… SUCCESS MESSAGE
+            // ✅ SUCCESS MESSAGE
             let msg = document.getElementById("fetchMsg");
             if (!msg) {
                 msg = document.createElement("span");
@@ -6648,18 +7277,18 @@ async function fetchFromCloud() {
                 btn.classList.remove("success");
                 btn.removeAttribute("style");
                 btn.disabled = false;
-                window._isFetchingNatal = false; // ðŸ”“ Unlock server
+                window._isFetchingNatal = false; // 🔓 Unlock server
             }, 3000);
 
         } else {
             // Silenced Server Error
             btn.innerHTML = originalText;
             btn.disabled = false;
-            window._isFetchingNatal = false; // ðŸ”“ Unlock server
+            window._isFetchingNatal = false; // 🔓 Unlock server
         }
     } catch (error) {
         console.error("Fetch error:", error);
-        window._isFetchingNatal = false; // ðŸ”“ Unlock server
+        window._isFetchingNatal = false; // 🔓 Unlock server
 		
 		
 		
@@ -6727,6 +7356,17 @@ function saveCloudProfile() {
     if (name.length < 4) {
             return;
         }
+        
+    // Prevent saving empty profiles without chart data
+    if (!raw) {
+        alert("Please fetch the chart data from the cloud first before saving.");
+        return;
+    }
+
+    // 🧹 CLEANUP: Strip 'Sayana' from the raw data before saving to the JSON file
+    if (raw.ayanamshas && raw.ayanamshas["Sayana"]) {
+        delete raw.ayanamshas["Sayana"];
+    }
 
     const profileData = {
         type: "CloudHoroscopeProfile",
@@ -6744,7 +7384,9 @@ function saveCloudProfile() {
         coords: {
             lat: document.getElementById("onlineLat").value,
             lon: document.getElementById("onlineLon").value
-        }
+        },
+        // 🔒 Embeds the full fetched chart data for 100% offline loading
+        chartData: raw 
     };
 
     // Convert object to a formatted JSON string
@@ -6803,18 +7445,51 @@ function loadCloudProfile(event) {
             }
 
             // ==========================================
-            // PATCH: AUTO-FETCH ON FILE LOAD
+            // OFFLINE MODE: LOAD EMBEDDED CHART DATA
             // ==========================================
-            setTimeout(() => {
-                if (typeof fetchFromCloud === "function") {
-                    fetchFromCloud();
-                } else if (typeof calculateChart === "function") {
-                    calculateChart();
-                } else {
-                    const fetchBtn = document.getElementById("fetchBtn") || document.querySelector("button[onclick*='fetch']");
-                    if (fetchBtn) fetchBtn.click();
-                }
-            }, 300); 
+            if (data.chartData) {
+                // 1. Inject the data instantly
+                raw = data.chartData;
+                
+                // 2. Establish Time Anchors safely
+                const y = data.date.y;
+                const m = String(data.date.m).padStart(2, '0');
+                const d = String(data.date.d).padStart(2, '0');
+                const hr = String(data.time.h).padStart(2, '0');
+                const min = String(data.time.min).padStart(2, '0');
+                const sec = String(data.time.sec).padStart(2, '0');
+                
+                const formattedDate = `${y}-${m}-${d}`;
+                const formattedTime = `${hr}:${min}:${sec}`;
+                
+                document.getElementById('dobField').value = formattedDate;
+                document.getElementById('tobField').value = formattedTime;
+                
+                originalDateTime = new Date(formattedDate + "T" + formattedTime);
+                currentDateTime  = new Date(originalDateTime);
+                
+                // 3. Trigger UI Updates & Engine Calc instantly
+                updateHeader();
+                updateMiniClock();
+                if (typeof resetAllControlsToDefault === "function") resetAllControlsToDefault();
+                calc();
+                
+                if (typeof initVedicAspectDropdown === "function") initVedicAspectDropdown();
+                if (typeof renderVedicAspectsTab === "function") renderVedicAspectsTab();
+                
+            } else {
+                // Fallback for old profiles saved before the offline update
+                setTimeout(() => {
+                    if (typeof fetchFromCloud === "function") {
+                        fetchFromCloud();
+                    } else if (typeof calculateChart === "function") {
+                        calculateChart();
+                    } else {
+                        const fetchBtn = document.getElementById("fetchBtn") || document.querySelector("button[onclick*='fetch']");
+                        if (fetchBtn) fetchBtn.click();
+                    }
+                }, 300); 
+            }
 
         } catch (error) {
             // Silently ignore parsing errors for wrong files
@@ -6869,7 +7544,7 @@ function loadCloudProfile(event) {
 
 
 <div class="division-title" onclick="toggleNakshatraNadi()">
-    Nakshatra Nadi For All Divisional Charts â–²
+    Nakshatra Nadi For All Divisional Charts &#9650;
 </div>
 
 <div id="nakshatraNadiWrapper" class="shoda-wrapper" style="display:block; padding-bottom: 40px;">
@@ -7471,7 +8146,7 @@ function getNadiAbsoluteLongitude(pCode, v) {
     if (v && v !== 1 && typeof getVSign === "function") {
         let vSign = getVSign(deg, v);      // Get pure unshifted sign
         let vDeg = (deg * v) % 30;         // Get pure unshifted degree within sign
-        let finalDeg = (vSign * 30) + vDeg; // Assemble full 360Â° position
+        let finalDeg = (vSign * 30) + vDeg; // Assemble full 360&deg; position
 
         while(finalDeg < 0) finalDeg += 360;
         while(finalDeg >= 360) finalDeg -= 360;
@@ -7914,7 +8589,18 @@ function getNadiScriptString(pCode, v) {
     }
 
     let rotatedPlacedHouse = placedHouse;
-    function rotateHouse(h) {
+    
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	function rotateHouse(h) {
         if (h === "-" || h == null) return "-";
         let num = parseInt(h);
         if (isNaN(num)) return h;
@@ -8119,9 +8805,79 @@ function renderNakshatraNadiTab() {
     const kundaliContainer = document.getElementById("nadiSingleKundali");
     if (kundaliContainer) {
         kundaliContainer.innerHTML = "";
-        const chartData = window._vargaChartStore ? window._vargaChartStore[v] : null;
+        const originalChartData = window._vargaChartStore ? window._vargaChartStore[v] : null;
         
-        if (chartData) {
+        if (originalChartData) {
+            const pivotStr = document.getElementById("nadiHousePivot")?.value || "1";
+            const isPlanetPivot = ["Sy", "Ch", "Ma", "Ra", "Ju", "Sa", "Bu", "Ke", "Ve"].includes(pivotStr);
+            const modeKP = document.getElementById("modeKP")?.checked;
+            const modeVedic = document.getElementById("modeVedic")?.checked;
+            const isShiftActive = document.getElementById("nadiLocalShiftToggle")?.checked;
+
+            let chartData;
+            let ascIndex = 0;
+
+            if (isPlanetPivot) {
+                // 🔥 FIX: Completely rebuild Nadi Kundali to mathematically center on the selected Planet Pivot
+                chartData = Array(12).fill().map(() => []);
+                let pivotDeg = getNadiAbsoluteLongitude(pivotStr, v);
+                let ascAbsDeg = window._nadiVargaBaseDegree;
+
+                let pureBaseSign = Math.floor(pivotDeg / 30);
+                ascIndex = pureBaseSign;
+
+                if (isShiftActive && (pivotDeg % 30) >= 15) {
+                    ascIndex = (pureBaseSign + 1) % 12;
+                }
+
+                // Place ASC Marker
+                if (ascAbsDeg !== undefined && ascAbsDeg !== -1) {
+                    if (modeKP) {
+                        let relDeg = (ascAbsDeg - pivotDeg + 360) % 360;
+                        chartData[(ascIndex + Math.floor(relDeg / 30)) % 12].push({ n: "ASC", d: relDeg % 30, isAsc: true });
+                    } else if (modeVedic) {
+                        let relDeg = (ascAbsDeg - (pivotDeg - 15) + 360) % 360;
+                        chartData[(ascIndex + Math.floor(relDeg / 30)) % 12].push({ n: "ASC", d: relDeg % 30, isAsc: true });
+                    } else {
+                        chartData[Math.floor(ascAbsDeg / 30)].push({ n: "ASC", d: ascAbsDeg % 30, isAsc: true });
+                        ascIndex = Math.floor(ascAbsDeg / 30); // Sign2Sign ignores planet shift
+                    }
+                }
+
+                // Place Planets
+                const pNamesList = ["Sy", "Ch", "Ma", "Bu", "Ju", "Ve", "Sa", "Ra", "Ke"];
+                pNamesList.forEach(p => {
+                    let absDeg = getNadiAbsoluteLongitude(p, v);
+                    if (absDeg === -1) return;
+
+                    let rawPName = p === "Sy" ? "Surya" : (p === "Ch" ? "Chandra" : (p === "Ma" ? "Mangala" : (p === "Bu" ? "Budha" : (p === "Ju" ? "Jupiter" : (p === "Ve" ? "Venus" : (p === "Sa" ? "Saturn" : (p === "Ra" ? "Rahu" : "Ketu")))))));
+                    let isRetro = (raw && raw.planets_retro && raw.planets_retro[rawPName]) ? true : false;
+
+                    if (modeKP) {
+                        let relDeg = (absDeg - pivotDeg + 360) % 360;
+                        chartData[(ascIndex + Math.floor(relDeg / 30)) % 12].push({ n: p, d: relDeg % 30, isAsc: false, r: isRetro });
+                    } else if (modeVedic) {
+                        let relDeg = (absDeg - (pivotDeg - 15) + 360) % 360;
+                        chartData[(ascIndex + Math.floor(relDeg / 30)) % 12].push({ n: p, d: relDeg % 30, isAsc: false, r: isRetro });
+                    } else {
+                        chartData[Math.floor(absDeg / 30)].push({ n: p, d: absDeg % 30, isAsc: false, r: isRetro });
+                    }
+                });
+
+            } else {
+                // Not a Planet Pivot (e.g. 1st House, 2nd House) -> Safely use global chart data
+                chartData = originalChartData;
+                let originalAscIndex = 0;
+                for (let i = 0; i < 12; i++) {
+                    if (chartData[i].some(p => p.isAsc)) { originalAscIndex = i; break; }
+                }
+                
+                let houseOffset = parseInt(pivotStr) - 1;
+                if (!isNaN(houseOffset)) {
+                    ascIndex = (originalAscIndex + houseOffset) % 12;
+                }
+            }
+
             const card = document.createElement('div'); 
             card.className = 'varga-card';
             card.style.maxWidth = '1200px'; 
@@ -8132,25 +8888,20 @@ function renderNakshatraNadiTab() {
             k.className = 'kundali';
             const m = [11, 0, 1, 2, 10, -1, -1, 3, 9, -1, -1, 4, 8, 7, 6, 5];
             
-            let ascIndex = 0;
-            for (let i = 0; i < 12; i++) {
-                if (chartData[i].some(p => p.isAsc)) { ascIndex = i; break; }
-            }
-
             const modeKN = document.getElementById("modeKN")?.checked;
             const planetNameMapKN = {
-					Sy: "\u0CB0\u0CB5\u0CBF",
-					Ch: "\u0C9A\u0C82\u0CA6\u0CCD\u0CB0",
-					Ma: "\u0C95\u0CC1\u0C9C",
-					Bu: "\u0CAC\u0CC1\u0CA7",
-					Ju: "\u0C97\u0CC1\u0CB0\u0CC1",
-					Ve: "\u0CB6\u0CC1\u0C95\u0CCD\u0CB0",
-					Sa: "\u0CB6\u0CA8\u0CBF",
-					Ra: "\u0CB0\u0CBE\u0CB9\u0CC1",
-					Ke: "\u0C95\u0CC7\u0CA4\u0CC1",
-					ASC: "\u0CB2\u0C97\u0CCD\u0CA8"
-				};
-            const showLordship = document.getElementById("showLordship")?.checked;
+				Sy: "\u0CB0\u0CB5\u0CBF",
+				Ch: "\u0C9A\u0C82\u0CA6\u0CCD\u0CB0",
+				Ma: "\u0C95\u0CC1\u0C9C",
+				Bu: "\u0CAC\u0CC1\u0CA7",
+				Ju: "\u0C97\u0CC1\u0CB0\u0CC1",
+				Ve: "\u0CB6\u0CC1\u0C95\u0CCD\u0CB0",
+				Sa: "\u0CB6\u0CA8\u0CBF",
+				Ra: "\u0CB0\u0CBE\u0CB9\u0CC1",
+				Ke: "\u0C95\u0CC7\u0CA4\u0CC1",
+				ASC: "\u0CB2\u0C97\u0CCD\u0CA8"
+			};
+            const showLordship = true; // IMMUNE TO CHECKBOX
             const kpData = typeof computeKPForVarga === "function" ? computeKPForVarga(v) : {};
 
             function getPlanetLordshipLocal(pCode) {
@@ -8215,13 +8966,21 @@ function renderNakshatraNadiTab() {
                     else planets.sort((a,b) => b.d - a.d);
 
                     planets.forEach(p => {
-                        let lineClass = p.isAsc ? "p-line asc-line" : "p-line";
-                        const name = modeKN ? (planetNameMapKN[p.n] || p.n) : p.n;
+                        // Apply yellow highlight to the active pivot element
+                        let lineClass = "p-line";
+                        if (!isPlanetPivot && pivotStr === "1" && p.isAsc) {
+                            lineClass = "p-line asc-line";
+                        } else if (isPlanetPivot && p.n === pivotStr) {
+                            lineClass = "p-line pivot-line";
+                        }
+
+                        let name = modeKN ? (planetNameMapKN[p.n] || p.n) : p.n;
+                        if (p.r) name += ' (Rx)';
                         let displayStr = "";
 
                         if (p.isAsc) {
                             const mins = Math.floor((p.d * 60) % 60).toString().padStart(2, '0');
-                            displayStr = `ASC ${Math.floor(p.d)}°${mins}'`;
+                            displayStr = `ASC ${Math.floor(p.d)}&deg;${mins}'`;
                             if (modeKN) displayStr = `\u0CB2\u0C97\u0CCD\u0CA8 ${Math.floor(p.d)}&deg;${mins}'`;
                         } else {
                             let placedHouse = ((sIdx - ascIndex + 12) % 12) + 1;
@@ -8234,7 +8993,13 @@ function renderNakshatraNadiTab() {
                                 displayStr = `${name} ${Math.floor(p.d)}&deg;${mins}' - ${lordStr}`;
                             } else {
                                 const kp = kpData[p.n] || {};
-                                displayStr = `${name} ${Math.floor(p.d)}°${mins}' | ${kp.star || "-"} / ${kp.sub || "-"} / ${kp.subsub || "-"}`;
+                                const extMap = { ...planetNameMapKN, "Jupiter": "ಗುರು", "Budha": "ಬುಧ", "Venus": "ಶುಕ್ರ", "Saturn": "ಶನಿ", "Mars": "ಕುಜ", "Moon": "ಚಂದ್ರ", "Sun": "ರವಿ", "Rahu": "ರಾಹು", "Ketu": "ಕೇತು", "Sy": "ರವಿ", "Ch": "ಚಂದ್ರ", "Ma": "ಕುಜ", "Bu": "ಬುಧ", "Ju": "ಗುರು", "Ve": "ಶುಕ್ರ", "Sa": "ಶನಿ", "Ra": "ರಾಹು", "Ke": "ಕೇತು" };
+                                
+                                const starName = modeKN ? (extMap[kp.star] || kp.star || "-") : (kp.star || "-");
+                                const subName = modeKN ? (extMap[kp.sub] || kp.sub || "-") : (kp.sub || "-");
+                                const subsubName = modeKN ? (extMap[kp.subsub] || kp.subsub || "-") : (kp.subsub || "-");
+                                
+                                displayStr = `${name} ${Math.floor(p.d)}&deg;${mins}' | ${starName} / ${subName} / ${subsubName}`;
                             }
                         }
                         h.innerHTML += `<div class="${lineClass}" style="font-size:15px; color:#fff; white-space:normal;">${displayStr}</div>`;
@@ -8342,6 +9107,8 @@ function renderNakshatraNadiTab() {
         if (h === "-" || h == null) return "-";
         let num = parseInt(h);
         if (isNaN(num)) return h;
+        // 🔥 FIX: If pivot is a planet, houses are already calculated precisely. Do not shift again!
+        if (isPlanetPivot) return num;
         return ((num - effectivePivotHouse + 12) % 12) + 1;
     }
 
@@ -8350,50 +9117,61 @@ function renderNakshatraNadiTab() {
     // ==========================================
     let vargaCusps = {};
 
-    // Generate absolute base cusps relative to original Ascendant
-    if (v === 1) {
-        let baseCusps = null;
-        if (typeof currentCusps !== "undefined" && currentCusps) {
-            baseCusps = currentCusps;
-        } else if (typeof raw !== "undefined" && raw && raw.ayanamshas) {
-             const aya = document.getElementById('aya')?.value || 'Lahiri';
-             if(raw.ayanamshas[aya].cusps) baseCusps = raw.ayanamshas[aya].cusps;
-        }
-
-        if (baseCusps) {
-            for(let c = 1; c <= 12; c++) {
-                if (baseCusps[c] !== undefined) {
-                    vargaCusps[c] = getKpLordsNadi(baseCusps[c]); 
-                }
+    // 🔥 FIX: Generate cusps exactly from the Planet's degree if it's a Planet Pivot
+    if (isPlanetPivot) {
+        let pDeg = getNadiAbsoluteLongitude(pivotStr, v);
+        if (pDeg !== -1) {
+            for (let c = 1; c <= 12; c++) {
+                let exactCuspDeg = (pDeg + (c - 1) * 30) % 360;
+                vargaCusps[c] = getKpLordsNadi(exactCuspDeg);
             }
         }
     } else {
-        let lagnaRaw = 0;
-        if (typeof raw !== "undefined" && raw) {
-            const aya = document.getElementById('aya')?.value || 'Lahiri';
-            if (raw.ayanamshas && raw.ayanamshas[aya] && raw.ayanamshas[aya].lagna !== undefined) {
-                lagnaRaw = parseFloat(raw.ayanamshas[aya].lagna);
-            } else if (raw.lagna !== undefined) {
-                lagnaRaw = parseFloat(raw.lagna);
+        // Generate absolute base cusps relative to original Ascendant
+        if (v === 1) {
+            let baseCusps = null;
+            if (typeof currentCusps !== "undefined" && currentCusps) {
+                baseCusps = currentCusps;
+            } else if (typeof raw !== "undefined" && raw && raw.ayanamshas) {
+                 const aya = document.getElementById('aya')?.value || 'Lahiri';
+                 if(raw.ayanamshas[aya].cusps) baseCusps = raw.ayanamshas[aya].cusps;
             }
-        }
-        
-        let isShiftActive = document.getElementById("shiftedLagnaToggle")?.checked;
-        if (isShiftActive && typeof originalDateTime !== "undefined" && currentDateTime) {
-            let diffMs = currentDateTime - originalDateTime;
-            let diffMinutes = diffMs / 60000;
-            lagnaRaw += (diffMinutes * 0.25);
-        }
 
-        while(lagnaRaw < 0) lagnaRaw += 360;
-        while(lagnaRaw >= 360) lagnaRaw -= 360;
+            if (baseCusps) {
+                for(let c = 1; c <= 12; c++) {
+                    if (baseCusps[c] !== undefined) {
+                        vargaCusps[c] = getKpLordsNadi(baseCusps[c]); 
+                    }
+                }
+            }
+        } else {
+            let lagnaRaw = 0;
+            if (typeof raw !== "undefined" && raw) {
+                const aya = document.getElementById('aya')?.value || 'Lahiri';
+                if (raw.ayanamshas && raw.ayanamshas[aya] && raw.ayanamshas[aya].lagna !== undefined) {
+                    lagnaRaw = parseFloat(raw.ayanamshas[aya].lagna);
+                } else if (raw.lagna !== undefined) {
+                    lagnaRaw = parseFloat(raw.lagna);
+                }
+            }
+            
+            let isShiftActive = document.getElementById("shiftedLagnaToggle")?.checked;
+            if (isShiftActive && typeof originalDateTime !== "undefined" && currentDateTime) {
+                let diffMs = currentDateTime - originalDateTime;
+                let diffMinutes = diffMs / 60000;
+                lagnaRaw += (diffMinutes * 0.25);
+            }
 
-        let vargaBaseDegree = getCuspVargaLongitude(lagnaRaw, v);
-        window._nadiVargaBaseDegree = vargaBaseDegree;
+            while(lagnaRaw < 0) lagnaRaw += 360;
+            while(lagnaRaw >= 360) lagnaRaw -= 360;
 
-        for (let c = 1; c <= 12; c++) {
-            let exactCuspDeg = (vargaBaseDegree + (c - 1) * 30) % 360;
-            vargaCusps[c] = getKpLordsNadi(exactCuspDeg);
+            let vargaBaseDegree = getCuspVargaLongitude(lagnaRaw, v);
+            window._nadiVargaBaseDegree = vargaBaseDegree;
+
+            for (let c = 1; c <= 12; c++) {
+                let exactCuspDeg = (vargaBaseDegree + (c - 1) * 30) % 360;
+                vargaCusps[c] = getKpLordsNadi(exactCuspDeg);
+            }
         }
     }
 
@@ -8426,7 +9204,9 @@ function renderNakshatraNadiTab() {
         container.style.gridTemplateColumns = "1fr"; 
     }
 
-    function buildRow(label, scriptStr, colorCode, noBottomBorder = false, extraLords = []) {
+    
+	
+	function buildRow(label, scriptStr, colorCode, noBottomBorder = false, extraLords = [], rowIdx = "") {
         if (scriptStr.includes("ERR")) scriptStr = "Data Error";
         const borderStyle = noBottomBorder ? 'none' : '1px solid #555';
         
@@ -8443,7 +9223,7 @@ function renderNakshatraNadiTab() {
         }
 
         return `
-        <div style="display:grid; grid-template-columns: 48px 1px 62px 1px 26px 1px 1fr; gap: 6px; font-size:14px; align-items:center; border-bottom: ${borderStyle}; padding: 6px 0; color: ${colorCode};">
+        <div class="nadi-sync-row-${rowIdx}" style="display:grid; grid-template-columns: 48px 1px 62px 1px 26px 1px 1fr; gap: 6px; font-size:14px; align-items:center; border-bottom: ${borderStyle}; padding: 6px 0; color: ${colorCode}; box-sizing:border-box;">
             <div style="font-weight:bold; text-align:center; white-space:nowrap;">${label}</div>
             <div style="background-color: #555; height: 100%; width: 1px;"></div>
             <div style="font-weight:bold; text-align:center; white-space:nowrap;">${name}</div>
@@ -8453,6 +9233,17 @@ function renderNakshatraNadiTab() {
             <div style="font-weight:bold; text-align:${alignText}; line-height:1.4;">${lords}</div>
         </div>`;
     }
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 
     const applyUntenentedRule = document.getElementById("nadiUntenentedToggle")?.checked;
     
@@ -8521,7 +9312,77 @@ function renderNakshatraNadiTab() {
             let t_placedHouse = "-";
             let t_lordships = [];
 
-            if (vNum !== 1) {
+            // 🔥 FIX: Absolute precise degree slicing for Planet Pivots
+            if (isPlanetPivot) {
+                let pivotDeg = getNadiAbsoluteLongitude(pivotStr, vNum);
+                let targetDeg = getNadiAbsoluteLongitude(targetPlanet, vNum);
+                
+                if (pivotDeg !== -1 && targetDeg !== -1) {
+                    let diff = (targetDeg - pivotDeg + 360) % 360;
+                    t_placedHouse = Math.floor(diff / 30) + 1;
+
+                    let purePivotSign = Math.floor(pivotDeg / 30);
+                    let lordshipPivotSign = purePivotSign;
+                    if (SHIFTED_LAGNA && (pivotDeg % 30) >= 15) {
+                        lordshipPivotSign = (purePivotSign + 1) % 12;
+                    }
+
+                    function getHousesOfPivot(lord) {
+                        let houses = [];
+                        for (let h = 1; h <= 12; h++) {
+                            let hSign = (lordshipPivotSign + h - 1) % 12 + 1;
+                            if (signLords[hSign] === lord) houses.push(h);
+                        }
+                        return houses;
+                    }
+
+                    if (targetPlanet === "Ra" || targetPlanet === "Ke") {
+                        const includeDisp = document.getElementById("nadiRaKeDispToggle")?.checked;
+                        if (includeDisp) {
+                            let nodeSign = Math.floor(targetDeg / 30);
+                            let dispositor = signLords[nodeSign + 1];
+                            t_lordships = getHousesOfPivot(dispositor);
+                            let dispDeg = getNadiAbsoluteLongitude(dispositor, vNum);
+                            if (dispDeg !== -1) {
+                                let dDiff = (dispDeg - pivotDeg + 360) % 360;
+                                let dispPlaced = Math.floor(dDiff / 30) + 1;
+                                t_lordships.unshift(dispPlaced);
+                            }
+                        }
+                    } else {
+                        t_lordships = getHousesOfPivot(targetPlanet);
+                    }
+
+                    // Cuspal Conjunctions for Planet Pivot
+                    const cuspalConjToggle = document.getElementById("nadiCuspalConjToggle")?.checked;
+                    const rakeCuspalConjToggle = document.getElementById("nadiRaKeCuspalConjToggle")?.checked;
+                    
+                    const applyCuspalConjunction = (tp) => {
+                        let absDeg = getNadiAbsoluteLongitude(tp, vNum);
+                        if (absDeg !== -1) {
+                            for(let c = 1; c <= 12; c++){
+                                let cuspDeg = (pivotDeg + (c - 1) * 30) % 360;
+                                let cdiff = Math.abs(absDeg - cuspDeg);
+                                if (cdiff > 180) cdiff = 360 - cdiff;
+                                if (cdiff <= 3.3333) t_lordships.push(c);
+                            }
+                        }
+                    };
+
+                    if (targetPlanet !== "Ra" && targetPlanet !== "Ke") {
+                        if (cuspalConjToggle) applyCuspalConjunction(targetPlanet);
+                    } else {
+                        if (rakeCuspalConjToggle) applyCuspalConjunction(targetPlanet);
+                        const includeDisp = document.getElementById("nadiRaKeDispToggle")?.checked;
+                        if (includeDisp && cuspalConjToggle) {
+                            let nodeSign = Math.floor(targetDeg / 30);
+                            let dispositor = signLords[nodeSign + 1];
+                            if (dispositor) applyCuspalConjunction(dispositor);
+                        }
+                    }
+                }
+            }
+            else if (vNum !== 1) {
                 let targetDeg = getNadiAbsoluteLongitude(targetPlanet, vNum);
                 let ascVargaDeg = window._nadiVargaBaseDegree;
                 
@@ -8875,24 +9736,61 @@ function renderNakshatraNadiTab() {
         const subStarExtras = (applyUntenentedRule && !subIsTenanted) ? [] : getComboExtras(starOfSub);
         const subSubStarExtras = (applyUntenentedRule && !subSubIsTenanted) ? [] : getComboExtras(starOfSubSub);
 
-        html += buildRow("PL", pScriptToRender, "#0bf4e6", false, getComboExtras(pCode));
-        html += buildRow("ST", starScriptToRender, "#0bf4e6", false, starExtras);
-        html += buildRow("SL", subScriptToRender, "#facc15", false, getComboExtras(lords.sub));
+        
+		
+		
+		
+		html += buildRow("PL", pScriptToRender, "#0bf4e6", false, getComboExtras(pCode), 1);
+        html += buildRow("ST", starScriptToRender, "#0bf4e6", false, starExtras, 2);
+        html += buildRow("SL", subScriptToRender, "#facc15", false, getComboExtras(lords.sub), 3);
         
         if (showSubStars) {
-            html += buildRow("&#11088; SL", starOfSubScriptToRender, "#facc15", false, subStarExtras);
+            html += buildRow("&#11088; SL", starOfSubScriptToRender, "#facc15", false, subStarExtras, 4);
         }
         
-        html += buildRow("S-S", subSubScriptToRender, "#ff8800", !showSubStars, getComboExtras(lords.subSub));
+        html += buildRow("S-S", subSubScriptToRender, "#ff8800", !showSubStars, getComboExtras(lords.subSub), 5);
         
         if (showSubStars) {
-            html += buildRow("&#11088; S-S", starOfSubSubScriptToRender, "#ff8800", true, subSubStarExtras);
+            html += buildRow("&#11088; SSL", starOfSubSubScriptToRender, "#ff8800", true, subSubStarExtras);
         }
         
         card.innerHTML = html;
         container.appendChild(card);
     });
-}
+
+    // ==========================================
+    // AUTO-SYNC ROW HEIGHTS (MATRIX ALIGNMENT)
+    // ==========================================
+    setTimeout(() => {
+        for (let i = 1; i <= 6; i++) {
+            let rowElements = Array.from(container.querySelectorAll('.nadi-sync-row-' + i));
+            if (rowElements.length === 0) continue;
+            
+            // Group elements by their physical visual row (offsetTop)
+            let rowGroups = {};
+            rowElements.forEach(el => {
+                let top = el.parentElement.offsetTop; 
+                if (!rowGroups[top]) rowGroups[top] = [];
+                rowGroups[top].push(el);
+            });
+            
+            // Equalize heights perfectly within each horizontal block
+            Object.values(rowGroups).forEach(group => {
+                let maxH = 0;
+                group.forEach(el => {
+                    el.style.minHeight = 'auto'; // Reset
+                    let h = el.offsetHeight;
+                    if (h > maxH) maxH = h;
+                });
+                group.forEach(el => {
+                    el.style.minHeight = maxH + 'px'; // Stretch
+                });
+            });
+        }
+    }, 50);
+
+	}
+
 
 
 
@@ -9004,7 +9902,7 @@ function handleNadiPivotChange() {
 
 
 <div class="division-title" onclick="toggleMixer()">
-    Transit - Natal Mixer Kundali â–¼
+    Transit - Natal Mixer Kundali &#9660;
 </div>
 
 <div id="mixerWrapper" class="shoda-wrapper collapsed" style="display: none; padding-bottom: 40px; text-align: center;">
@@ -9254,7 +10152,7 @@ function setMixerToNow() {
         document.getElementById('mixS').value = ss;
     }
     
-    // ðŸ”¥ FIX: Pass 'true' here to force instant loading and bypass the 3s delay
+    // 🔥 FIX: Pass 'true' here to force instant loading and bypass the 3s delay
     autoFetchTransit(true);
 }
 
@@ -9281,7 +10179,7 @@ function autoFetchTransit() {
         return;
     }
 
-    // Lazy loading removed â€” fetches instantly only when the date is fully valid
+    // Lazy loading removed — fetches instantly only when the date is fully valid
     if (status) status.innerHTML = "<span style='color:#10b981;'>Fetching Now... &#x23F3;</span>";
     fetchTransitFromCloud();
 }
@@ -9328,7 +10226,7 @@ async function fetchTransitFromCloud() {
     let latVal = latEl && latEl.value ? parseFloat(latEl.value) : 13.3190737;
     let lonVal = lonEl && lonEl.value ? parseFloat(lonEl.value) : 77.1326306;
 
-    // ðŸ”¥ FIX: Fast, safe timezone fetch for Transit
+    // 🔥 FIX: Fast, safe timezone fetch for Transit
     let dynamicOffset = await getDynamicTimezoneSafe(latVal, lonVal);
 
     const requestData = {
@@ -9357,7 +10255,7 @@ async function fetchTransitFromCloud() {
         if (result.status === "success") {
             window.transitRaw = result.data;
             fetchSuccess = true;
-            if (status) status.innerHTML = "<span style='color:#39FF14;'>SUCCESS âœ“</span>";
+            if (status) status.innerHTML = "<span style='color:#39FF14;'>SUCCESS ✓</span>";
         } else {
             if (status) status.innerHTML = "<span style='color:#ff4444;'>API Error</span>";
         }
@@ -9404,7 +10302,7 @@ function buildStandardKundaliHTML(chartData, title, forcedAscIndex = null, pivot
     }
 
     const modeKN = document.getElementById("modeKN")?.checked;
-    const knMap = { Sy: "à²°à²µà²¿", Ch: "à²šà²‚à²¦à³à²°", Ma: "à²•à³à²œ", Bu: "à²¬à³à²§", Ju: "à²—à³à²°à³", Ve: "à²¶à³à²•à³à²°", Sa: "à²¶à²¨à²¿", Ra: "à²°à²¾à²¹à³", Ke: "à²•à³‡à²¤à³", ASC: "à²²à²—à³à²¨" };
+    const knMap = { Sy: "\u0CB0\u0CB5\u0CBF", Ch: "\u0C9A\u0C82\u0CA6\u0CCD\u0CB0", Ma: "\u0C95\u0CC1\u0C9C", Bu: "\u0CAC\u0CC1\u0CA7", Ju: "\u0C97\u0CC1\u0CB0\u0CC1", Ve: "\u0CB6\u0CC1\u0C95\u0CCD\u0CB0", Sa: "\u0CB6\u0CA8\u0CBF", Ra: "\u0CB0\u0CBE\u0CB9\u0CC1", Ke: "\u0C95\u0CC7\u0CA4\u0CC1", ASC: "\u0CB2\u0C97\u0CCD\u0CA8" };
     
     // STRICT COLOR PALETTE: White (Minor), Yellow (Major), Teal (ASC)
     const pColors = { Sy: "#ffffff", Ch: "#ffffff", Ma: "#ffffff", Bu: "#ffffff", Ve: "#ffffff", Ju: "#facc15", Sa: "#facc15", Ra: "#facc15", Ke: "#facc15", ASC: "#0bf4e6" };
@@ -9422,7 +10320,7 @@ function buildStandardKundaliHTML(chartData, title, forcedAscIndex = null, pivot
         if (chartData[sIdx]) {
             chartData[sIdx].forEach(p => {
                 let name = modeKN ? (knMap[p.n] || p.n) : p.n;
-                if (p.r) name += " (R)";
+                if (p.r) name += " (Rx)";
                 let deg = Math.floor(p.d);
                 let mins = Math.floor((p.d * 60) % 60).toString().padStart(2, '0');
                 let color = pColors[p.n] || "#ffffff";
@@ -9430,9 +10328,9 @@ function buildStandardKundaliHTML(chartData, title, forcedAscIndex = null, pivot
                 // ASC and Pivot Planet ALWAYS turn Teal
                 if (p.isPivotMarker || p.isAsc || p.n === pivotVal) {
                     let dName = p.isAsc ? "ASC" : name;
-                    html += `<div style="color:#0bf4e6; font-size:15px; font-weight:700; margin:3px 0;">${dName} ${deg}Â°${mins}â€²</div>`;
+                    html += `<div style="color:#0bf4e6; font-size:15px; font-weight:700; margin:3px 0;">${dName} ${deg}&deg;${mins}&prime;</div>`;
                 } else {
-                    html += `<div style="color:${color}; font-size:15px; font-weight:700; margin:3px 0;">${name} ${deg}Â°${mins}â€²</div>`;
+                    html += `<div style="color:${color}; font-size:15px; font-weight:700; margin:3px 0;">${name} ${deg}&deg;${mins}&prime;</div>`;
                 }
             });
         }
@@ -9483,15 +10381,15 @@ function expandUIElements() {
                         <span style="color:var(--grid-line); font-weight:bold; font-size:18px;">Pivot:</span>
                         <select id="mixerPivot" onchange="renderMixer()" style="background:#111; color:#fff; border:1px solid var(--grid-line); padding:8px 12px; font-weight:bold; font-size:16px; cursor:pointer;">
                             <option value="ASC">ASC</option>
-                            <option value="Sy">à²°à²µà²¿</option>
-                            <option value="Ch">à²šà²‚à²¦à³à²°</option>
-                            <option value="Ma">à²•à³à²œ</option>
-                            <option value="Bu">à²¬à³à²§</option>
-                            <option value="Ju">à²—à³à²°à³</option>
-                            <option value="Ve">à²¶à³à²•à³à²°</option>
-                            <option value="Sa">à²¶à²¨à²¿</option>
-                            <option value="Ra">à²°à²¾à²¹à³</option>
-                            <option value="Ke">à²•à³‡à²¤à³</option>
+                            <option value="Sy">ರವಿ</option>
+                            <option value="Ch">ಚಂದ್ರ</option>
+                            <option value="Ma">ಕುಜ</option>
+                            <option value="Bu">ಬುಧ</option>
+                            <option value="Ju">ಗುರು</option>
+                            <option value="Ve">ಶುಕ್ರ</option>
+                            <option value="Sa">ಶನಿ</option>
+                            <option value="Ra">ರಾಹು</option>
+                            <option value="Ke">ಕೇತು</option>
                         </select>
 
                         <label style="color:#ff8800; font-weight:bold; font-size:16px; margin-left:15px; cursor:pointer; display:flex; align-items:center; gap:8px;">
@@ -9633,13 +10531,13 @@ function renderMixer() {
     let pivotDegInSign = pivotVData.deg;
     let pivotSign = pivotVData.sign;
     
-    // In KP mode, if degree >= 15, the visual marker snaps to 0Â° of the NEXT sign
+    // In KP mode, if degree >= 15, the visual marker snaps to 0&deg; of the NEXT sign
     let shiftOffset = (modeKP && isShiftActive && pivotDegInSign >= 15) ? 1 : 0;
     let effectiveAnchorSign = (pivotSign + shiftOffset) % 12;
 
     let forcedTransitAscIdx = modeKP ? effectiveAnchorSign : pivotSign;
 
-    // 2. Place the Pivot Marker at 0Â° in the Transit Chart
+    // 2. Place the Pivot Marker at 0&deg; in the Transit Chart
     for (let i = 0; i < 12; i++) {
         let pObj = natalChart[i].find(p => (pivotVal === "ASC" ? p.isAsc : p.n === pivotVal));
         if (pObj) {
@@ -9751,7 +10649,7 @@ const calcH = (base, p) => p >= 3 ? (p + 2) * 25 : base;
 	
 	
 	const modeKN = document.getElementById("modeKN")?.checked;
-    const knMap = { Sy: "à²°à²µà²¿", Ch: "à²šà²‚à²¦à³à²°", Ma: "à²•à³à²œ", Bu: "à²¬à³à²§", Ju: "à²—à³à²°à³", Ve: "à²¶à³à²•à³à²°", Sa: "à²¶à²¨à²¿", Ra: "à²°à²¾à²¹à³", Ke: "à²•à³‡à²¤à³", ASC: "à²²à²—à³à²¨" };
+    const knMap = { Sy: "\u0CB0\u0CB5\u0CBF", Ch: "\u0C9A\u0C82\u0CA6\u0CCD\u0CB0", Ma: "\u0C95\u0CC1\u0C9C", Bu: "\u0CAC\u0CC1\u0CA7", Ju: "\u0C97\u0CC1\u0CB0\u0CC1", Ve: "\u0CB6\u0CC1\u0C95\u0CCD\u0CB0", Sa: "\u0CB6\u0CA8\u0CBF", Ra: "\u0CB0\u0CBE\u0CB9\u0CC1", Ke: "\u0C95\u0CC7\u0CA4\u0CC1", ASC: "\u0CB2\u0C97\u0CCD\u0CA8", Mn: "\u0CAE\u0CC1\u0C82\u0CA5\u0CBE" };
     
     // STRICT COLOR PALETTE: White (Minor), Yellow (Major), Teal (ASC)
     const pColors = { Sy: "#ffffff", Ch: "#ffffff", Ma: "#ffffff", Bu: "#ffffff", Ve: "#ffffff", Ju: "#facc15", Sa: "#facc15", Ra: "#facc15", Ke: "#facc15", ASC: "#0bf4e6" };
@@ -9815,18 +10713,18 @@ const calcH = (base, p) => p >= 3 ? (p + 2) * 25 : base;
         let nPlanets = natalChart[i] ? natalChart[i].map(p => {
             let color = pColors[p.n] || "#ffffff";
             let name = modeKN ? (knMap[p.n] || p.n) : p.n;
-            if (p.r) name += " (R)";
+            if (!document.getElementById("showLordship")?.checked && p.r) name += " (Rx)";
             let deg = Math.floor(p.d);
             let min = Math.floor((p.d * 60) % 60).toString().padStart(2, '0');
             
             // ASC and Pivot turn Teal
             if (p.isAsc || p.n === pivotVal) {
-                return `<div style="color:#0bf4e6; margin:2px 0;">${p.isAsc ? 'ASC' : name} ${deg}Â°${min}'</div>`;
+                return `<div style="color:#0bf4e6; margin:2px 0;">${p.isAsc ? 'ASC' : name} ${deg}&deg;${min}'</div>`;
             }
-            return `<div style="color:${color}; margin:2px 0;">${name} ${deg}Â°${min}'</div>`;
+            return `<div style="color:${color}; margin:2px 0;">${name} ${deg}&deg;${min}'</div>`;
         }).join("") : "";
 
-        // ðŸ”¥ INJECT GAP FOR 3 OR MORE PLANETS (NATAL)
+        // 🔥 INJECT GAP FOR 3 OR MORE PLANETS (NATAL)
         if (natalChart[i] && natalChart[i].length >= 3) {
             nPlanets = `<div style="height: 14px;"></div>` + nPlanets + `<div style="height: 14px;"></div>`;
         }
@@ -9838,19 +10736,19 @@ const calcH = (base, p) => p >= 3 ? (p + 2) * 25 : base;
         let tPlanets = transitChart[i] ? transitChart[i].map(p => {
             let color = pColors[p.n] || "#ffffff";
             let name = modeKN ? (knMap[p.n] || p.n) : p.n;
-            if (p.r) name += " (R)";
+            if (!document.getElementById("showLordship")?.checked && p.r && p.n !== "Ra" && p.n !== "Ke") name += " (Rx)";
             let deg = Math.floor(p.d);
             let min = Math.floor((p.d * 60) % 60).toString().padStart(2, '0');
             
             // ASC and Pivot turn Teal
             if (p.isPivotMarker || p.isAsc || p.n === pivotVal) {
                 let dName = p.isAsc ? "ASC" : name;
-                return `<div style="color:#0bf4e6; margin:2px 0;">${dName} ${deg}Â°${min}'</div>`;
+                return `<div style="color:#0bf4e6; margin:2px 0;">${dName} ${deg}&deg;${min}'</div>`;
             }
-            return `<div style="color:${color}; margin:2px 0;">${name} ${deg}Â°${min}'</div>`;
+            return `<div style="color:${color}; margin:2px 0;">${name} ${deg}&deg;${min}'</div>`;
         }).join("") : "";
 
-        // ðŸ”¥ INJECT GAP FOR 3 OR MORE PLANETS (TRANSIT)
+        // 🔥 INJECT GAP FOR 3 OR MORE PLANETS (TRANSIT)
         if (transitChart[i] && transitChart[i].length >= 3) {
             tPlanets = `<div style="height: 14px;"></div>` + tPlanets + `<div style="height: 14px;"></div>`;
         }
@@ -9944,7 +10842,7 @@ const calcH = (base, p) => p >= 3 ? (p + 2) * 25 : base;
             isRetro = raw.planets_retro && raw.planets_retro[pKey] ? true : false;
         }
 
-        let labelName = (modeKN ? (knMap[code] || fullName) : fullName) + (isRetro ? " (R)" : "");
+        let labelName = (modeKN ? (knMap[code] || fullName) : fullName) + (isRetro ? " (Rx)" : "");
 
         // 4. Apply Colors: Vibrant Teal for Natal, Vibrant Yellow for Transit
         let label = isTransit ? `T - ${labelName}` : labelName;
@@ -10009,7 +10907,7 @@ const calcH = (base, p) => p >= 3 ? (p + 2) * 25 : base;
         arr.forEach(p => {
             let d = Math.floor(p.deg);
             let m = Math.floor((p.deg * 60) % 60).toString().padStart(2, '0');
-            boxHtml += `<div style="color:${p.color}; font-size:16px; font-weight:bold; margin:4px 0; letter-spacing:0.5px; text-shadow: 1px 1px 1px #000;">${p.label} ${d}Â°${m}' <span style="color:#bbb; font-size:16px; font-weight:500;">(House ${p.houseNum})</span></div>`;
+            boxHtml += `<div style="color:${p.color}; font-size:16px; font-weight:bold; margin:4px 0; letter-spacing:0.5px; text-shadow: 1px 1px 1px #000;">${p.label} ${d}&deg;${m}' <span style="color:#bbb; font-size:16px; font-weight:500;">(House ${p.houseNum})</span></div>`;
         });
         boxHtml += `</div>`;
         return boxHtml;
@@ -10087,7 +10985,7 @@ const calcH = (base, p) => p >= 3 ? (p + 2) * 25 : base;
         let wrapper = document.getElementById("mixerWrapper");
         let targetHeading = document.getElementById("innerOuterHeading");
         
-        // ðŸ”¥ FIX: Let the heading find its actual parent to prevent the crash
+        // 🔥 FIX: Let the heading find its actual parent to prevent the crash
         if (targetHeading && targetHeading.parentNode) {
             targetHeading.parentNode.insertBefore(dirContainer, targetHeading);
         } else if (wrapper) {
@@ -10143,6 +11041,9 @@ const calcH = (base, p) => p >= 3 ? (p + 2) * 25 : base;
    COORDINATE SYNC ENGINE (Decimal <--> Degrees/Minutes/Seconds)
    ========================================================= */
 
+
+
+
 function syncFromDecimal() {
     const latVal = parseFloat(document.getElementById("onlineLat").value);
     const lonVal = parseFloat(document.getElementById("onlineLon").value);
@@ -10150,29 +11051,44 @@ function syncFromDecimal() {
     if (!isNaN(latVal)) {
         document.getElementById("latDir").value = latVal >= 0 ? "N" : "S";
         const absLat = Math.abs(latVal);
-        const deg = Math.floor(absLat);
+        let deg = Math.floor(absLat);
         const remainderMin = (absLat - deg) * 60;
-        const min = Math.floor(remainderMin);
-        const sec = ((remainderMin - min) * 60).toFixed(2);
+        let min = Math.floor(remainderMin);
+        let sec = Math.round((remainderMin - min) * 60);
+        
+        // Handle 60-second overflow
+        if (sec === 60) { sec = 0; min++; }
+        if (min === 60) { min = 0; deg++; }
         
         document.getElementById("latDeg").value = deg;
         document.getElementById("latMin").value = min;
-        document.getElementById("latSec").value = parseFloat(sec); // removes trailing zeros
+        document.getElementById("latSec").value = sec; 
     }
 
     if (!isNaN(lonVal)) {
         document.getElementById("lonDir").value = lonVal >= 0 ? "E" : "W";
         const absLon = Math.abs(lonVal);
-        const deg = Math.floor(absLon);
+        let deg = Math.floor(absLon);
         const remainderMin = (absLon - deg) * 60;
-        const min = Math.floor(remainderMin);
-        const sec = ((remainderMin - min) * 60).toFixed(2);
+        let min = Math.floor(remainderMin);
+        let sec = Math.round((remainderMin - min) * 60);
+        
+        // Handle 60-second overflow
+        if (sec === 60) { sec = 0; min++; }
+        if (min === 60) { min = 0; deg++; }
         
         document.getElementById("lonDeg").value = deg;
         document.getElementById("lonMin").value = min;
-        document.getElementById("lonSec").value = parseFloat(sec);
+        document.getElementById("lonSec").value = sec;
     }
 }
+
+
+
+
+
+
+
 
 function syncFromDMS() {
     let latDegStr = document.getElementById("latDeg").value;
@@ -10308,7 +11224,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
 
 <div class="division-title" onclick="toggleVarshaphala()">
-    Varshaphala Kundalis (Solar Return) â–¼
+    Varshaphala Kundalis (Solar Return) &#9660;
 </div>
 
 <div id="varshaphalaWrapper" class="shoda-wrapper" style="display:none; padding-bottom: 60px; text-align: center;">
@@ -10497,7 +11413,7 @@ const VP_PLANET_SPEED = {
 
 async function fetchVarshaphalaBatch() {
     if (typeof raw === "undefined" || !raw || typeof originalDateTime === "undefined" || !originalDateTime) {
-        alert("âš ï¸ SYSTEM HALT: Please load a Natal Profile or Fetch Data first!");
+        alert("⚠️ SYSTEM HALT: Please load a Natal Profile or Fetch Data first!");
         return;
     }
 
@@ -10767,7 +11683,7 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
 
     const modeKN = document.getElementById("modeKN")?.checked;
     const showDeg = document.getElementById("vpShowDegrees")?.checked;
-    const knMap = { Sy: "à²°à²µà²¿", Ch: "à²šà²‚à²¦à³à²°", Ma: "à²•à³à²œ", Bu: "à²¬à³à²§", Ju: "à²—à³à²°à³", Ve: "à²¶à³à²•à³à²°", Sa: "à²¶à²¨à²¿", Ra: "à²°à²¾à²¹à³", Ke: "à²•à³‡à²¤à³", ASC: "à²²à²—à³à²¨", Mn: "à²®à³à²‚à²¥à²¾" };
+    const knMap = { Sy: "\u0CB0\u0CB5\u0CBF", Ch: "\u0C9A\u0C82\u0CA6\u0CCD\u0CB0", Ma: "\u0C95\u0CC1\u0C9C", Bu: "\u0CAC\u0CC1\u0CA7", Ju: "\u0C97\u0CC1\u0CB0\u0CC1", Ve: "\u0CB6\u0CC1\u0C95\u0CCD\u0CB0", Sa: "\u0CB6\u0CA8\u0CBF", Ra: "\u0CB0\u0CBE\u0CB9\u0CC1", Ke: "\u0C95\u0CC7\u0CA4\u0CC1", ASC: "\u0CB2\u0C97\u0CCD\u0CA8", Mn: "\u0CAE\u0CC1\u0C82\u0CA5\u0CBE" };
     const pColors = { Sy: "#ffffff", Ch: "#ffffff", Ma: "#ffffff", Bu: "#ffffff", Ve: "#ffffff", Ju: "#facc15", Sa: "#facc15", Ra: "#facc15", Ke: "#facc15", ASC: "#0bf4e6", Mn: "#ff3366" };
 
     houseMap.forEach(sIdx => {
@@ -10783,25 +11699,25 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
         if (chartData[sIdx]) {
             chartData[sIdx].forEach(p => {
                 let name = modeKN ? (knMap[p.n] || p.n) : p.n;
-                if (p.r) name += " (R)";
+                if (p.r) name += " (Rx)";
                 let color = pColors[p.n] || "#ffffff";
                 let displayStr = "";
 
                 if (p.isAsc) {
                     let deg = Math.floor(p.d);
                     let mins = Math.floor((p.d * 60) % 60).toString().padStart(2, '0');
-                    displayStr = `${name} ${deg}Â°${mins}â€²`;
+                    displayStr = `${name} ${deg}&deg;${mins}&prime;`;
                     html += `<div style="color:#0bf4e6; font-size:15px; font-weight:900; margin:3px 0;">${displayStr}</div>`;
                 } else if (p.isMuntha) {
                     let deg = Math.floor(p.d);
                     let mins = Math.floor((p.d * 60) % 60).toString().padStart(2, '0');
-                    displayStr = `${name} ${deg}Â°${mins}â€²`;
+                    displayStr = `${name} ${deg}&deg;${mins}&prime;`;
                     html += `<div style="color:#ff3366; font-size:15px; font-weight:900; margin:3px 0; text-shadow: 1px 1px 3px rgba(0,0,0,0.8);">${displayStr}</div>`;
                 } else {
                     if (showDeg) {
                         let deg = Math.floor(p.d);
                         let mins = Math.floor((p.d * 60) % 60).toString().padStart(2, '0');
-                        displayStr = `${name} ${deg}Â°${mins}â€²`;
+                        displayStr = `${name} ${deg}&deg;${mins}&prime;`;
                     } else {
                         let placedHouse = houseNum;
                         let lordsArr = getPlanetLordshipLocalVP(p.n, sIdx, forcedAscIndex, chartData).filter(x => x !== "-" && x != null);
@@ -10887,6 +11803,994 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- =========================================================
+     NAKSHATRA NADI - DASHA BUKTHI ANTARA MIXER
+========================================================= -->
+
+<div class="division-title" onclick="toggleDbaMixer()">
+    Nakshatra Nadi DBA Mixer &#9660;
+</div>
+
+<div id="dbaMixerWrapper" class="shoda-wrapper" style="display:none; padding-bottom: 60px; max-width: 100%; padding-left: 20px; padding-right: 20px; width: 100%; box-sizing: border-box;">
+    
+    <!-- CONTROLS & TEMPLATES (Full Width) -->
+    <div style="background:#0a0a0a; border:1px solid var(--grid-line); padding:20px; border-radius:6px; margin: 0 auto 30px auto; width: 100%; box-sizing: border-box;">
+        
+        <!-- Checkboxes Top Row (Main Nadi Rules) - ALL UNCHECKED BY DEFAULT -->
+        <div style="display:flex; justify-content:center; align-items:center; gap:25px; flex-wrap:wrap; margin-bottom:15px;">
+            <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#ff3366; font-weight:bold; font-size:15px;">
+                <input type="checkbox" id="dbaRemOccToggle" onchange="renderDbaMixer()"> Remove Occupied
+            </label>
+            <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#0bf4e6; font-weight:bold; font-size:15px;">
+                <input type="checkbox" id="dbaCuspalConjToggle" onchange="renderDbaMixer()"> Include Cuspal Conj (7 Planets)
+            </label>
+            <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#c084fc; font-weight:bold; font-size:15px;">
+                <input type="checkbox" id="dbaUntenantedToggle" onchange="renderDbaMixer()"> Untenanted
+            </label>
+            <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#facc15; font-weight:bold; font-size:15px;">
+                <input type="checkbox" id="dbaHideStarSubToggle" onchange="renderDbaMixer()"> Hide &#11088; Sublord
+            </label>
+            <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#c084fc; font-weight:bold; font-size:15px;">
+                <input type="checkbox" id="dbaHideSubSubToggle" onchange="renderDbaMixer()"> Hide Sub-Sub
+            </label>
+        </div>
+
+        
+		
+		
+		
+		
+		
+		
+		<!-- Checkboxes Bottom Row (Ra/Ke Rules) - ALL UNCHECKED BY DEFAULT -->
+        <div style="display:flex; justify-content:center; align-items:center; gap:25px; flex-wrap:wrap; margin-bottom:20px; border-bottom:1px solid #333; padding-bottom:15px;">
+            <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#39FF14; font-weight:bold; font-size:15px;">
+                <input type="checkbox" id="dbaNormalToggle" onchange="renderDbaMixer()" checked> Normal
+            </label>
+            <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#39FF14; font-weight:bold; font-size:15px;">
+                <input type="checkbox" id="dbaShowPlacedToggle" onchange="renderDbaMixer()" checked> Show Placed
+            </label>
+            <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#ff9933; font-weight:bold; font-size:15px;">
+                <input type="checkbox" id="dbaRaKeDispToggle" onchange="renderDbaMixer()"> RaKe Dispositor
+            </label>
+            <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#ff9933; font-weight:bold; font-size:15px;">
+                <input type="checkbox" id="dbaRaKeConjToggle" onchange="renderDbaMixer()"> RaKe Conjunct
+            </label>
+            <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#ff9933; font-weight:bold; font-size:15px;">
+                <input type="checkbox" id="dbaRaKeAspToggle" onchange="renderDbaMixer()"> RaKe Asp
+            </label>
+            <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#10b981; font-weight:bold; font-size:15px;">
+                <input type="checkbox" id="dbaRaKeAspHouseToggle" onchange="renderDbaMixer()"> RaKe Asp House Based
+            </label>
+        </div>
+		
+		
+		
+		
+		
+		
+		
+        
+        <!-- Template & Varga Selector - Hide Unselected UNCHECKED -->
+        <div style="display:flex; justify-content:center; align-items:center; gap:25px; flex-wrap:wrap; border-bottom:1px solid #333; padding-bottom:15px; margin-bottom:15px;">
+            
+            <label style="color:var(--asc-yellow); font-weight:bold; font-size:16px; display:flex; align-items:center; gap:8px;">
+                TEMPLATE:
+                <select id="dbaTemplateSelect" onchange="applyDbaTemplate()" style="background:#000; color:#fff; border:1px solid var(--grid-line); padding:6px 10px; font-size:14px; font-weight:bold; cursor:pointer;">
+                </select>
+            </label>
+
+            <label style="color:var(--grid-line); font-weight:bold; font-size:16px; display:flex; align-items:center; gap:8px;">
+                VARGA:
+                <select id="dbaVargaSelect" onchange="renderDbaMixer()" style="background:#000; color:#fff; border:1px solid var(--grid-line); padding:6px 10px; font-size:14px; font-weight:bold; cursor:pointer;">
+                </select>
+            </label>
+
+            <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:#ffffff; font-weight:bold; font-size:15px;">
+                <input type="checkbox" id="dbaHideUnselected" onchange="renderDbaMixer()">
+                Hide Unselected Numbers
+            </label>
+
+        </div>
+
+        <!-- POSITIVE / SUPPORTIVE / NEGATIVE BUTTONS WITH PERFECT GRID ALIGNMENT -->
+        <style>
+            .dba-hl-btn {
+                background: #111; color: #fff; border: 1px solid #555; 
+                padding: 6px 0; width: 100%; text-align: center;
+                font-weight: bold; cursor: pointer; 
+                border-radius: 4px; font-size: 14px; transition: all 0.15s ease; box-sizing: border-box;
+            }
+            .dba-hl-btn:hover { filter: brightness(1.3); }
+            .dba-hl-btn.pos-btn.active { background: #004d00; color: #39FF14; border-color: #39FF14; box-shadow: 0 0 5px rgba(57,255,20,0.5); }
+            .dba-hl-btn.sup-btn.active { background: #002b4d; color: #0bf4e6; border-color: #0bf4e6; box-shadow: 0 0 5px rgba(11,244,230,0.5); }
+            .dba-hl-btn.neg-btn.active { background: #4d0000; color: #ff4444; border-color: #ff4444; box-shadow: 0 0 5px rgba(255,68,68,0.5); }
+            
+            .hl-row-container {
+                display: flex; align-items: center; gap: 15px; width: 100%; max-width: 800px; margin: 0 auto;
+            }
+            .hl-label-box {
+                display: flex; justify-content: space-between; align-items: center; width: 140px; flex-shrink: 0;
+            }
+            .hl-grid-box {
+                display: grid; grid-template-columns: repeat(12, 1fr); gap: 5px; flex-grow: 1;
+            }
+        </style>
+
+        <div style="display:flex; flex-direction:column; gap:12px; align-items:center;">
+            
+            <div class="hl-row-container">
+                <div class="hl-label-box">
+                    <span style="color:#39FF14; font-weight:900; font-size:14px; text-transform:uppercase;">Positive:</span>
+                    <button onclick="clearDbaSet('pos')" style="background:transparent; border:1px solid #39FF14; color:#39FF14; font-size:10px; font-weight:bold; padding:3px 8px; border-radius:3px; cursor:pointer; text-transform:uppercase;">Clear</button>
+                </div>
+                <div id="dbaPosBtns" class="hl-grid-box"></div>
+            </div>
+
+            <div class="hl-row-container">
+                <div class="hl-label-box">
+                    <span style="color:#0bf4e6; font-weight:900; font-size:14px; text-transform:uppercase;">Supportive:</span>
+                    <button onclick="clearDbaSet('sup')" style="background:transparent; border:1px solid #0bf4e6; color:#0bf4e6; font-size:10px; font-weight:bold; padding:3px 8px; border-radius:3px; cursor:pointer; text-transform:uppercase;">Clear</button>
+                </div>
+                <div id="dbaSupBtns" class="hl-grid-box"></div>
+            </div>
+
+            <div class="hl-row-container">
+                <div class="hl-label-box">
+                    <span style="color:#ff4444; font-weight:900; font-size:14px; text-transform:uppercase;">Negative:</span>
+                    <button onclick="clearDbaSet('neg')" style="background:transparent; border:1px solid #ff4444; color:#ff4444; font-size:10px; font-weight:bold; padding:3px 8px; border-radius:3px; cursor:pointer; text-transform:uppercase;">Clear</button>
+                </div>
+                <div id="dbaNegBtns" class="hl-grid-box"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- DASHA / BUKTHI / ANTARA SELECTORS -->
+    <div style="width:100%; margin:0 auto 30px auto;">
+        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:20px;">
+            <div style="text-align:center;">
+                <div style="color:#0bf4e6; font-weight:900; font-size:18px; margin-bottom:10px; border-bottom:2px solid #0bf4e6; padding-bottom:5px; text-transform:uppercase;">Dasha Selection</div>
+                <div id="dbaDashaCol" style="display:flex; flex-direction:column; gap:6px;"></div>
+            </div>
+            <div style="text-align:center;">
+                <div style="color:#ff8800; font-weight:900; font-size:18px; margin-bottom:10px; border-bottom:2px solid #ff8800; padding-bottom:5px; text-transform:uppercase;">Bukthi Selection</div>
+                <div id="dbaBukthiCol" style="display:flex; flex-direction:column; gap:6px;"></div>
+            </div>
+            <div style="text-align:center;">
+                <div style="color:#c084fc; font-weight:900; font-size:18px; margin-bottom:10px; border-bottom:2px solid #c084fc; padding-bottom:5px; text-transform:uppercase;">Antara Selection</div>
+                <div id="dbaAntaraCol" style="display:flex; flex-direction:column; gap:6px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN HEADER FOR THE 9 ISLANDS -->
+    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:20px; text-align:center; margin-bottom:10px; width:100%;">
+        <div style="background:#004d40; color:#0bf4e6; font-size:22px; font-weight:900; padding:12px; border:2px solid #0bf4e6; border-radius:6px; letter-spacing:1px;">DASHA</div>
+        <div style="background:#4d2b00; color:#ff8800; font-size:22px; font-weight:900; padding:12px; border:2px solid #ff8800; border-radius:6px; letter-spacing:1px;">BUKTHI</div>
+        <div id="dbaMainAntaraHeader" style="background:#2e004f; color:#c084fc; font-size:22px; font-weight:900; padding:12px; border:2px solid #c084fc; border-radius:6px; letter-spacing:1px; transition: opacity 0.3s ease;">ANTARA</div>
+    </div>
+
+    <!-- 9 ROWS OF ISLANDS GRID -->
+    <div id="dbaIslandsGrid" style="display:flex; flex-direction:column; gap:20px; width:100%;">
+        <!-- Filled by JS -->
+    </div>
+
+</div>
+
+<script>
+const UNIFIED_TEMPLATES = {
+  manual: { name: "Manual Entry", pos: [], support: [], neg: [], note: "" },
+  even_odd: { name: "Even-Odd", pos: [2, 4, 6, 8, 10, 12], support: [8, 12], neg: [1, 3, 5, 7, 9, 11], note: "" },
+  education: { name: "Education", pos: [4, 5, 9, 11], support: [1, 2, 7, 10], neg: [3, 6, 8, 12], note: "Karaka: Jupiter, Budha" },
+  Job: { name: "Job with Monthly Salary", pos: [2, 6, 10], support: [3, 4, 7, 11], neg: [], note: "" },
+  career: { name: "Profession & Business", pos: [2, 6, 10, 11], support: [4, 7], neg: [5, 8, 12], note: "Karaka: Saturn" },
+  job_change: { name: "Job Change", pos: [3, 5, 6, 9], support: [], neg: [], note: "" },
+  transfer: { name: "Transfer", pos: [3, 10, 12], support: [], neg: [], note: "" },
+  suspension_or_dismissal: { name: "Suspension or Dismissal in Job", pos: [], support: [], neg: [1, 5, 8, 9, 12], note: "" },
+  marriage: { name: "Marriage", pos: [2, 7, 11], support: [3, 5, 9], neg: [1, 4, 6, 8, 10, 12], note: "Karaka: Venus" },
+  love_marriage: { name: "Love Marriage", pos: [2, 5, 7, 11], support: [], neg: [1, 4, 6, 8, 12], note: "" },
+  second_marriage: { name: "Second Marriage", pos: [2, 5, 7, 9, 11], support: [], neg: [], note: "" },
+  child: { name: "Child Birth", pos: [2, 5, 11], support: [3, 7, 9], neg: [1, 4, 8, 10, 12], note: "Karaka: Jupiter" },
+  income: { name: "Income", pos: [2, 6, 10, 11], support: [7], neg: [5, 8, 9, 12], note: "" },
+  financial_crisis_bankrupt: { name: "Financial Crisis Bankrupt", pos: [2, 6, 11], support: [], neg: [5, 8, 9, 12], note: "" },
+  sudden_loss: { name: "Sudden Loss", pos: [], support: [], neg: [2, 5, 8, 12], note: "" },
+  property: { name: "Property & Vehicle Purchase", pos: [4, 11, 12], support: [6, 8], neg: [3, 5, 10], note: "" },
+  home_location_change: { name: "Home Location Change", pos: [], support: [], neg: [1, 3, 12], note: "" },
+  health: { name: "Health", pos: [1, 5, 11], support: [3], neg: [4, 6, 8, 12], note: "" },
+  recovery_vs_sick_chronic: { name: "Recovery vs Sick Chronic", pos: [5, 9, 11], support: [], neg: [1, 6, 8, 12], note: "" },
+  long_life: { name: "Long Life", pos: [1, 3, 5, 8, 10], support: [], neg: [2, 6, 7, 9, 11, 12], note: "" },
+  short_life: { name: "Short Life", pos: [2, 6, 7, 9, 11, 12], support: [], neg: [1, 3, 5, 8, 10], note: "" },
+  long_char: { name: "Longevity Chara Lagna", pos: [1, 3, 5, 9], support: [], neg: [2, 6, 7, 8, 11, 12], note: "" },
+  long_sthira: { name: "Longevity Sthira Lagna", pos: [1, 3, 5, 11], support: [9], neg: [2, 4, 6, 7, 8, 12], note: "" },
+  long_dwi: { name: "Longevity Dwiswabhava Lagna", pos: [1, 3, 5, 8, 11], support: [9], neg: [2, 4, 6, 7, 12], note: "" },
+  accident: { name: "Accident", pos: [], support: [], neg: [6, 8, 12], note: "" },
+  rape: { name: "Rape", pos: [], support: [], neg: [5, 8, 12], note: "" },
+  murder: { name: "Murder", pos: [], support: [], neg: [2, 7, 8, 12], note: "" },
+  suicide_death: { name: "Suicide & Death", pos: [], support: [], neg: [1, 2, 6, 7, 8, 12], note: "" },
+  travel: { name: "Travel Abroad", pos: [3, 9, 12], support: [7], neg: [2, 4, 8, 11], note: "" },
+  foreign_going_for_education: { name: "Foreign Going for Education", pos: [4, 9, 11, 12], support: [], neg: [], note: "" },
+  court: { name: "Court Cases", pos: [6, 10, 11], support: [], neg: [1, 3, 8, 12], note: "" },
+  court_case: { name: "Court Case Win", pos: [2, 6, 7, 11], support: [], neg: [5, 8, 12], note: "" },
+  litigations_mutual_withdrawal: { name: "Litigations Mutual Withdrawal", pos: [5, 7, 12], support: [], neg: [], note: "" },
+  litigation_settlement_loss: { name: "Litigation Settlement Loss", pos: [], support: [], neg: [2, 6, 7, 12], note: "" },
+  financial_litigations: { name: "Financial Litigations", pos: [], support: [], neg: [2, 5, 7, 12], note: "" },
+  property_litigations: { name: "Property Litigations", pos: [], support: [], neg: [4, 7, 8, 11], note: "" },
+  relationship_litigations: { name: "Relationship Litigations", pos: [], support: [], neg: [1, 6, 7, 12], note: "" },
+  revenue_litigations: { name: "Revenue Litigations", pos: [], support: [], neg: [3, 4, 8, 12], note: "" },
+  false_allegation: { name: "False Allegation", pos: [], support: [], neg: [1, 3, 7, 8], note: "" },
+  others_defeat: { name: "Others Defeat", pos: [], support: [], neg: [6, 7, 11], note: "" },
+  income_tax_raid: { name: "Income Tax Raid", pos: [], support: [], neg: [10, 12], note: "" },
+  troubles_from_frauds: { name: "Troubles from Frauds", pos: [], support: [], neg: [3, 8], note: "Karaka: Rahu" },
+  arrest_by_police: { name: "Arrest by Police", pos: [], support: [], neg: [3, 8, 12], note: "Karaka: Rahu, Mars" },
+  politics_election_success_failure: { name: "Politics Election Success Failure", pos: [1, 6, 11], support: [], neg: [4, 8, 12], note: "" },
+  political_leader: { name: "Political Leader", pos: [1, 6, 9, 10, 11], support: [], neg: [], note: "" },
+  spiritual_leader: { name: "Spiritual Leader", pos: [1, 5, 9, 11, 12], support: [], neg: [], note: "" },
+  name_fame_popular: { name: "Name & Fame Popular", pos: [3, 6, 10, 11], support: [], neg: [1, 8, 12], note: "" },
+  film_success: { name: "Film Success", pos: [5, 6, 7, 10, 11], support: [], neg: [8, 12], note: "" },
+  negotiation_success_failure: { name: "Negotiation Success Failure", pos: [3, 9, 11], support: [], neg: [2, 8, 12], note: "" }
+};
+
+window._dbaPosSet = new Set();
+window._dbaSupSet = new Set();
+window._dbaNegSet = new Set();
+
+let dbaActiveDasha = "Ke";
+let dbaActiveBukthi = "Ke";
+let dbaActiveAntara = null; 
+let dbaActiveLevel = "bukthi"; // 'bukthi' (Dasha+Bukthi selected) => shows 9 Antaras (all visible). 'antara' (Dasha+Antara selected) => shows 9 Bukthis (Antara text hidden).
+
+const DBA_PLANETS = ["Ke", "Ve", "Sy", "Ch", "Ma", "Ra", "Ju", "Sa", "Bu"];
+const DBA_NAMES = { Ke:"Ketu", Ve:"Venus", Sy:"Surya", Ch:"Chandra", Ma:"Mangala", Ra:"Rahu", Ju:"Jupiter", Sa:"Saturn", Bu:"Budha" };
+
+// Extract Moon's Starlord
+function getDbaMoonStarLord() {
+    let moonDeg = -1;
+    if (window._shiftedPlanetsGlobal && window._shiftedPlanetsGlobal["Chandra"] !== undefined) {
+        moonDeg = window._shiftedPlanetsGlobal["Chandra"];
+    } else if (typeof raw !== "undefined" && raw && raw.planets) {
+        moonDeg = raw.planets["Chandra"];
+    }
+    if (moonDeg === -1 || moonDeg === undefined) return "Ke";
+    const nakSize = 360 / 27;
+    let nakIndex = Math.floor(moonDeg / nakSize);
+    return DBA_PLANETS[nakIndex % 9];
+}
+
+function toggleDbaMixer() {
+    const box = document.getElementById("dbaMixerWrapper");
+    if(!box) return;
+    const isOpening = (box.style.display === "none");
+    box.style.display = isOpening ? "block" : "none";
+
+    if (isOpening) {
+        initDbaMixerUI();
+        autoSelectRunningDba();
+        renderDbaMixer();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function rebuildDbaColumns() {
+    const dCol = document.getElementById("dbaDashaCol");
+    const bCol = document.getElementById("dbaBukthiCol");
+    const aCol = document.getElementById("dbaAntaraCol");
+    
+    if (!dCol || !bCol || !aCol) return;
+    dCol.innerHTML = ""; bCol.innerHTML = ""; aCol.innerHTML = "";
+    
+    let mLord = getDbaMoonStarLord();
+    
+    let dOrder = [...DBA_PLANETS.slice(DBA_PLANETS.indexOf(mLord)), ...DBA_PLANETS.slice(0, DBA_PLANETS.indexOf(mLord))];
+    let bOrder = [...DBA_PLANETS.slice(DBA_PLANETS.indexOf(dbaActiveDasha)), ...DBA_PLANETS.slice(0, DBA_PLANETS.indexOf(dbaActiveDasha))];
+    let aOrder = [...DBA_PLANETS.slice(DBA_PLANETS.indexOf(dbaActiveBukthi)), ...DBA_PLANETS.slice(0, DBA_PLANETS.indexOf(dbaActiveBukthi))];
+
+    dOrder.forEach(p => dCol.innerHTML += `<div class="dba-col-btn dasha-col-btn" data-p="${p}" onclick="setDbaLevel('dasha', '${p}')">${DBA_NAMES[p]}</div>`);
+    bOrder.forEach(p => bCol.innerHTML += `<div class="dba-col-btn bukthi-col-btn" data-p="${p}" onclick="setDbaLevel('bukthi', '${p}')">${DBA_NAMES[p]}</div>`);
+    aOrder.forEach(p => aCol.innerHTML += `<div class="dba-col-btn antara-col-btn" data-p="${p}" onclick="setDbaLevel('antara', '${p}')">${DBA_NAMES[p]}</div>`);
+
+    syncDbaColumnHighlight();
+}
+
+function initDbaMixerUI() {
+    const vSel = document.getElementById("dbaVargaSelect");
+    if (vSel && vSel.options.length === 0) {
+        [1, 10, 9, 7, 2, 4, 8, 60, 11, 30, 21, 16, 6, 12, 3, 24, 27, 20, 40, 45, 5].forEach(v => {
+            const op = document.createElement("option");
+            op.value = v; op.textContent = "D" + v;
+            vSel.appendChild(op);
+        });
+        vSel.value = 1;
+    }
+
+    const tSel = document.getElementById("dbaTemplateSelect");
+    if (tSel && tSel.options.length === 0) {
+        for (const [key, tpl] of Object.entries(UNIFIED_TEMPLATES)) {
+            const op = document.createElement("option");
+            op.value = key; op.textContent = tpl.name;
+            tSel.appendChild(op);
+        }
+    }
+
+    const pBox = document.getElementById("dbaPosBtns");
+    const sBox = document.getElementById("dbaSupBtns");
+    const nBox = document.getElementById("dbaNegBtns");
+    
+    if(pBox.innerHTML === "") {
+        for(let i=1; i<=12; i++) {
+            pBox.innerHTML += `<button class="dba-hl-btn pos-btn" onclick="toggleDbaNum(${i}, 'pos', this)">${i}</button>`;
+            sBox.innerHTML += `<button class="dba-hl-btn sup-btn" onclick="toggleDbaNum(${i}, 'sup', this)">${i}</button>`;
+            nBox.innerHTML += `<button class="dba-hl-btn neg-btn" onclick="toggleDbaNum(${i}, 'neg', this)">${i}</button>`;
+        }
+    }
+
+    rebuildDbaColumns();
+}
+
+function autoSelectRunningDba() {
+    let runningMaha = null;
+    let runningBukthi = null;
+    
+    const vimContainer = document.getElementById("vimChandra");
+    if (vimContainer) {
+        const today = new Date();
+        const rows = [...vimContainer.querySelectorAll("div[data-s]")];
+        
+        for (let row of rows) {
+            const s = new Date(row.dataset.s);
+            const e = new Date(row.dataset.e);
+            if (today >= s && today < e) {
+                if (row.dataset.l === "1") runningMaha = row.dataset.lord;
+                if (row.dataset.l === "2") {
+                    for (const [en, kn] of Object.entries(DBA_NAMES)) {
+                        if (row.innerText.includes(kn) || row.innerText.includes(en)) runningBukthi = en;
+                    }
+                }
+            }
+        }
+    }
+
+    let mLord = getDbaMoonStarLord();
+    if (runningMaha && DBA_PLANETS.includes(runningMaha)) dbaActiveDasha = runningMaha;
+    else dbaActiveDasha = mLord;
+    
+    if (runningBukthi && DBA_PLANETS.includes(runningBukthi)) dbaActiveBukthi = runningBukthi;
+    else dbaActiveBukthi = dbaActiveDasha;
+    
+    dbaActiveAntara = null; 
+    dbaActiveLevel = "bukthi"; 
+    rebuildDbaColumns();
+}
+
+function setDbaLevel(level, pCode) {
+    if (level === 'dasha') { 
+        dbaActiveDasha = pCode; 
+        dbaActiveBukthi = pCode;
+        dbaActiveLevel = "bukthi"; 
+        dbaActiveAntara = null; 
+    }
+    if (level === 'bukthi') { 
+        dbaActiveBukthi = pCode; 
+        dbaActiveLevel = "bukthi"; 
+        dbaActiveAntara = null; 
+    }
+    if (level === 'antara') { 
+        dbaActiveAntara = pCode; 
+        dbaActiveLevel = "antara"; 
+    }
+    rebuildDbaColumns();
+    renderDbaMixer();
+}
+
+
+
+
+
+
+
+
+
+function syncDbaColumnHighlight() {
+    document.querySelectorAll('.dasha-col-btn').forEach(el => {
+        el.style.background = (el.dataset.p === dbaActiveDasha) ? "linear-gradient(90deg, #10b981, #facc15)" : "#111";
+        el.style.color = (el.dataset.p === dbaActiveDasha) ? "#000" : "#0bf4e6";
+        el.style.border = "1px solid #0bf4e6";
+        el.style.padding = "6px"; el.style.cursor = "pointer"; el.style.fontWeight = "bold"; el.style.borderRadius = "4px";
+    });
+    
+    document.querySelectorAll('.bukthi-col-btn').forEach(el => {
+        let isActive = (dbaActiveLevel === "bukthi" && el.dataset.p === dbaActiveBukthi);
+        el.style.background = isActive ? "linear-gradient(90deg, #10b981, #facc15)" : "#111";
+        el.style.color = isActive ? "#000" : "#ff8800";
+        el.style.border = isActive ? "1px solid #ff8800" : "1px dashed #ff8800";
+        el.style.padding = "6px"; el.style.cursor = "pointer"; el.style.fontWeight = "bold"; el.style.borderRadius = "4px";
+    });
+    
+    document.querySelectorAll('.antara-col-btn').forEach(el => {
+        let isActive = (dbaActiveLevel === "antara" && el.dataset.p === dbaActiveAntara);
+        el.style.background = isActive ? "linear-gradient(90deg, #10b981, #facc15)" : "#111";
+        el.style.color = isActive ? "#000" : "#c084fc";
+        el.style.border = isActive ? "1px solid #c084fc" : "1px dashed #c084fc";
+        el.style.padding = "6px"; el.style.cursor = "pointer"; el.style.fontWeight = "bold"; el.style.borderRadius = "4px";
+    });
+
+    // Toggle Main Antara Header Visibility (Hidden when Antara is selected)
+    const antHeader = document.getElementById("dbaMainAntaraHeader");
+    if (antHeader) {
+        antHeader.style.opacity = (dbaActiveLevel === "antara") ? "0" : "1";
+    }
+}
+
+function clearDbaSet(type) {
+    if(type==='pos') window._dbaPosSet.clear();
+    if(type==='sup') window._dbaSupSet.clear();
+    if(type==='neg') window._dbaNegSet.clear();
+    syncDbaButtons();
+    document.getElementById("dbaTemplateSelect").value = "manual";
+    renderDbaMixer();
+}
+
+function toggleDbaNum(num, type) {
+    let targetSet = type === 'pos' ? window._dbaPosSet : (type === 'sup' ? window._dbaSupSet : window._dbaNegSet);
+    
+    if (targetSet.has(num)) {
+        targetSet.delete(num);
+    } else {
+        targetSet.add(num);
+        if(type==='pos') { window._dbaSupSet.delete(num); window._dbaNegSet.delete(num); }
+        if(type==='sup') { window._dbaPosSet.delete(num); window._dbaNegSet.delete(num); }
+        if(type==='neg') { window._dbaPosSet.delete(num); window._dbaSupSet.delete(num); }
+    }
+    document.getElementById("dbaTemplateSelect").value = "manual";
+    syncDbaButtons();
+    renderDbaMixer();
+}
+
+function applyDbaTemplate() {
+    const val = document.getElementById("dbaTemplateSelect").value;
+    const tpl = UNIFIED_TEMPLATES[val];
+    if(!tpl) return;
+
+    window._dbaPosSet.clear();
+    window._dbaSupSet.clear();
+    window._dbaNegSet.clear();
+
+    tpl.pos.forEach(n => window._dbaPosSet.add(n));
+    if(tpl.support) tpl.support.forEach(n => window._dbaSupSet.add(n));
+    tpl.neg.forEach(n => window._dbaNegSet.add(n));
+
+    syncDbaButtons();
+    renderDbaMixer();
+}
+
+function syncDbaButtons() {
+    document.querySelectorAll(".dba-hl-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".pos-btn").forEach(b => { if(window._dbaPosSet.has(parseInt(b.innerText))) b.classList.add("active"); });
+    document.querySelectorAll(".sup-btn").forEach(b => { if(window._dbaSupSet.has(parseInt(b.innerText))) b.classList.add("active"); });
+    document.querySelectorAll(".neg-btn").forEach(b => { if(window._dbaNegSet.has(parseInt(b.innerText))) b.classList.add("active"); });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function formatDbaHouses(houseString, placedHouse) {
+    if (houseString === null || houseString === undefined || houseString === "-" || houseString === "") return "-";
+    
+    // SAFELY CONVERT TO STRING TO PREVENT SPLIT() CRASH
+    let str = String(houseString);
+    
+    if (str.includes("+")) {
+        let groups = str.split("+");
+        let formattedGroups = groups.map(g => formatDbaHouses(g.trim(), placedHouse));
+        return formattedGroups.join(" <span style='color:#0bf4e6; font-weight:900; font-size:16px; margin:0 4px;'>+</span> ");
+    }
+    
+    // Safely handle " - " if Normal mode is OFF
+    if (str.includes(" - ")) {
+        let parts = str.split(" - ");
+        let formattedParts = parts.map(p => formatDbaHouses(p.trim(), placedHouse));
+        return formattedParts.join(" <span style='color:#777; font-weight:bold; margin:0 4px;'>-</span> ");
+    }
+
+    const hideUnselected = document.getElementById("dbaHideUnselected")?.checked;
+    
+    let nums = str.split(",");
+    let formatted = nums.map(n => {
+        let numInt = parseInt(n.trim());
+        if(isNaN(numInt)) return n;
+
+        let isPlaced = (numInt === placedHouse);
+        let borderRadius = isPlaced ? "50%" : "3px";
+        let padding = isPlaced ? "2px 6px" : "2px 5px";
+        let extraStyle = isPlaced ? "border: 2px solid #fff; min-width: 18px;" : "border: 1px solid transparent; min-width: 14px;";
+
+        if (window._dbaPosSet.has(numInt)) return `<span style="background:#004d00; color:#39FF14; border-color:#39FF14; padding:${padding}; border-radius:${borderRadius}; display:inline-block; text-align:center; font-size:13px; margin:2px; ${extraStyle}">${numInt}</span>`;
+        if (window._dbaSupSet.has(numInt)) return `<span style="background:#002b4d; color:#0bf4e6; border-color:#0bf4e6; padding:${padding}; border-radius:${borderRadius}; display:inline-block; text-align:center; font-size:13px; margin:2px; ${extraStyle}">${numInt}</span>`;
+        if (window._dbaNegSet.has(numInt)) return `<span style="background:#4d0000; color:#ff4444; border-color:#ff4444; padding:${padding}; border-radius:${borderRadius}; display:inline-block; text-align:center; font-size:13px; margin:2px; ${extraStyle}">${numInt}</span>`;
+        
+        if (hideUnselected) return null;
+        return `<span style="padding:${padding}; display:inline-block; border-radius:${borderRadius}; text-align:center; font-size:13px; margin:2px; ${isPlaced ? 'border: 2px solid #888;' : 'border: 1px solid transparent;'}">${numInt}</span>`;
+    }).filter(n => n !== null);
+
+    return formatted.length > 0 ? formatted.join("") : "-";
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// -----------------------------------------------------
+// CORE DBA NADI SCRIPT ENGINE (Isolated & Highly Accurate)
+// -----------------------------------------------------
+
+
+
+function getDbaPlanetData(targetPlanet, vNum) {
+    if (!targetPlanet || targetPlanet === "ERR" || targetPlanet === "-") return { name: targetPlanet || "-", houses: "-", placed: -1 };
+    try {
+        let chart = window._vargaChartStore ? window._vargaChartStore[vNum] : null;
+        if (!chart) return { name: targetPlanet, houses: "-", placed: -1 };
+        
+        const signLords = {1:"Ma",2:"Ve",3:"Bu",4:"Ch",5:"Sy",6:"Bu",7:"Ve",8:"Ma",9:"Ju",10:"Sa",11:"Sa",12:"Ju"};
+        const SHIFTED_LAGNA = document.getElementById("shiftedLagnaToggle")?.checked;
+        const isNormalMode = document.getElementById("dbaNormalToggle")?.checked;
+        const showPlaced = document.getElementById("dbaShowPlacedToggle")?.checked;
+        
+        // PULL FROM _pureAscSigns EXACTLY LIKE NAKSHATRA NADI TABLE
+        let pureAscSign = window._pureAscSigns?.[vNum] !== undefined ? window._pureAscSigns[vNum] : 0;
+        let lordshipBaseSign = pureAscSign;
+        
+        if (SHIFTED_LAGNA && window._kpSignShift && window._kpSignShift[vNum] !== undefined) {
+            lordshipBaseSign = (pureAscSign + window._kpSignShift[vNum]) % 12;
+        }
+        
+        let t_placedHouse = window._shodaBhava?.[vNum]?.[targetPlanet] || "-";
+        let placedH = parseInt(t_placedHouse);
+
+        function getHousesOf(lord) {
+            let houses = [];
+            for (let h = 1; h <= 12; h++) {
+                let hSign = ((lordshipBaseSign + h - 1) % 12) + 1;
+                if (signLords[hSign] === lord) houses.push(h);
+            }
+            return houses;
+        }
+
+        let lordships = [];
+        let rakeGroups = [];
+        const isRake = (targetPlanet === "Ra" || targetPlanet === "Ke");
+
+        if (isRake && document.getElementById("dbaRaKeDispToggle")?.checked) {
+            let pureSign = -1;
+            for (let i = 0; i < 12; i++) {
+                let obj = chart[i].find(x => x.n === targetPlanet);
+                if (obj && obj.pureSign !== undefined) pureSign = obj.pureSign;
+            }
+            if (pureSign === -1) {
+                // Fallback if pureSign is missing
+                for (let i = 0; i < 12; i++) {
+                    if (chart[i].find(x => x.n === targetPlanet)) { pureSign = i; break; }
+                }
+            }
+            
+            if (pureSign !== -1) {
+                let dispositor = signLords[pureSign + 1];
+                lordships = getHousesOf(dispositor);
+                let dispPlaced = window._shodaBhava?.[vNum]?.[dispositor];
+                if (dispPlaced && dispPlaced !== "-") lordships.unshift(parseInt(dispPlaced));
+            }
+            if (lordships.length > 0) rakeGroups.push(lordships);
+            lordships = [];
+        } else if (!isRake) {
+            lordships = getHousesOf(targetPlanet);
+        }
+
+        if (isRake) {
+            const rakeAspToggle = document.getElementById("dbaRaKeAspToggle")?.checked;
+            const rakeConjToggle = document.getElementById("dbaRaKeConjToggle")?.checked;
+            const rakeAspHouseToggle = document.getElementById("dbaRaKeAspHouseToggle")?.checked;
+
+            let dataSource = rakeAspHouseToggle ? window._shodaBhava[vNum] : window._shodaRashi[vNum]; 
+            let nodeBase = dataSource ? parseInt(dataSource[targetPlanet]) : null;
+            if (nodeBase && !isNaN(nodeBase)) {
+                ["Sy", "Ch", "Ma", "Bu", "Ju", "Ve", "Sa"].forEach(ap => {
+                    let apBase = dataSource[ap];
+                    if (!apBase || apBase === "-") return;
+                    let dist = (nodeBase - parseInt(apBase) + 12) % 12 + 1;
+                    let isConj = (dist === 1); 
+                    let aspects = [7]; 
+                    if (ap === "Ma") aspects = [4, 7, 8];
+                    if (ap === "Ju") aspects = [5, 7, 9];
+                    if (ap === "Sa") aspects = [3, 7, 10]; 
+                    if ((isConj && rakeConjToggle) || (aspects.includes(dist) && rakeAspToggle)) {
+                        let apPlaced = window._shodaBhava?.[vNum]?.[ap];
+                        let apLords = getHousesOf(ap);
+                        let nums = [];
+                        if (apPlaced && apPlaced !== "-") nums.push(parseInt(apPlaced));
+                        nums.push(...apLords);
+                        if (nums.length > 0) rakeGroups.push(nums);
+                    }
+                });
+            }
+        }
+
+        if (vNum === 1 && document.getElementById("dbaCuspalConjToggle")?.checked && !isRake) {
+            let activeCusps = null;
+            if (typeof currentCusps !== "undefined" && currentCusps) {
+                activeCusps = currentCusps;
+            } else if (window.raw && window.raw.ayanamshas) {
+                const aya = document.getElementById('aya')?.value || 'Lahiri';
+                if (window.raw.ayanamshas[aya].cusps) activeCusps = window.raw.ayanamshas[aya].cusps;
+            }
+
+            if (activeCusps) {
+                if (typeof window.getNadiAbsoluteLongitude === "function") {
+                    let targetAbsDeg = window.getNadiAbsoluteLongitude(targetPlanet, 1);
+                    if (targetAbsDeg !== -1) {
+                        for(let c = 1; c <= 12; c++){
+                            let cuspDeg = activeCusps[c];
+                            if (cuspDeg !== undefined) {
+                                let diff = Math.abs(targetAbsDeg - parseFloat(cuspDeg));
+                                if (diff > 180) diff = 360 - diff;
+                                if (diff <= 3.3333) lordships.push(c);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        const removeOccupiedToggle = document.getElementById("dbaRemOccToggle")?.checked;
+        let houseCounts = {};
+        if (removeOccupiedToggle) {
+            ["Sy", "Ch", "Ma", "Bu", "Ju", "Ve", "Sa", "Ra", "Ke"].forEach(p => {
+                let h = window._shodaBhava?.[vNum]?.[p];
+                if (h && h !== "-") {
+                    let hNum = parseInt(h);
+                    houseCounts[hNum] = (houseCounts[hNum] || 0) + 1;
+                }
+            });
+        }
+
+        let immuneHouses = new Set();
+        if (!isNaN(placedH)) immuneHouses.add(placedH);
+
+        let finalStr = "";
+        
+        if (isRake) {
+            let finalGroups = [];
+            // Merge placed house into first group if Normal is checked
+            if (isNormalMode && rakeGroups.length === 0 && !isNaN(placedH)) {
+                rakeGroups.push([]);
+            }
+            
+            rakeGroups.forEach((group, idx) => {
+                let validGroup = group.filter(h => {
+                    let isHeavilyOccupied = (houseCounts[h] >= 2);
+                    return !removeOccupiedToggle || (!isHeavilyOccupied || immuneHouses.has(h));
+                });
+                
+                if (isNormalMode && idx === 0 && !isNaN(placedH)) {
+                    validGroup.push(placedH);
+                }
+                
+                validGroup = [...new Set(validGroup)].sort((a,b) => a - b);
+                if (validGroup.length > 0) finalGroups.push(validGroup.join(","));
+            });
+            
+            finalStr = finalGroups.join(" + ");
+            
+            if (!isNormalMode) {
+                if (finalStr) finalStr = t_placedHouse + " - " + finalStr;
+                else finalStr = t_placedHouse;
+            } else {
+                if (!finalStr && !isNaN(placedH)) finalStr = t_placedHouse;
+            }
+            
+        } else {
+            let validLords = lordships.filter(h => {
+                let isHeavilyOccupied = (houseCounts[h] >= 2);
+                return !removeOccupiedToggle || (!isHeavilyOccupied || immuneHouses.has(h));
+            });
+            
+            if (isNormalMode) {
+                if (!isNaN(placedH)) validLords.push(placedH);
+                validLords = [...new Set(validLords)].sort((a,b) => a - b);
+                finalStr = validLords.join(",");
+                if (!finalStr && !isNaN(placedH)) finalStr = t_placedHouse;
+            } else {
+                validLords = [...new Set(validLords)].sort((a,b) => a - b);
+                finalStr = t_placedHouse;
+                if (validLords.length > 0) finalStr += " - " + validLords.join(",");
+            }
+        }
+
+        let isUntenanted = false;
+        if (document.getElementById("dbaUntenantedToggle")?.checked) {
+            let tented = false;
+            if (typeof window.getNadiAbsoluteLongitude === "function" && typeof window.getKpLordsNadi === "function") {
+                ["Sy", "Ch", "Ma", "Bu", "Ju", "Ve", "Sa", "Ra", "Ke"].forEach(p => {
+                    let deg = window.getNadiAbsoluteLongitude(p, vNum); 
+                    if (deg !== -1 && window.getKpLordsNadi(deg).star === targetPlanet) { tented = true; }
+                });
+            }
+            isUntenanted = !tented;
+        }
+
+        let nameDisp = DBA_NAMES[targetPlanet] || targetPlanet;
+        if (isUntenanted) nameDisp += " $";
+
+        return { name: nameDisp, houses: finalStr || "-", placed: showPlaced ? placedH : -1 };
+    } catch(err) {
+        console.error("Nadi DBA Fetch error:", err);
+        return { name: targetPlanet, houses: "-", placed: -1 };
+    }
+}
+
+
+
+
+
+
+
+
+
+function getDbaMinimalScript(pCode, vNum) {
+    let defaultEmpty = { name: pCode || "-", houses: "-" };
+    let result = { planet: {...defaultEmpty}, star: {...defaultEmpty}, sub: {...defaultEmpty}, subStar: {...defaultEmpty}, subSub: {...defaultEmpty}, subSubStar: {...defaultEmpty} };
+
+    if (!pCode || pCode === "ERR" || typeof getNadiAbsoluteLongitude !== "function") return result;
+
+    try {
+        let absDeg = getNadiAbsoluteLongitude(pCode, vNum);
+        
+        // Fetch KP Lords
+        let lords = { star: "ERR", sub: "ERR", subSub: "ERR" };
+        if (absDeg !== -1 && typeof getKpLordsNadi === "function") {
+            lords = getKpLordsNadi(absDeg);
+        }
+
+        let starOfSub = "ERR", starOfSubSub = "ERR";
+        if (lords.sub !== "ERR" && absDeg !== -1) starOfSub = getKpLordsNadi(getNadiAbsoluteLongitude(lords.sub, vNum)).star;
+        if (lords.subSub !== "ERR" && absDeg !== -1) starOfSubSub = getKpLordsNadi(getNadiAbsoluteLongitude(lords.subSub, vNum)).star;
+
+        result.planet = getDbaPlanetData(pCode, vNum);
+        result.star = getDbaPlanetData(lords.star, vNum);
+        result.sub = getDbaPlanetData(lords.sub, vNum);
+        result.subStar = getDbaPlanetData(starOfSub, vNum);
+        result.subSub = getDbaPlanetData(lords.subSub, vNum);
+        result.subSubStar = getDbaPlanetData(starOfSubSub, vNum);
+
+    } catch (e) {
+        console.error("Nadi DBA Engine Error:", e);
+    }
+    return result;
+}
+
+
+
+
+
+
+
+
+function formatDbaBox(data, isHiddenText = false) {
+    if (!data || !data.planet) return `<div>Data Unavailable</div>`;
+    
+    const hideStarSub = document.getElementById("dbaHideStarSubToggle")?.checked;
+    const hideSubSub = document.getElementById("dbaHideSubSubToggle")?.checked;
+
+    let visibilityStyle = isHiddenText ? "visibility: hidden;" : "visibility: visible;";
+
+    let html = `
+    <div style="${visibilityStyle} height: 100%;">
+        <div style="display:grid; grid-template-columns: 80px 10px 85px 1fr; gap:4px; font-size:14px; align-items:start;">
+            <div style="color:#facc15; font-weight:bold; margin-top:2px;">Planet</div><div style="color:#fff; font-weight:bold; margin-top:2px;">:</div>
+            <div style="color:#fff; font-weight:bold; margin-top:2px;">${data.planet.name}</div>
+            <div style="color:#fff; font-weight:bold; line-height:1.6; text-align:left;">${formatDbaHouses(data.planet.houses, data.planet.placed)}</div>
+
+            <div style="color:#facc15; font-weight:bold; margin-top:2px;">Starlord</div><div style="color:#fff; font-weight:bold; margin-top:2px;">:</div>
+            <div style="color:#fff; font-weight:bold; margin-top:2px;">${data.star.name}</div>
+            <div style="color:#fff; font-weight:bold; line-height:1.6; text-align:left;">${formatDbaHouses(data.star.houses, data.star.placed)}</div>
+        </div>
+
+        <div style="border-top:1px dashed #333; margin-top:8px; padding-top:8px; display:grid; grid-template-columns: 80px 10px 85px 1fr; gap:4px; font-size:14px; align-items:start;">
+            <div style="color:#ff4444; font-weight:bold; margin-top:2px;">Sublord</div><div style="color:#ff4444; font-weight:bold; margin-top:2px;">:</div>
+            <div style="color:#ff4444; font-weight:bold; margin-top:2px;">${data.sub.name}</div>
+            <div style="color:#ff4444; font-weight:bold; line-height:1.6; text-align:left;">${formatDbaHouses(data.sub.houses, data.sub.placed)}</div>
+    `;
+
+    if (!hideStarSub) {
+        html += `
+            <div style="color:#ff4444; font-weight:bold; margin-top:2px;">&#11088; SL</div><div style="color:#ff4444; font-weight:bold; margin-top:2px;">:</div>
+            <div style="color:#ff4444; font-weight:bold; margin-top:2px;">${data.subStar.name}</div>
+            <div style="color:#ff4444; font-weight:bold; line-height:1.6; text-align:left;">${formatDbaHouses(data.subStar.houses, data.subStar.placed)}</div>
+        `;
+    }
+    
+    html += `</div>`;
+
+    if (!hideSubSub) {
+        html += `
+        <div style="border-top:1px dashed #333; margin-top:8px; padding-top:8px; display:grid; grid-template-columns: 80px 10px 85px 1fr; gap:4px; font-size:14px; align-items:start;">
+            <div style="color:#c084fc; font-weight:bold; margin-top:2px;">Sub-Sub</div><div style="color:#c084fc; font-weight:bold; margin-top:2px;">:</div>
+            <div style="color:#c084fc; font-weight:bold; margin-top:2px;">${data.subSub.name}</div>
+            <div style="color:#c084fc; font-weight:bold; line-height:1.6; text-align:left;">${formatDbaHouses(data.subSub.houses, data.subSub.placed)}</div>
+        `;
+        if (!hideStarSub) {
+            html += `
+            <div style="color:#c084fc; font-weight:bold; margin-top:2px;">&#11088; SSL</div><div style="color:#c084fc; font-weight:bold; margin-top:2px;">:</div>
+            <div style="color:#c084fc; font-weight:bold; margin-top:2px;">${data.subSubStar.name}</div>
+            <div style="color:#c084fc; font-weight:bold; line-height:1.6; text-align:left;">${formatDbaHouses(data.subSubStar.houses, data.subSubStar.placed)}</div>
+            `;
+        }
+        html += `</div>`;
+    }
+
+    html += `</div>`;
+    return html;
+}
+
+
+
+
+
+
+
+
+
+
+
+function renderDbaMixer() {
+    const grid = document.getElementById("dbaIslandsGrid");
+    const vNum = parseInt(document.getElementById("dbaVargaSelect").value || "1");
+    if (!grid) return;
+
+    if (!window._vargaChartStore) {
+        grid.innerHTML = `<div style="text-align:center; color:#ff4444; font-weight:bold;">Please load Natal Data first.</div>`;
+        return;
+    }
+
+    try {
+        let newGridHtml = "";
+        let iterOrder = [];
+        let dashaData, bukthiData, antaraData;
+
+        if (dbaActiveLevel === "bukthi") {
+            // Mode A: Iterates Antaras. Shows ALL THREE columns. (Bukthi is selected)
+            let startIdx = DBA_PLANETS.indexOf(dbaActiveBukthi);
+            if (startIdx === -1) startIdx = 0;
+            iterOrder = [...DBA_PLANETS.slice(startIdx), ...DBA_PLANETS.slice(0, startIdx)];
+            dashaData = getDbaMinimalScript(dbaActiveDasha, vNum);
+            bukthiData = getDbaMinimalScript(dbaActiveBukthi, vNum);
+
+            if (!dashaData || !bukthiData) return;
+
+            iterOrder.forEach(antaraCode => {
+                antaraData = getDbaMinimalScript(antaraCode, vNum);
+                
+                newGridHtml += `
+                    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:20px; align-items: stretch; width: 100%;">
+                        <div style="background:#111; border:2px solid #0bf4e6; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5);">
+                            ${formatDbaBox(dashaData, false)}
+                        </div>
+                        <div style="background:#111; border:2px solid #ff8800; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5);">
+                            ${formatDbaBox(bukthiData, false)}
+                        </div>
+                        <div style="background:#111; border:2px solid #c084fc; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5);">
+                            ${formatDbaBox(antaraData, false)}
+                        </div>
+                    </div>
+                `;
+            });
+
+        } else if (dbaActiveLevel === "antara") {
+            // Mode B: Iterates Bukthis. ANTARA TEXT HIDDEN, but layout remains. (Antara is selected)
+            let startIdx = DBA_PLANETS.indexOf(dbaActiveDasha);
+            if (startIdx === -1) startIdx = 0;
+            iterOrder = [...DBA_PLANETS.slice(startIdx), ...DBA_PLANETS.slice(0, startIdx)];
+            dashaData = getDbaMinimalScript(dbaActiveDasha, vNum);
+            antaraData = getDbaMinimalScript(dbaActiveAntara, vNum); 
+
+            if (!dashaData || !antaraData) return;
+
+            iterOrder.forEach(bukthiCode => {
+                bukthiData = getDbaMinimalScript(bukthiCode, vNum);
+                
+                newGridHtml += `
+                    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:20px; align-items: stretch; width: 100%;">
+                        <div style="background:#111; border:2px solid #0bf4e6; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5);">
+                            ${formatDbaBox(dashaData, false)}
+                        </div>
+                        <div style="background:#111; border:2px solid #ff8800; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5);">
+                            ${formatDbaBox(bukthiData, false)}
+                        </div>
+                        <div style="background:#111; border:2px solid #c084fc; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5);">
+                            ${formatDbaBox(antaraData, true)}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        
+        // Execute safe insertion
+        grid.innerHTML = newGridHtml;
+
+    } catch (err) {
+        console.error("DBA Mixer Engine Crash Blocked:", err);
+        grid.innerHTML = `<div style="text-align:center; color:#ff4444; font-weight:bold;">An error occurred rendering the DBA tables. Ensure calculations are complete.</div>`;
+    }
+}
+
+// Ensure the main calc cycle updates this table automatically
+(function hookDbaMixerIntoCalc(){
+    const originalCoreCalc = window.calc;
+    window.calc = function(){
+        if (typeof originalCoreCalc === "function") originalCoreCalc();
+        try { 
+            autoSelectRunningDba();
+            if (typeof renderDbaMixer === "function") renderDbaMixer(); 
+        } catch(e){}
+    };
+})();
+</script>
 
 
 
