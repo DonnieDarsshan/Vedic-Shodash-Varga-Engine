@@ -7544,10 +7544,10 @@ function loadCloudProfile(event) {
 
 
 <div class="division-title" onclick="toggleNakshatraNadi()">
-    Nakshatra Nadi For All Divisional Charts &#9650;
+    Nakshatra Nadi For All Divisional Charts &#9660;
 </div>
 
-<div id="nakshatraNadiWrapper" class="shoda-wrapper" style="display:block; padding-bottom: 40px;">
+<div id="nakshatraNadiWrapper" class="shoda-wrapper" style="display:none; padding-bottom: 40px;">
     
     <div id="nadiSingleKundali" style="display:flex; justify-content:center; margin-bottom: 40px; width:100%;"></div>
 
@@ -11828,11 +11828,14 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
 ========================================================= -->
 
 <div class="division-title" onclick="toggleDbaMixer()">
-    Nakshatra Nadi DBA Mixer &#9660;
+    Nakshatra Nadi DBA Mixer &#9650;
 </div>
 
-<div id="dbaMixerWrapper" class="shoda-wrapper" style="display:none; padding-bottom: 60px; max-width: 100%; padding-left: 20px; padding-right: 20px; width: 100%; box-sizing: border-box;">
+<div id="dbaMixerWrapper" class="shoda-wrapper" style="display:block; padding-bottom: 60px; max-width: 100%; padding-left: 20px; padding-right: 20px; width: 100%; box-sizing: border-box;">
     
+    <!-- PATCH: Kundali Container placed exactly below the heading -->
+    <div id="dbaMixerKundali" style="display:flex; justify-content:center; margin-top: 20px; margin-bottom: 35px; width:100%;"></div>
+
     <!-- CONTROLS & TEMPLATES (Full Width) -->
     <div style="background:#0a0a0a; border:1px solid var(--grid-line); padding:20px; border-radius:6px; margin: 0 auto 30px auto; width: 100%; box-sizing: border-box;">
         
@@ -11842,7 +11845,7 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
                 <input type="checkbox" id="dbaRemOccToggle" onchange="renderDbaMixer()"> Remove Occupied
             </label>
             <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#0bf4e6; font-weight:bold; font-size:15px;">
-                <input type="checkbox" id="dbaCuspalConjToggle" onchange="renderDbaMixer()"> Include Cuspal Conj (7 Planets)
+                <input type="checkbox" id="dbaCuspalConjToggle" onchange="renderDbaMixer()" checked> Include Cuspal Conj (7 Planets)
             </label>
             <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#c084fc; font-weight:bold; font-size:15px;">
                 <input type="checkbox" id="dbaUntenantedToggle" onchange="renderDbaMixer()"> Untenanted
@@ -11877,11 +11880,14 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
                 <input type="checkbox" id="dbaRaKeConjToggle" onchange="renderDbaMixer()"> RaKe Conjunct
             </label>
             <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#ff9933; font-weight:bold; font-size:15px;">
-                <input type="checkbox" id="dbaRaKeAspToggle" onchange="renderDbaMixer()"> RaKe Asp
+                <input type="checkbox" id="dbaRaKeAspToggle" onchange="renderDbaMixer()" checked> RaKe Asp
             </label>
             <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#10b981; font-weight:bold; font-size:15px;">
                 <input type="checkbox" id="dbaRaKeAspHouseToggle" onchange="renderDbaMixer()"> RaKe Asp House Based
             </label>
+			<label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#ff3366; font-weight:bold; font-size:15px;">
+        <input type="checkbox" id="dbaLocalShiftToggle" onchange="renderDbaMixer()"> Shift
+    </label>
         </div>
 		
 		
@@ -11990,6 +11996,9 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
         <div style="background:#4d2b00; color:#ff8800; font-size:22px; font-weight:900; padding:12px; border:2px solid #ff8800; border-radius:6px; letter-spacing:1px;">BUKTHI</div>
         <div id="dbaMainAntaraHeader" style="background:#2e004f; color:#c084fc; font-size:22px; font-weight:900; padding:12px; border:2px solid #c084fc; border-radius:6px; letter-spacing:1px; transition: opacity 0.3s ease;">ANTARA</div>
     </div>
+
+    <!-- PATCH: Added Kundali Container -->
+    <div id="dbaMixerKundali" style="display:flex; justify-content:center; margin-top: 25px; margin-bottom: 35px; width:100%;"></div>
 
     <!-- 9 ROWS OF ISLANDS GRID -->
     <div id="dbaIslandsGrid" style="display:flex; flex-direction:column; gap:20px; width:100%;">
@@ -12320,40 +12329,46 @@ function syncDbaButtons() {
 function formatDbaHouses(houseString, placedHouse) {
     if (houseString === null || houseString === undefined || houseString === "-" || houseString === "") return "-";
     
-    // SAFELY CONVERT TO STRING TO PREVENT SPLIT() CRASH
     let str = String(houseString);
     
     if (str.includes("+")) {
         let groups = str.split("+");
         let formattedGroups = groups.map(g => formatDbaHouses(g.trim(), placedHouse));
-        return formattedGroups.join(" <span style='color:#0bf4e6; font-weight:900; font-size:16px; margin:0 4px;'>+</span> ");
+        return formattedGroups.join(" <span style='color:#0bf4e6; font-weight:900; font-size:18px; margin:0 5px;'>+</span> ");
     }
     
-    // Safely handle " - " if Normal mode is OFF
     if (str.includes(" - ")) {
         let parts = str.split(" - ");
         let formattedParts = parts.map(p => formatDbaHouses(p.trim(), placedHouse));
-        return formattedParts.join(" <span style='color:#777; font-weight:bold; margin:0 4px;'>-</span> ");
+        return formattedParts.join(" <span style='color:#ffffff; font-weight:900; font-size:18px; margin:0 6px;'>-</span> ");
     }
 
     const hideUnselected = document.getElementById("dbaHideUnselected")?.checked;
     
     let nums = str.split(",");
+    let placedMatched = false; // Tracks if we already circled the placed house
+    
     let formatted = nums.map(n => {
         let numInt = parseInt(n.trim());
         if(isNaN(numInt)) return n;
 
-        let isPlaced = (numInt === placedHouse);
-        let borderRadius = isPlaced ? "50%" : "3px";
-        let padding = isPlaced ? "2px 6px" : "2px 5px";
-        let extraStyle = isPlaced ? "border: 2px solid #fff; min-width: 18px;" : "border: 1px solid transparent; min-width: 14px;";
+        // PATCH: Only apply the circle styling to the FIRST occurrence of the placed house
+        let isPlaced = false;
+        if (numInt === placedHouse && !placedMatched) {
+            isPlaced = true;
+            placedMatched = true;
+        }
 
-        if (window._dbaPosSet.has(numInt)) return `<span style="background:#004d00; color:#39FF14; border-color:#39FF14; padding:${padding}; border-radius:${borderRadius}; display:inline-block; text-align:center; font-size:13px; margin:2px; ${extraStyle}">${numInt}</span>`;
-        if (window._dbaSupSet.has(numInt)) return `<span style="background:#002b4d; color:#0bf4e6; border-color:#0bf4e6; padding:${padding}; border-radius:${borderRadius}; display:inline-block; text-align:center; font-size:13px; margin:2px; ${extraStyle}">${numInt}</span>`;
-        if (window._dbaNegSet.has(numInt)) return `<span style="background:#4d0000; color:#ff4444; border-color:#ff4444; padding:${padding}; border-radius:${borderRadius}; display:inline-block; text-align:center; font-size:13px; margin:2px; ${extraStyle}">${numInt}</span>`;
+        let borderRadius = isPlaced ? "50%" : "3px";
+        let padding = isPlaced ? "2px 7px" : "2px 6px";
+        let extraStyle = isPlaced ? "border: 2px solid #fff; min-width: 20px;" : "border: 1px solid transparent; min-width: 16px;";
+
+        if (window._dbaPosSet.has(numInt)) return `<span style="background:#004d00; color:#39FF14; border-color:#39FF14; padding:${padding}; border-radius:${borderRadius}; display:inline-block; text-align:center; font-size:15px; font-weight:bold; margin:2px; ${extraStyle}">${numInt}</span>`;
+        if (window._dbaSupSet.has(numInt)) return `<span style="background:#002b4d; color:#0bf4e6; border-color:#0bf4e6; padding:${padding}; border-radius:${borderRadius}; display:inline-block; text-align:center; font-size:15px; font-weight:bold; margin:2px; ${extraStyle}">${numInt}</span>`;
+        if (window._dbaNegSet.has(numInt)) return `<span style="background:#4d0000; color:#ff4444; border-color:#ff4444; padding:${padding}; border-radius:${borderRadius}; display:inline-block; text-align:center; font-size:15px; font-weight:bold; margin:2px; ${extraStyle}">${numInt}</span>`;
         
         if (hideUnselected) return null;
-        return `<span style="padding:${padding}; display:inline-block; border-radius:${borderRadius}; text-align:center; font-size:13px; margin:2px; ${isPlaced ? 'border: 2px solid #888;' : 'border: 1px solid transparent;'}">${numInt}</span>`;
+        return `<span style="padding:${padding}; display:inline-block; border-radius:${borderRadius}; text-align:center; font-size:15px; font-weight:bold; margin:2px; ${isPlaced ? 'border: 2px solid #888;' : 'border: 1px solid transparent;'}">${numInt}</span>`;
     }).filter(n => n !== null);
 
     return formatted.length > 0 ? formatted.join("") : "-";
@@ -12380,6 +12395,35 @@ function formatDbaHouses(houseString, placedHouse) {
 // CORE DBA NADI SCRIPT ENGINE (Isolated & Highly Accurate)
 // -----------------------------------------------------
 
+/**
+ * Dynamic Lordship Resolver: Switches between KP Cuspal and Sign-to-Sign
+ */
+function resolveDynamicLordships(pCode, isKpMode, cusps, ascIndex) {
+    const signLords = { 1:"Ma", 2:"Ve", 3:"Bu", 4:"Ch", 5:"Sy", 6:"Bu", 7:"Ve", 8:"Ma", 9:"Ju", 10:"Sa", 11:"Sa", 12:"Ju" };
+    const ownedHouses = [];
+
+    if (isKpMode && cusps && cusps.length >= 12) {
+        for (let h = 1; h <= 12; h++) {
+            let cuspDeg = parseFloat(cusps[h] || cusps[h - 1]);
+            if (isNaN(cuspDeg)) continue;
+            let cuspSign = Math.floor(cuspDeg / 30) + 1;
+            if (signLords[cuspSign] === pCode) ownedHouses.push(h);
+        }
+    } else {
+        const pivotSignNum = ascIndex + 1;
+        for (let h = 1; h <= 12; h++) {
+            const signOfHouse = ((pivotSignNum + h - 2) % 12) + 1;
+            if (signLords[signOfHouse] === pCode) ownedHouses.push(h);
+        }
+    }
+    return ownedHouses;
+}
+
+
+
+
+
+
 
 
 function getDbaPlanetData(targetPlanet, vNum) {
@@ -12389,7 +12433,9 @@ function getDbaPlanetData(targetPlanet, vNum) {
         if (!chart) return { name: targetPlanet, houses: "-", placed: -1 };
         
         const signLords = {1:"Ma",2:"Ve",3:"Bu",4:"Ch",5:"Sy",6:"Bu",7:"Ve",8:"Ma",9:"Ju",10:"Sa",11:"Sa",12:"Ju"};
-        const SHIFTED_LAGNA = document.getElementById("shiftedLagnaToggle")?.checked;
+        
+        // PATCH: Now reads entirely from the isolated local shift checkbox
+        const SHIFTED_LAGNA = document.getElementById("dbaLocalShiftToggle")?.checked;
         const isNormalMode = document.getElementById("dbaNormalToggle")?.checked;
         const showPlaced = document.getElementById("dbaShowPlacedToggle")?.checked;
         
@@ -12401,16 +12447,23 @@ function getDbaPlanetData(targetPlanet, vNum) {
             lordshipBaseSign = (pureAscSign + window._kpSignShift[vNum]) % 12;
         }
         
-        let t_placedHouse = window._shodaBhava?.[vNum]?.[targetPlanet] || "-";
+        const isKpActive = document.getElementById("modeKP")?.checked || false;
+        let t_placedHouse;
+        
+        if (isKpActive && typeof getPlacidusHouse === "function" && typeof currentCusps !== "undefined" && currentCusps) {
+            // Locate planet degree and derive placidus house
+            let pDeg = window._shiftedPlanetsGlobal?.[DBA_NAMES[targetPlanet]] || window._shiftedPlanetsGlobal?.[targetPlanet] || -1;
+            t_placedHouse = pDeg !== -1 ? getPlacidusHouse(pDeg, currentCusps) : (window._shodaBhava?.[vNum]?.[targetPlanet] || "-");
+        } else {
+            t_placedHouse = window._shodaBhava?.[vNum]?.[targetPlanet] || "-";
+        }
+        
         let placedH = parseInt(t_placedHouse);
 
         function getHousesOf(lord) {
-            let houses = [];
-            for (let h = 1; h <= 12; h++) {
-                let hSign = ((lordshipBaseSign + h - 1) % 12) + 1;
-                if (signLords[hSign] === lord) houses.push(h);
-            }
-            return houses;
+            const isKpActive = document.getElementById("modeKP")?.checked || false;
+            let cuspsToUse = typeof window.currentCusps !== "undefined" ? window.currentCusps : (typeof currentCusps !== "undefined" ? currentCusps : null);
+            return resolveDynamicLordships(lord, isKpActive, cuspsToUse, lordshipBaseSign);
         }
 
         let lordships = [];
@@ -12516,7 +12569,6 @@ function getDbaPlanetData(targetPlanet, vNum) {
         
         if (isRake) {
             let finalGroups = [];
-            // Merge placed house into first group if Normal is checked
             if (isNormalMode && rakeGroups.length === 0 && !isNaN(placedH)) {
                 rakeGroups.push([]);
             }
@@ -12531,7 +12583,12 @@ function getDbaPlanetData(targetPlanet, vNum) {
                     validGroup.push(placedH);
                 }
                 
-                validGroup = [...new Set(validGroup)].sort((a,b) => a - b);
+                // PATCH: Allow duplicates in Normal mode so placed house and lordship both show
+                if (isNormalMode) {
+                    validGroup.sort((a,b) => a - b);
+                } else {
+                    validGroup = [...new Set(validGroup)].sort((a,b) => a - b);
+                }
                 if (validGroup.length > 0) finalGroups.push(validGroup.join(","));
             });
             
@@ -12552,7 +12609,8 @@ function getDbaPlanetData(targetPlanet, vNum) {
             
             if (isNormalMode) {
                 if (!isNaN(placedH)) validLords.push(placedH);
-                validLords = [...new Set(validLords)].sort((a,b) => a - b);
+                // PATCH: Removed deduplication to allow repeating numbers (e.g., 4,4,9)
+                validLords.sort((a,b) => a - b);
                 finalStr = validLords.join(",");
                 if (!finalStr && !isNaN(placedH)) finalStr = t_placedHouse;
             } else {
@@ -12563,16 +12621,14 @@ function getDbaPlanetData(targetPlanet, vNum) {
         }
 
         let isUntenanted = false;
-        if (document.getElementById("dbaUntenantedToggle")?.checked) {
-            let tented = false;
-            if (typeof window.getNadiAbsoluteLongitude === "function" && typeof window.getKpLordsNadi === "function") {
-                ["Sy", "Ch", "Ma", "Bu", "Ju", "Ve", "Sa", "Ra", "Ke"].forEach(p => {
-                    let deg = window.getNadiAbsoluteLongitude(p, vNum); 
-                    if (deg !== -1 && window.getKpLordsNadi(deg).star === targetPlanet) { tented = true; }
-                });
-            }
-            isUntenanted = !tented;
+        let tented = false;
+        if (typeof window.getNadiAbsoluteLongitude === "function" && typeof window.getKpLordsNadi === "function") {
+            ["Sy", "Ch", "Ma", "Bu", "Ju", "Ve", "Sa", "Ra", "Ke"].forEach(p => {
+                let deg = window.getNadiAbsoluteLongitude(p, vNum); 
+                if (deg !== -1 && window.getKpLordsNadi(deg).star === targetPlanet) { tented = true; }
+            });
         }
+        isUntenanted = !tented;
 
         let nameDisp = DBA_NAMES[targetPlanet] || targetPlanet;
         if (isUntenanted) nameDisp += " $";
@@ -12583,6 +12639,10 @@ function getDbaPlanetData(targetPlanet, vNum) {
         return { name: targetPlanet, houses: "-", placed: -1 };
     }
 }
+
+
+
+
 
 
 
@@ -12630,7 +12690,6 @@ function getDbaMinimalScript(pCode, vNum) {
 
 
 
-
 function formatDbaBox(data, isHiddenText = false) {
     if (!data || !data.planet) return `<div>Data Unavailable</div>`;
     
@@ -12640,28 +12699,29 @@ function formatDbaBox(data, isHiddenText = false) {
     let visibilityStyle = isHiddenText ? "visibility: hidden;" : "visibility: visible;";
 
     let html = `
-    <div style="${visibilityStyle} height: 100%;">
-        <div style="display:grid; grid-template-columns: 80px 10px 85px 1fr; gap:4px; font-size:14px; align-items:start;">
-            <div style="color:#facc15; font-weight:bold; margin-top:2px;">Planet</div><div style="color:#fff; font-weight:bold; margin-top:2px;">:</div>
-            <div style="color:#fff; font-weight:bold; margin-top:2px;">${data.planet.name}</div>
-            <div style="color:#fff; font-weight:bold; line-height:1.6; text-align:left;">${formatDbaHouses(data.planet.houses, data.planet.placed)}</div>
+    <div style="${visibilityStyle} height: 100%; font-family: 'Segoe UI', Arial, sans-serif; font-size: 15px; line-height: 1.4;">
+        
+        <div style="display:grid; grid-template-columns: 85px 10px 85px 1fr; gap:2px 4px; align-items:start;">
+            <div style="color:#facc15; font-weight:bold;">Planet</div><div style="color:#facc15; font-weight:bold;">:</div>
+            <div style="color:#facc15; font-weight:bold;">${data.planet.name}</div>
+            <div style="color:#facc15; font-weight:bold; text-align:left;">${formatDbaHouses(data.planet.houses, data.planet.placed)}</div>
 
-            <div style="color:#facc15; font-weight:bold; margin-top:2px;">Starlord</div><div style="color:#fff; font-weight:bold; margin-top:2px;">:</div>
-            <div style="color:#fff; font-weight:bold; margin-top:2px;">${data.star.name}</div>
-            <div style="color:#fff; font-weight:bold; line-height:1.6; text-align:left;">${formatDbaHouses(data.star.houses, data.star.placed)}</div>
+            <div style="color:#facc15; font-weight:bold;">Starlord</div><div style="color:#facc15; font-weight:bold;">:</div>
+            <div style="color:#facc15; font-weight:bold;">${data.star.name}</div>
+            <div style="color:#facc15; font-weight:bold; text-align:left;">${formatDbaHouses(data.star.houses, data.star.placed)}</div>
         </div>
 
-        <div style="border-top:1px dashed #333; margin-top:8px; padding-top:8px; display:grid; grid-template-columns: 80px 10px 85px 1fr; gap:4px; font-size:14px; align-items:start;">
-            <div style="color:#ff4444; font-weight:bold; margin-top:2px;">Sublord</div><div style="color:#ff4444; font-weight:bold; margin-top:2px;">:</div>
-            <div style="color:#ff4444; font-weight:bold; margin-top:2px;">${data.sub.name}</div>
-            <div style="color:#ff4444; font-weight:bold; line-height:1.6; text-align:left;">${formatDbaHouses(data.sub.houses, data.sub.placed)}</div>
+        <div style="border-top:1px solid #888; margin-top:6px; padding-top:6px; display:grid; grid-template-columns: 85px 10px 85px 1fr; gap:2px 4px; align-items:start;">
+            <div style="color:#ff4444; font-weight:bold;">Sublord</div><div style="color:#ff4444; font-weight:bold;">:</div>
+            <div style="color:#ff4444; font-weight:bold;">${data.sub.name}</div>
+            <div style="color:#ff4444; font-weight:bold; text-align:left;">${formatDbaHouses(data.sub.houses, data.sub.placed)}</div>
     `;
 
     if (!hideStarSub) {
         html += `
-            <div style="color:#ff4444; font-weight:bold; margin-top:2px;">&#11088; SL</div><div style="color:#ff4444; font-weight:bold; margin-top:2px;">:</div>
-            <div style="color:#ff4444; font-weight:bold; margin-top:2px;">${data.subStar.name}</div>
-            <div style="color:#ff4444; font-weight:bold; line-height:1.6; text-align:left;">${formatDbaHouses(data.subStar.houses, data.subStar.placed)}</div>
+            <div style="color:#ff4444; font-weight:bold;">&#11088; SL</div><div style="color:#ff4444; font-weight:bold;">:</div>
+            <div style="color:#ff4444; font-weight:bold;">${data.subStar.name}</div>
+            <div style="color:#ff4444; font-weight:bold; text-align:left;">${formatDbaHouses(data.subStar.houses, data.subStar.placed)}</div>
         `;
     }
     
@@ -12669,16 +12729,16 @@ function formatDbaBox(data, isHiddenText = false) {
 
     if (!hideSubSub) {
         html += `
-        <div style="border-top:1px dashed #333; margin-top:8px; padding-top:8px; display:grid; grid-template-columns: 80px 10px 85px 1fr; gap:4px; font-size:14px; align-items:start;">
-            <div style="color:#c084fc; font-weight:bold; margin-top:2px;">Sub-Sub</div><div style="color:#c084fc; font-weight:bold; margin-top:2px;">:</div>
-            <div style="color:#c084fc; font-weight:bold; margin-top:2px;">${data.subSub.name}</div>
-            <div style="color:#c084fc; font-weight:bold; line-height:1.6; text-align:left;">${formatDbaHouses(data.subSub.houses, data.subSub.placed)}</div>
+        <div style="border-top:1px solid #888; margin-top:6px; padding-top:6px; display:grid; grid-template-columns: 85px 10px 85px 1fr; gap:2px 4px; align-items:start;">
+            <div style="color:#c084fc; font-weight:bold;">Sub-Sub</div><div style="color:#c084fc; font-weight:bold;">:</div>
+            <div style="color:#c084fc; font-weight:bold;">${data.subSub.name}</div>
+            <div style="color:#c084fc; font-weight:bold; text-align:left;">${formatDbaHouses(data.subSub.houses, data.subSub.placed)}</div>
         `;
         if (!hideStarSub) {
             html += `
-            <div style="color:#c084fc; font-weight:bold; margin-top:2px;">&#11088; SSL</div><div style="color:#c084fc; font-weight:bold; margin-top:2px;">:</div>
-            <div style="color:#c084fc; font-weight:bold; margin-top:2px;">${data.subSubStar.name}</div>
-            <div style="color:#c084fc; font-weight:bold; line-height:1.6; text-align:left;">${formatDbaHouses(data.subSubStar.houses, data.subSubStar.placed)}</div>
+            <div style="color:#c084fc; font-weight:bold;">&#11088; SSL</div><div style="color:#c084fc; font-weight:bold;">:</div>
+            <div style="color:#c084fc; font-weight:bold;">${data.subSubStar.name}</div>
+            <div style="color:#c084fc; font-weight:bold; text-align:left;">${formatDbaHouses(data.subSubStar.houses, data.subSubStar.placed)}</div>
             `;
         }
         html += `</div>`;
@@ -12708,13 +12768,178 @@ function renderDbaMixer() {
         return;
     }
 
+    // PATCH: Render the Kundali specifically for the DBA Mixer (Isolated & Top Level)
+    const kundaliContainer = document.getElementById("dbaMixerKundali");
+    if (kundaliContainer) {
+        kundaliContainer.innerHTML = "";
+        const chartData = window._vargaChartStore[vNum];
+        
+        if (chartData) {
+            // 1. Isolate the Ascendant based on the Local Shift Toggle
+            let ascIndex = window._pureAscSigns && window._pureAscSigns[vNum] !== undefined ? window._pureAscSigns[vNum] : 0;
+            const SHIFTED_LAGNA = document.getElementById("dbaLocalShiftToggle")?.checked;
+            
+            if (SHIFTED_LAGNA && window._kpSignShift && window._kpSignShift[vNum] !== undefined) {
+                ascIndex = (ascIndex + window._kpSignShift[vNum]) % 12;
+            }
+
+            // 2. Isolate the Planets based on Astrological Mode (KP / Sign / Vedic) & Local Shift
+            let isolatedChart = Array(12).fill().map(() => []);
+            const isKpActive = document.getElementById("modeKP")?.checked || false;
+            let cuspsToUse = typeof window.currentCusps !== "undefined" ? window.currentCusps : (typeof currentCusps !== "undefined" ? currentCusps : null);
+            
+            for(let i=0; i<12; i++) {
+                chartData[i].forEach(p => {
+                    if (p.isAsc) return; // Skip the globally placed ASC marker
+                    
+                    let placedH = null;
+                    if (isKpActive && typeof getPlacidusHouse === "function" && cuspsToUse) {
+                        let pDeg = window._shiftedPlanetsGlobal?.[DBA_NAMES[p.n]] || window._shiftedPlanetsGlobal?.[p.n] || -1;
+                        let t_placedHouse = pDeg !== -1 ? getPlacidusHouse(pDeg, cuspsToUse) : (window._shodaBhava?.[vNum]?.[p.n] || "-");
+                        placedH = parseInt(t_placedHouse);
+                    } else {
+                        placedH = parseInt(window._shodaBhava?.[vNum]?.[p.n]);
+                    }
+                    
+                    let targetSign = i;
+                    if (!isNaN(placedH) && placedH >= 1 && placedH <= 12) {
+                        // Dynamically map house number to the exact Kundali box based on active mode
+                        targetSign = (ascIndex + placedH - 1) % 12;
+                    } else {
+                        targetSign = p.pureSign !== undefined ? p.pureSign : i;
+                    }
+                    isolatedChart[targetSign].push(p);
+                });
+            }
+
+            // 3. Extract the exact ASC Degree from the global object
+            let ascObj = null;
+            for(let i=0; i<12; i++) {
+                let found = chartData[i].find(x => x.isAsc);
+                if (found) { ascObj = found; break; }
+            }
+
+            const card = document.createElement('div'); 
+            card.className = 'varga-card';
+            card.style.maxWidth = '800px'; 
+            card.style.margin = '0 auto';
+            card.style.width = '100%';
+            card.innerHTML = `<div class="varga-title">D-${vNum} Selected Chart</div>`;
+
+            const k = document.createElement('div'); 
+            k.className = 'kundali';
+            const m = [11, 0, 1, 2, 10, -1, -1, 3, 9, -1, -1, 4, 8, 7, 6, 5];
+            
+            const modeKN = document.getElementById("modeKN")?.checked;
+            const planetNameMapKN = {
+                Sy: "\u0CB0\u0CB5\u0CBF", Ch: "\u0C9A\u0C82\u0CA6\u0CCD\u0CB0", Ma: "\u0C95\u0CC1\u0C9C", Bu: "\u0CAC\u0CC1\u0CA7", Ju: "\u0C97\u0CC1\u0CB0\u0CC1", Ve: "\u0CB6\u0CC1\u0C95\u0CCD\u0CB0", Sa: "\u0CB6\u0CA8\u0CBF", Ra: "\u0CB0\u0CBE\u0CB9\u0CC1", Ke: "\u0C95\u0CC7\u0CA4\u0CC1", ASC: "\u0CB2\u0C97\u0CCD\u0CA8"
+            };
+
+            // Calculate precise lordships specifically for this isolated Kundali
+            function getPlanetLordshipLocal(pCode) {
+                const signLords = { 1:"Ma",2:"Ve",3:"Bu",4:"Ch", 5:"Sy",6:"Bu",7:"Ve",8:"Ma", 9:"Ju",10:"Sa",11:"Sa",12:"Ju" };
+                const ascSignIdx = ascIndex + 1;
+
+                function housesOfLord(lord) {
+                    const isKpActive = document.getElementById("modeKP")?.checked || false;
+                    let cuspsToUse = typeof window.currentCusps !== "undefined" ? window.currentCusps : (typeof currentCusps !== "undefined" ? currentCusps : null);
+                    if (typeof resolveDynamicLordships === "function") {
+                        return resolveDynamicLordships(lord, isKpActive, cuspsToUse, ascIndex);
+                    }
+                    const arr = [];
+                    for(let h=1; h<=12; h++) {
+                        const signOfHouse = ((ascSignIdx + h - 2) % 12) + 1;
+                        if(signLords[signOfHouse] === lord) arr.push(h);
+                    }
+                    return arr;
+                }
+
+                if(pCode === "Ra" || pCode === "Ke") {
+                    let signPlaced = null;
+                    let pObj = null;
+                    for(let i=0; i<12; i++) {
+                        pObj = isolatedChart[i].find(p => p.n === pCode);
+                        if(pObj) { signPlaced = i + 1; break; }
+                    }
+                    if(!pObj) return [];
+
+                    const dispositor = signLords[signPlaced];
+                    const lordHouses = housesOfLord(dispositor);
+
+                    let dispositorHouse = null;
+                    for(let i=0; i<12; i++) {
+                        const obj = isolatedChart[i].find(p => p.n === dispositor);
+                        if(obj) { dispositorHouse = ((i - ascIndex + 12) % 12) + 1; break; }
+                    }
+                    if (dispositorHouse) return [dispositorHouse, ...lordHouses];
+                    return lordHouses;
+                }
+                return housesOfLord(pCode);
+            }
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+
+            m.forEach(sIdx => {
+                const h = document.createElement('div'); 
+                h.className = 'house';
+                if (sIdx === -1) {
+                    if (!card.querySelector('.center-box')) {
+                        const cb = document.createElement('div'); 
+                        cb.className = 'center-box'; cb.innerText = `D${vNum}`; k.appendChild(cb);
+                    }
+                } else {
+                    const houseNum = ((sIdx - ascIndex + 12) % 12) + 1;
+                    if(sIdx === ascIndex) h.classList.add("asc-house");
+                    h.innerHTML += `<div class="house-num">${houseNum}</div>`;
+
+                    let planets = [...isolatedChart[sIdx]];
+                    if(sIdx <= 5) planets.sort((a,b) => a.d - b.d);
+                    else planets.sort((a,b) => b.d - a.d);
+
+                    // Render ASC marker with its degree
+                    if (sIdx === ascIndex && ascObj) {
+                        const mins = Math.floor((ascObj.d * 60) % 60).toString().padStart(2, '0');
+                        h.innerHTML += `<div class="p-line asc-line" style="font-size:15px; color:#0bf4e6; white-space:nowrap;">ASC ${Math.floor(ascObj.d)}&deg;${mins}'</div>`;
+                    }
+
+                    // Render Planets (Placement & Lordship only, No Degrees, allows repeating 4,4,9)
+                    planets.forEach(p => {
+                        let name = modeKN ? (planetNameMapKN[p.n] || p.n) : p.n;
+                        if (p.r) name += ' (Rx)';
+
+                        let placedHouse = ((sIdx - ascIndex + 12) % 12) + 1;
+                        let lordshipsArr = getPlanetLordshipLocal(p.n).filter(x => x !== "-" && x != null);
+                        lordshipsArr.sort((a, b) => Number(a) - Number(b));
+                        
+                        let lordStr = lordshipsArr.length > 0 ? `${placedHouse}-${lordshipsArr.join(",")}` : `${placedHouse}`;
+                        
+                        h.innerHTML += `<div class="p-line" style="font-size:15px; color:#fff; white-space:nowrap;">${name}&nbsp;&nbsp;${lordStr}</div>`;
+                    });
+                    k.appendChild(h);
+                }
+            });
+            card.appendChild(k);
+            kundaliContainer.appendChild(card);
+        }
+    }
+
     try {
         let newGridHtml = "";
         let iterOrder = [];
         let dashaData, bukthiData, antaraData;
 
         if (dbaActiveLevel === "bukthi") {
-            // Mode A: Iterates Antaras. Shows ALL THREE columns. (Bukthi is selected)
             let startIdx = DBA_PLANETS.indexOf(dbaActiveBukthi);
             if (startIdx === -1) startIdx = 0;
             iterOrder = [...DBA_PLANETS.slice(startIdx), ...DBA_PLANETS.slice(0, startIdx)];
@@ -12725,7 +12950,6 @@ function renderDbaMixer() {
 
             iterOrder.forEach(antaraCode => {
                 antaraData = getDbaMinimalScript(antaraCode, vNum);
-                
                 newGridHtml += `
                     <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:20px; align-items: stretch; width: 100%;">
                         <div style="background:#111; border:2px solid #0bf4e6; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5);">
@@ -12742,7 +12966,6 @@ function renderDbaMixer() {
             });
 
         } else if (dbaActiveLevel === "antara") {
-            // Mode B: Iterates Bukthis. ANTARA TEXT HIDDEN, but layout remains. (Antara is selected)
             let startIdx = DBA_PLANETS.indexOf(dbaActiveDasha);
             if (startIdx === -1) startIdx = 0;
             iterOrder = [...DBA_PLANETS.slice(startIdx), ...DBA_PLANETS.slice(0, startIdx)];
@@ -12753,7 +12976,6 @@ function renderDbaMixer() {
 
             iterOrder.forEach(bukthiCode => {
                 bukthiData = getDbaMinimalScript(bukthiCode, vNum);
-                
                 newGridHtml += `
                     <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:20px; align-items: stretch; width: 100%;">
                         <div style="background:#111; border:2px solid #0bf4e6; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5);">
@@ -12770,7 +12992,6 @@ function renderDbaMixer() {
             });
         }
         
-        // Execute safe insertion
         grid.innerHTML = newGridHtml;
 
     } catch (err) {
@@ -12779,17 +13000,42 @@ function renderDbaMixer() {
     }
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Ensure the main calc cycle updates this table automatically
 (function hookDbaMixerIntoCalc(){
     const originalCoreCalc = window.calc;
     window.calc = function(){
         if (typeof originalCoreCalc === "function") originalCoreCalc();
         try { 
+            if (typeof initDbaMixerUI === "function") initDbaMixerUI();
             autoSelectRunningDba();
             if (typeof renderDbaMixer === "function") renderDbaMixer(); 
         } catch(e){}
     };
 })();
+
+
+
+
+
+
+
+
 </script>
 
 
