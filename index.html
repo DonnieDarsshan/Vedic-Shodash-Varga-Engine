@@ -11851,10 +11851,13 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
                 <input type="checkbox" id="dbaUntenantedToggle" onchange="renderDbaMixer()"> Untenanted
             </label>
             <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#facc15; font-weight:bold; font-size:15px;">
-                <input type="checkbox" id="dbaHideStarSubToggle" onchange="renderDbaMixer()"> Hide &#11088; Sublord
+                <input type="checkbox" id="dbaHideEverythingToggle" onchange="handleDbaHideToggles('all')"> Hide Everything
+            </label>
+            <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#ff4444; font-weight:bold; font-size:15px;">
+                <input type="checkbox" id="dbaHideSublordToggle" onchange="handleDbaHideToggles('sub')"> Hide Sublord
             </label>
             <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#c084fc; font-weight:bold; font-size:15px;">
-                <input type="checkbox" id="dbaHideSubSubToggle" onchange="renderDbaMixer()"> Hide Sub-Sub
+                <input type="checkbox" id="dbaHideSubSubToggle" onchange="handleDbaHideToggles('subsub')"> Hide Sub-Sub
             </label>
         </div>
 
@@ -12086,6 +12089,13 @@ function getDbaMoonStarLord() {
     return DBA_PLANETS[nakIndex % 9];
 }
 
+
+
+
+
+
+
+
 function toggleDbaMixer() {
     const box = document.getElementById("dbaMixerWrapper");
     if(!box) return;
@@ -12097,6 +12107,39 @@ function toggleDbaMixer() {
         autoSelectRunningDba();
         renderDbaMixer();
     }
+}
+
+
+
+
+
+function handleDbaHideToggles(trigger) {
+    const hideAll = document.getElementById("dbaHideEverythingToggle");
+    const hideSub = document.getElementById("dbaHideSublordToggle");
+    const hideSubSub = document.getElementById("dbaHideSubSubToggle");
+
+    if (trigger === 'all') {
+        if (hideAll.checked) {
+            hideSub.checked = true;
+            hideSubSub.checked = true;
+        } else {
+            hideSub.checked = false;
+            hideSubSub.checked = false;
+        }
+    } else if (trigger === 'sub') {
+        if (hideSub.checked) {
+            hideSubSub.checked = true;
+        } else {
+            hideAll.checked = false;
+        }
+    } else if (trigger === 'subsub') {
+        if (!hideSubSub.checked) {
+            hideAll.checked = false;
+            hideSub.checked = false;
+        }
+    }
+    
+    if (typeof renderDbaMixer === "function") renderDbaMixer();
 }
 
 
@@ -12168,6 +12211,13 @@ function initDbaMixerUI() {
     rebuildDbaColumns();
 }
 
+
+
+
+
+
+
+
 function autoSelectRunningDba() {
     let runningMaha = null;
     let runningBukthi = null;
@@ -12177,14 +12227,32 @@ function autoSelectRunningDba() {
         const today = new Date();
         const rows = [...vimContainer.querySelectorAll("div[data-s]")];
         
+        // Exact Kannada map to prevent language mismatch failures
+        const knMap = {
+            Ke: "\u0C95\u0CC7\u0CA4\u0CC1",
+            Ve: "\u0CB6\u0CC1\u0C95\u0CCD\u0CB0",
+            Sy: "\u0CB0\u0CB5\u0CBF",
+            Ch: "\u0C9A\u0C82\u0CA6\u0CCD\u0CB0",
+            Ma: "\u0C95\u0CC1\u0C9C",
+            Ra: "\u0CB0\u0CBE\u0CB9\u0CC1",
+            Ju: "\u0C97\u0CC1\u0CB0\u0CC1",
+            Sa: "\u0CB6\u0CA8\u0CBF",
+            Bu: "\u0CAC\u0CC1\u0CA7"
+        };
+
         for (let row of rows) {
             const s = new Date(row.dataset.s);
             const e = new Date(row.dataset.e);
             if (today >= s && today < e) {
                 if (row.dataset.l === "1") runningMaha = row.dataset.lord;
                 if (row.dataset.l === "2") {
-                    for (const [en, kn] of Object.entries(DBA_NAMES)) {
-                        if (row.innerText.includes(kn) || row.innerText.includes(en)) runningBukthi = en;
+                    for (const [code, enName] of Object.entries(DBA_NAMES)) {
+                        const knName = knMap[code];
+                        // 🔥 FIX: Check only exact full names to prevent "Chandra" from matching "Ra"
+                        if (row.innerText.includes(enName) || (knName && row.innerText.includes(knName))) {
+                            runningBukthi = code;
+                            break; // Stop searching once the correct Bukthi is found
+                        }
                     }
                 }
             }
@@ -12202,6 +12270,14 @@ function autoSelectRunningDba() {
     dbaActiveLevel = "bukthi"; 
     rebuildDbaColumns();
 }
+
+
+
+
+
+
+
+
 
 function setDbaLevel(level, pCode) {
     if (level === 'dasha') { 
@@ -12334,25 +12410,24 @@ function formatDbaHouses(houseString, placedHouse) {
     if (str.includes("+")) {
         let groups = str.split("+");
         let formattedGroups = groups.map(g => formatDbaHouses(g.trim(), placedHouse));
-        return formattedGroups.join(" <span style='color:#0bf4e6; font-weight:900; font-size:18px; margin:0 5px;'>+</span> ");
+        return formattedGroups.join("<span style='color:#0bf4e6; font-weight:900; font-size:18px; display:inline-flex; align-items:center; margin:0 5px;'>+</span>");
     }
     
     if (str.includes(" - ")) {
         let parts = str.split(" - ");
         let formattedParts = parts.map(p => formatDbaHouses(p.trim(), placedHouse));
-        return formattedParts.join(" <span style='color:#ffffff; font-weight:900; font-size:18px; margin:0 6px;'>-</span> ");
+        return formattedParts.join("<span style='color:#ffffff; font-weight:900; font-size:18px; display:inline-flex; align-items:center; margin:0 6px;'>-</span>");
     }
 
     const hideUnselected = document.getElementById("dbaHideUnselected")?.checked;
     
     let nums = str.split(",");
-    let placedMatched = false; // Tracks if we already circled the placed house
+    let placedMatched = false;
     
     let formatted = nums.map(n => {
         let numInt = parseInt(n.trim());
         if(isNaN(numInt)) return n;
 
-        // PATCH: Only apply the circle styling to the FIRST occurrence of the placed house
         let isPlaced = false;
         if (numInt === placedHouse && !placedMatched) {
             isPlaced = true;
@@ -12362,13 +12437,14 @@ function formatDbaHouses(houseString, placedHouse) {
         let borderRadius = isPlaced ? "50%" : "3px";
         let padding = isPlaced ? "2px 7px" : "2px 6px";
         let extraStyle = isPlaced ? "border: 2px solid #fff; min-width: 20px;" : "border: 1px solid transparent; min-width: 16px;";
+        let baseStyle = `padding:${padding}; border-radius:${borderRadius}; display:inline-flex; align-items:center; justify-content:center; text-align:center; font-size:15px; font-weight:bold; margin:2px; ${extraStyle}`;
 
-        if (window._dbaPosSet.has(numInt)) return `<span style="background:#004d00; color:#39FF14; border-color:#39FF14; padding:${padding}; border-radius:${borderRadius}; display:inline-block; text-align:center; font-size:15px; font-weight:bold; margin:2px; ${extraStyle}">${numInt}</span>`;
-        if (window._dbaSupSet.has(numInt)) return `<span style="background:#002b4d; color:#0bf4e6; border-color:#0bf4e6; padding:${padding}; border-radius:${borderRadius}; display:inline-block; text-align:center; font-size:15px; font-weight:bold; margin:2px; ${extraStyle}">${numInt}</span>`;
-        if (window._dbaNegSet.has(numInt)) return `<span style="background:#4d0000; color:#ff4444; border-color:#ff4444; padding:${padding}; border-radius:${borderRadius}; display:inline-block; text-align:center; font-size:15px; font-weight:bold; margin:2px; ${extraStyle}">${numInt}</span>`;
+        if (window._dbaPosSet.has(numInt)) return `<span style="background:#004d00; color:#39FF14; border-color:#39FF14; ${baseStyle}">${numInt}</span>`;
+        if (window._dbaSupSet.has(numInt)) return `<span style="background:#002b4d; color:#0bf4e6; border-color:#0bf4e6; ${baseStyle}">${numInt}</span>`;
+        if (window._dbaNegSet.has(numInt)) return `<span style="background:#4d0000; color:#ff4444; border-color:#ff4444; ${baseStyle}">${numInt}</span>`;
         
         if (hideUnselected) return null;
-        return `<span style="padding:${padding}; display:inline-block; border-radius:${borderRadius}; text-align:center; font-size:15px; font-weight:bold; margin:2px; ${isPlaced ? 'border: 2px solid #888;' : 'border: 1px solid transparent;'}">${numInt}</span>`;
+        return `<span style="${baseStyle} ${isPlaced ? 'border: 2px solid #888;' : 'border: 1px solid transparent;'}">${numInt}</span>`;
     }).filter(n => n !== null);
 
     return formatted.length > 0 ? formatted.join("") : "-";
@@ -12398,11 +12474,18 @@ function formatDbaHouses(houseString, placedHouse) {
 /**
  * Dynamic Lordship Resolver: Switches between KP Cuspal and Sign-to-Sign
  */
-function resolveDynamicLordships(pCode, isKpMode, cusps, ascIndex) {
+function resolveDynamicLordships(pCode, isKpMode, cusps, ascIndex, vNum = 1, ascAbsDeg = 0) {
     const signLords = { 1:"Ma", 2:"Ve", 3:"Bu", 4:"Ch", 5:"Sy", 6:"Bu", 7:"Ve", 8:"Ma", 9:"Ju", 10:"Sa", 11:"Sa", 12:"Ju" };
     const ownedHouses = [];
 
-    if (isKpMode && cusps && cusps.length >= 12) {
+    if (vNum !== 1) {
+        // Varga Kundalis: 30 Degree Equal House Rule exactly from Pivot/ASC degree
+        for (let h = 1; h <= 12; h++) {
+            let cuspDeg = (ascAbsDeg + (h - 1) * 30) % 360;
+            let cuspSign = Math.floor(cuspDeg / 30) + 1;
+            if (signLords[cuspSign] === pCode) ownedHouses.push(h);
+        }
+    } else if (isKpMode && cusps && cusps.length >= 12) {
         for (let h = 1; h <= 12; h++) {
             let cuspDeg = parseFloat(cusps[h] || cusps[h - 1]);
             if (isNaN(cuspDeg)) continue;
@@ -12449,13 +12532,35 @@ function getDbaPlanetData(targetPlanet, vNum) {
         
         const isKpActive = document.getElementById("modeKP")?.checked || false;
         let t_placedHouse;
-        
-        if (isKpActive && typeof getPlacidusHouse === "function" && typeof currentCusps !== "undefined" && currentCusps) {
-            // Locate planet degree and derive placidus house
-            let pDeg = window._shiftedPlanetsGlobal?.[DBA_NAMES[targetPlanet]] || window._shiftedPlanetsGlobal?.[targetPlanet] || -1;
-            t_placedHouse = pDeg !== -1 ? getPlacidusHouse(pDeg, currentCusps) : (window._shodaBhava?.[vNum]?.[targetPlanet] || "-");
+
+        // --- NEW: Calculate precise Absolute Degree of ASC & Planet for Varga Math ---
+        let ascAbsDeg = 0;
+        let pAbsDeg = -1;
+        if (chart) {
+            for (let i = 0; i < 12; i++) {
+                let aObj = chart[i].find(x => x.isAsc);
+                if (aObj) ascAbsDeg = (i * 30) + aObj.d;
+                
+                let pObj = chart[i].find(x => x.n === targetPlanet);
+                if (pObj) pAbsDeg = (i * 30) + pObj.d;
+            }
+        }
+
+        if (vNum !== 1) {
+            // VARGA 30-DEGREE EQUAL RULE FROM PIVOT
+            if (pAbsDeg !== -1) {
+                t_placedHouse = Math.floor(((pAbsDeg - ascAbsDeg + 360) % 360) / 30) + 1;
+            } else {
+                t_placedHouse = window._shodaBhava?.[vNum]?.[targetPlanet] || "-";
+            }
         } else {
-            t_placedHouse = window._shodaBhava?.[vNum]?.[targetPlanet] || "-";
+            // D1 LOGIC
+            if (isKpActive && typeof getPlacidusHouse === "function" && typeof currentCusps !== "undefined" && currentCusps) {
+                let pDeg = window._shiftedPlanetsGlobal?.[DBA_NAMES[targetPlanet]] || window._shiftedPlanetsGlobal?.[targetPlanet] || -1;
+                t_placedHouse = pDeg !== -1 ? getPlacidusHouse(pDeg, currentCusps) : (window._shodaBhava?.[vNum]?.[targetPlanet] || "-");
+            } else {
+                t_placedHouse = window._shodaBhava?.[vNum]?.[targetPlanet] || "-";
+            }
         }
         
         let placedH = parseInt(t_placedHouse);
@@ -12463,7 +12568,8 @@ function getDbaPlanetData(targetPlanet, vNum) {
         function getHousesOf(lord) {
             const isKpActive = document.getElementById("modeKP")?.checked || false;
             let cuspsToUse = typeof window.currentCusps !== "undefined" ? window.currentCusps : (typeof currentCusps !== "undefined" ? currentCusps : null);
-            return resolveDynamicLordships(lord, isKpActive, cuspsToUse, lordshipBaseSign);
+            // Pass vNum and ascAbsDeg to apply perfect 30-degree Equal House lordship
+            return resolveDynamicLordships(lord, isKpActive, cuspsToUse, lordshipBaseSign, vNum, ascAbsDeg);
         }
 
         let lordships = [];
@@ -12690,10 +12796,15 @@ function getDbaMinimalScript(pCode, vNum) {
 
 
 
+
+
+
+
 function formatDbaBox(data, isHiddenText = false) {
     if (!data || !data.planet) return `<div>Data Unavailable</div>`;
     
-    const hideStarSub = document.getElementById("dbaHideStarSubToggle")?.checked;
+    const hideAll = document.getElementById("dbaHideEverythingToggle")?.checked;
+    const hideSub = document.getElementById("dbaHideSublordToggle")?.checked;
     const hideSubSub = document.getElementById("dbaHideSubSubToggle")?.checked;
 
     let visibilityStyle = isHiddenText ? "visibility: hidden;" : "visibility: visible;";
@@ -12701,47 +12812,48 @@ function formatDbaBox(data, isHiddenText = false) {
     let html = `
     <div style="${visibilityStyle} height: 100%; font-family: 'Segoe UI', Arial, sans-serif; font-size: 15px; line-height: 1.4;">
         
-        <div style="display:grid; grid-template-columns: 85px 10px 85px 1fr; gap:2px 4px; align-items:start;">
+        <div style="display:grid; grid-template-columns: 85px 10px 85px 1fr; gap:2px 4px; align-items:center;">
             <div style="color:#facc15; font-weight:bold;">Planet</div><div style="color:#facc15; font-weight:bold;">:</div>
             <div style="color:#facc15; font-weight:bold;">${data.planet.name}</div>
-            <div style="color:#facc15; font-weight:bold; text-align:left;">${formatDbaHouses(data.planet.houses, data.planet.placed)}</div>
-
-            <div style="color:#facc15; font-weight:bold;">Starlord</div><div style="color:#facc15; font-weight:bold;">:</div>
-            <div style="color:#facc15; font-weight:bold;">${data.star.name}</div>
-            <div style="color:#facc15; font-weight:bold; text-align:left;">${formatDbaHouses(data.star.houses, data.star.placed)}</div>
-        </div>
-
-        <div style="border-top:1px solid #888; margin-top:6px; padding-top:6px; display:grid; grid-template-columns: 85px 10px 85px 1fr; gap:2px 4px; align-items:start;">
-            <div style="color:#ff4444; font-weight:bold;">Sublord</div><div style="color:#ff4444; font-weight:bold;">:</div>
-            <div style="color:#ff4444; font-weight:bold;">${data.sub.name}</div>
-            <div style="color:#ff4444; font-weight:bold; text-align:left;">${formatDbaHouses(data.sub.houses, data.sub.placed)}</div>
+            <div style="color:#facc15; font-weight:bold; text-align:left; display:flex; align-items:center; flex-wrap:wrap; gap:2px;">${formatDbaHouses(data.planet.houses, data.planet.placed)}</div>
     `;
 
-    if (!hideStarSub) {
+    if (!hideAll) {
         html += `
-            <div style="color:#ff4444; font-weight:bold;">&#11088; SL</div><div style="color:#ff4444; font-weight:bold;">:</div>
-            <div style="color:#ff4444; font-weight:bold;">${data.subStar.name}</div>
-            <div style="color:#ff4444; font-weight:bold; text-align:left;">${formatDbaHouses(data.subStar.houses, data.subStar.placed)}</div>
+            <div style="color:#facc15; font-weight:bold;">Starlord</div><div style="color:#facc15; font-weight:bold;">:</div>
+            <div style="color:#facc15; font-weight:bold;">${data.star.name}</div>
+            <div style="color:#facc15; font-weight:bold; text-align:left; display:flex; align-items:center; flex-wrap:wrap; gap:2px;">${formatDbaHouses(data.star.houses, data.star.placed)}</div>
         `;
     }
-    
-    html += `</div>`;
 
-    if (!hideSubSub) {
+    html += `</div>`; // Close first grid block
+
+    if (!hideAll && !hideSub) {
         html += `
-        <div style="border-top:1px solid #888; margin-top:6px; padding-top:6px; display:grid; grid-template-columns: 85px 10px 85px 1fr; gap:2px 4px; align-items:start;">
+        <div style="border-top:1px solid #888; margin-top:6px; padding-top:6px; display:grid; grid-template-columns: 85px 10px 85px 1fr; gap:2px 4px; align-items:center;">
+            <div style="color:#ff4444; font-weight:bold;">Sublord</div><div style="color:#ff4444; font-weight:bold;">:</div>
+            <div style="color:#ff4444; font-weight:bold;">${data.sub.name}</div>
+            <div style="color:#ff4444; font-weight:bold; text-align:left; display:flex; align-items:center; flex-wrap:wrap; gap:2px;">${formatDbaHouses(data.sub.houses, data.sub.placed)}</div>
+
+            <div style="color:#ff4444; font-weight:bold;">&#11088; SL</div><div style="color:#ff4444; font-weight:bold;">:</div>
+            <div style="color:#ff4444; font-weight:bold;">${data.subStar.name}</div>
+            <div style="color:#ff4444; font-weight:bold; text-align:left; display:flex; align-items:center; flex-wrap:wrap; gap:2px;">${formatDbaHouses(data.subStar.houses, data.subStar.placed)}</div>
+        </div>
+        `;
+    }
+
+    if (!hideAll && !hideSub && !hideSubSub) {
+        html += `
+        <div style="border-top:1px solid #888; margin-top:6px; padding-top:6px; display:grid; grid-template-columns: 85px 10px 85px 1fr; gap:2px 4px; align-items:center;">
             <div style="color:#c084fc; font-weight:bold;">Sub-Sub</div><div style="color:#c084fc; font-weight:bold;">:</div>
             <div style="color:#c084fc; font-weight:bold;">${data.subSub.name}</div>
-            <div style="color:#c084fc; font-weight:bold; text-align:left;">${formatDbaHouses(data.subSub.houses, data.subSub.placed)}</div>
-        `;
-        if (!hideStarSub) {
-            html += `
+            <div style="color:#c084fc; font-weight:bold; text-align:left; display:flex; align-items:center; flex-wrap:wrap; gap:2px;">${formatDbaHouses(data.subSub.houses, data.subSub.placed)}</div>
+
             <div style="color:#c084fc; font-weight:bold;">&#11088; SSL</div><div style="color:#c084fc; font-weight:bold;">:</div>
             <div style="color:#c084fc; font-weight:bold;">${data.subSubStar.name}</div>
-            <div style="color:#c084fc; font-weight:bold; text-align:left;">${formatDbaHouses(data.subSubStar.houses, data.subSubStar.placed)}</div>
-            `;
-        }
-        html += `</div>`;
+            <div style="color:#c084fc; font-weight:bold; text-align:left; display:flex; align-items:center; flex-wrap:wrap; gap:2px;">${formatDbaHouses(data.subSubStar.houses, data.subSubStar.placed)}</div>
+        </div>
+        `;
     }
 
     html += `</div>`;
@@ -12788,35 +12900,54 @@ function renderDbaMixer() {
             const isKpActive = document.getElementById("modeKP")?.checked || false;
             let cuspsToUse = typeof window.currentCusps !== "undefined" ? window.currentCusps : (typeof currentCusps !== "undefined" ? currentCusps : null);
             
+            // --- Extract ASC degree upfront for Varga calculations ---
+            let ascObj = null;
+            let ascAbsDegLocal = 0;
+            for(let i=0; i<12; i++) {
+                let found = chartData[i].find(x => x.isAsc);
+                if (found) { 
+                    ascObj = found; 
+                    ascAbsDegLocal = (i * 30) + ascObj.d;
+                    break; 
+                }
+            }
+
             for(let i=0; i<12; i++) {
                 chartData[i].forEach(p => {
                     if (p.isAsc) return; // Skip the globally placed ASC marker
                     
                     let placedH = null;
-                    if (isKpActive && typeof getPlacidusHouse === "function" && cuspsToUse) {
-                        let pDeg = window._shiftedPlanetsGlobal?.[DBA_NAMES[p.n]] || window._shiftedPlanetsGlobal?.[p.n] || -1;
-                        let t_placedHouse = pDeg !== -1 ? getPlacidusHouse(pDeg, cuspsToUse) : (window._shodaBhava?.[vNum]?.[p.n] || "-");
-                        placedH = parseInt(t_placedHouse);
+                    if (vNum !== 1) {
+                        // Varga Kundalis: 30-Degree Equal House Rule
+                        let pAbsDegLocal = (i * 30) + p.d;
+                        placedH = Math.floor(((pAbsDegLocal - ascAbsDegLocal + 360) % 360) / 30) + 1;
                     } else {
-                        placedH = parseInt(window._shodaBhava?.[vNum]?.[p.n]);
+                        // D1 Logic
+                        if (isKpActive && typeof getPlacidusHouse === "function" && cuspsToUse) {
+                            let pDeg = window._shiftedPlanetsGlobal?.[DBA_NAMES[p.n]] || window._shiftedPlanetsGlobal?.[p.n] || -1;
+                            let t_placedHouse = pDeg !== -1 ? getPlacidusHouse(pDeg, cuspsToUse) : (window._shodaBhava?.[vNum]?.[p.n] || "-");
+                            placedH = parseInt(t_placedHouse);
+                        } else {
+                            placedH = parseInt(window._shodaBhava?.[vNum]?.[p.n]);
+                        }
                     }
                     
+                    // 🔥 FIX: Elevate isSignMode check to bypass KP mapping for planets
                     let targetSign = i;
-                    if (!isNaN(placedH) && placedH >= 1 && placedH <= 12) {
-                        // Dynamically map house number to the exact Kundali box based on active mode
+                    const isSignMode = document.getElementById("modeSign2Sign")?.checked;
+                    
+                    if (isSignMode) {
+                        // In Sign Mode, strictly enforce the original pure sign placement
+                        targetSign = p.pureSign !== undefined ? p.pureSign : i;
+                    } else if (!isNaN(placedH) && placedH >= 1 && placedH <= 12) {
+                        // Dynamically map house number to the exact Kundali box based on active KP/Vedic mode
                         targetSign = (ascIndex + placedH - 1) % 12;
                     } else {
                         targetSign = p.pureSign !== undefined ? p.pureSign : i;
                     }
+                    
                     isolatedChart[targetSign].push(p);
                 });
-            }
-
-            // 3. Extract the exact ASC Degree from the global object
-            let ascObj = null;
-            for(let i=0; i<12; i++) {
-                let found = chartData[i].find(x => x.isAsc);
-                if (found) { ascObj = found; break; }
             }
 
             const card = document.createElement('div'); 
@@ -12832,7 +12963,7 @@ function renderDbaMixer() {
             
             const modeKN = document.getElementById("modeKN")?.checked;
             const planetNameMapKN = {
-                Sy: "\u0CB0\u0CB5\u0CBF", Ch: "\u0C9A\u0C82\u0CA6\u0CCD\u0CB0", Ma: "\u0C95\u0CC1\u0C9C", Bu: "\u0CAC\u0CC1\u0CA7", Ju: "\u0C97\u0CC1\u0CB0\u0CC1", Ve: "\u0CB6\u0CC1\u0C95\u0CCD\u0CB0", Sa: "\u0CB6\u0CA8\u0CBF", Ra: "\u0CB0\u0CBE\u0CB9\u0CC1", Ke: "\u0C95\u0CC7\u0CA4\u0CC1", ASC: "\u0CB2\u0C97\u0CCD\u0CA8"
+                Sy: "\u0CB0\u0CB5\u0CBF", Ch: "\u0C9A\u0C82\u0CA6\u0CCD\u0CB0", Ma: "\u0C95\u0CC1\u0C9C", Bu: "\u0CAC\u0CC1\u0CA7", Ju: "\u0C97\u0CC1\u0CB0\u0CC1", Ve: "\u0CB6\u0CC1\u0C95\u0CCD\u0CB0", Sa: "\u0CB6\u0CA8\u0CBF", Ra: "\u0CB0\u0CBE\u0CB9\u0CC1", Ke: "\u0C95\u0CC7\u0CA4\u0CC1", ASC: "\u0CB2\u0C97\u0CA8"
             };
 
             // Calculate precise lordships specifically for this isolated Kundali
@@ -12844,7 +12975,7 @@ function renderDbaMixer() {
                     const isKpActive = document.getElementById("modeKP")?.checked || false;
                     let cuspsToUse = typeof window.currentCusps !== "undefined" ? window.currentCusps : (typeof currentCusps !== "undefined" ? currentCusps : null);
                     if (typeof resolveDynamicLordships === "function") {
-                        return resolveDynamicLordships(lord, isKpActive, cuspsToUse, ascIndex);
+                        return resolveDynamicLordships(lord, isKpActive, cuspsToUse, ascIndex, vNum, ascAbsDegLocal);
                     }
                     const arr = [];
                     for(let h=1; h<=12; h++) {
