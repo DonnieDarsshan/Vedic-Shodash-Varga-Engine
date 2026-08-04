@@ -12128,16 +12128,19 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
 			
 
             <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#ff9933; font-weight:bold; font-size:15px;">
-                <input type="checkbox" id="dbaRaKeConjToggle" onchange="renderDbaMixer()"> RaKe Conjunct
+                <input type="checkbox" id="dbaRaKeConjToggle" onchange="renderDbaMixer()" checked> RaKe Conjunct
             </label>
             <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#ff9933; font-weight:bold; font-size:15px;">
-                <input type="checkbox" id="dbaRaKeAspToggle" onchange="renderDbaMixer()" checked> RaKe Asp
+                <input type="checkbox" id="dbaRaKeAspToggle" onchange="renderDbaMixer()"> RaKe Asp
             </label>
             <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#ff9933; font-weight:bold; font-size:15px;">
                 <input type="checkbox" id="dbaRaKeSymbolToggle" onchange="renderDbaMixer()"> RaKe Symbols
             </label>
             <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#10b981; font-weight:bold; font-size:15px;">
                 <input type="checkbox" id="dbaRaKeAspHouseToggle" onchange="renderDbaMixer()"> RaKe Asp House Based
+            </label>
+            <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#10b981; font-weight:bold; font-size:15px;">
+                <input type="checkbox" id="dbaRaKe7thAspToggle" onchange="renderDbaMixer()"> RaKe 7th Aspect
             </label>
         </div>
         
@@ -12250,7 +12253,7 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
             <div style="display:flex; justify-content:center; align-items:center; gap:25px; flex-wrap:wrap; width:100%; margin-top:5px; padding-top:15px; border-top:1px solid #333;">
                 <button id="dbaBtnDB" data-active="false" onclick="handleDbaQuickSelect('DB')" style="background:transparent; border:2px solid #0bf4e6; color:#0bf4e6; font-size:13px; font-weight:bold; padding:4px 12px; border-radius:4px; cursor:pointer; text-transform:uppercase; transition:0.2s;">Dasha Bukthi</button>
                 <button id="dbaBtnDA" data-active="true" onclick="handleDbaQuickSelect('DA')" style="background:#ff8800; border:2px solid #ff8800; color:#000; font-size:13px; font-weight:bold; padding:4px 12px; border-radius:4px; cursor:pointer; text-transform:uppercase; transition:0.2s;">Dasha Antara</button>
-                <button id="dbaBtnFDA" data-active="false" onclick="handleDbaQuickSelect('FDA')" style="background:transparent; border:2px solid #c084fc; color:#c084fc; font-size:13px; font-weight:bold; padding:4px 12px; border-radius:4px; cursor:pointer; text-transform:uppercase; transition:0.2s;">First Dasha First Antara</button>
+                <button id="dbaBtnFDA" data-active="false" onclick="handleDbaQuickSelect('FDA')" style="background:transparent; border:2px solid #c084fc; color:#c084fc; font-size:13px; font-weight:bold; padding:4px 12px; border-radius:4px; cursor:pointer; text-transform:uppercase; transition:0.2s;">First Dasha</button>
                 
                 <!-- CURRENT RUNNING DBA DISPLAY (MASALA UPGRADE) -->
                 <style>
@@ -12410,13 +12413,20 @@ const DBA_NAMES = { Ke:"Ketu", Ve:"Venus", Sy:"Surya", Ch:"Chandra", Ma:"Mangala
 // =========================================================================
 // ISOLATED ABSOLUTE DEGREE ENGINE (DBA Mixer Locally Shifted)
 // =========================================================================
+
+
+
+
+
 function getDbaAbsoluteLongitude(pCode, vNum) {
     const codeMap = { Sy:"Surya", Ch:"Chandra", Ma:"Mangala", Bu:"Budha", Ju:"Jupiter", Ve:"Venus", Sa:"Saturn", Ra:"Rahu", Ke:"Ketu" };
     let pName = codeMap[pCode] || pCode;
     let deg = -1;
 
-    if (typeof raw !== "undefined" && raw) {
-        // 🔥 TRUE NODE FALLBACK FIX
+    // 🔥 FIX: Pull from the globally updated progressed array first
+    if (window._shiftedPlanetsGlobal && window._shiftedPlanetsGlobal[pName] !== undefined) {
+        deg = window._shiftedPlanetsGlobal[pName];
+    } else if (typeof raw !== "undefined" && raw) {
         let actualName = pName;
         if (document.getElementById("useTrueNode")?.checked && (pName === "Rahu" || pName === "Ketu")) {
             actualName = pName + "_true";
@@ -12433,10 +12443,14 @@ function getDbaAbsoluteLongitude(pCode, vNum) {
             deg = parseFloat(raw.planets[pName]);
         }
     }
+    
     if (deg === -1) return -1;
 
-    const localShift = document.getElementById("dbaLocalShiftToggle")?.checked;
-    if (localShift && typeof originalDateTime !== "undefined" && typeof currentDateTime !== "undefined" && currentDateTime && originalDateTime) {
+    // 🔥 FIX: Respect the Global Shift Toggle as well
+    const isShiftActive = document.getElementById("shiftedLagnaToggle")?.checked || document.getElementById("dbaLocalShiftToggle")?.checked;
+    
+    // Only apply manual time-progression math if we didn't get it from _shiftedPlanetsGlobal
+    if (isShiftActive && (!window._shiftedPlanetsGlobal || window._shiftedPlanetsGlobal[pName] === undefined) && typeof originalDateTime !== "undefined" && typeof currentDateTime !== "undefined" && currentDateTime && originalDateTime) {
         const diffDays = (currentDateTime - originalDateTime) / (1000 * 60 * 60 * 24);
         const PLANET_SPEED = { Surya: 0.9856, Chandra: 13.176, Mangala: 0.524, Budha: 1.2, Jupiter: 0.083, Venus: 1.18, Saturn: 0.033, Rahu: -0.05295, Ketu: -0.05295 };
         if (PLANET_SPEED[pName]) {
@@ -12487,6 +12501,13 @@ function getDbaAbsoluteLongitude(pCode, vNum) {
     return deg;
 }
 
+
+
+
+
+
+
+
 function getDbaAscendantAbsolute(vNum) {
     let lagnaRaw = 0;
     if (typeof raw !== "undefined" && raw) {
@@ -12497,11 +12518,15 @@ function getDbaAscendantAbsolute(vNum) {
             lagnaRaw = parseFloat(raw.lagna);
         }
     }
-    const localShift = document.getElementById("dbaLocalShiftToggle")?.checked;
-    if (localShift && typeof originalDateTime !== "undefined" && typeof currentDateTime !== "undefined" && currentDateTime && originalDateTime) {
+    
+    // 🔥 FIX: Watch the global shift toggle
+    const isShiftActive = document.getElementById("shiftedLagnaToggle")?.checked || document.getElementById("dbaLocalShiftToggle")?.checked;
+    
+    if (isShiftActive && typeof originalDateTime !== "undefined" && typeof currentDateTime !== "undefined" && currentDateTime && originalDateTime) {
         const diffMinutes = (currentDateTime - originalDateTime) / 60000;
         lagnaRaw += (diffMinutes * 0.25);
     }
+    
     while(lagnaRaw < 0) lagnaRaw += 360;
     while(lagnaRaw >= 360) lagnaRaw -= 360;
 
@@ -12545,6 +12570,15 @@ function getDbaAscendantAbsolute(vNum) {
     return lagnaRaw;
 }
 
+
+
+
+
+
+
+
+
+
 function getDbaCusps() {
     let baseCusps = null;
     if (window.raw && window.raw.ayanamshas) {
@@ -12553,9 +12587,11 @@ function getDbaCusps() {
     }
     if (!baseCusps) return null;
 
-    const localShift = document.getElementById("dbaLocalShiftToggle")?.checked;
+    // 🔥 FIX: Watch the global shift toggle
+    const isShiftActive = document.getElementById("shiftedLagnaToggle")?.checked || document.getElementById("dbaLocalShiftToggle")?.checked;
+    
     let shiftAmt = 0;
-    if (localShift && typeof originalDateTime !== "undefined" && typeof currentDateTime !== "undefined" && currentDateTime && originalDateTime) {
+    if (isShiftActive && typeof originalDateTime !== "undefined" && typeof currentDateTime !== "undefined" && currentDateTime && originalDateTime) {
         const diffMinutes = (currentDateTime - originalDateTime) / 60000;
         shiftAmt = diffMinutes * 0.25;
     }
@@ -12571,6 +12607,15 @@ function getDbaCusps() {
     }
     return shiftedCusps;
 }
+
+
+
+
+
+
+
+
+
 
 function getDbaMoonStarLord() {
     let moonDeg = getDbaAbsoluteLongitude("Ch", 1);
@@ -12659,7 +12704,6 @@ function handleConjToggles(clicked) {
 
 
 
-
 function rebuildDbaColumns() {
     const dCol = document.getElementById("dbaDashaCol");
     const bCol = document.getElementById("dbaBukthiCol");
@@ -12726,7 +12770,7 @@ function initDbaMixerUI() {
 
 
 
-function autoSelectRunningDba(targetLevel = "antara") {
+function autoSelectRunningDba(targetLevel = "dasha") {
     let runningMaha = null;
     let runningBukthi = null;
     let runningAntara = null;
@@ -12776,16 +12820,24 @@ function autoSelectRunningDba(targetLevel = "antara") {
     }
 
     let mLord = getDbaMoonStarLord();
-    if (runningMaha && DBA_PLANETS.includes(runningMaha)) dbaActiveDasha = runningMaha;
-    else dbaActiveDasha = mLord;
     
-    if (runningBukthi && DBA_PLANETS.includes(runningBukthi)) dbaActiveBukthi = runningBukthi;
-    else dbaActiveBukthi = dbaActiveDasha;
-    
-    if (runningAntara && DBA_PLANETS.includes(runningAntara)) dbaActiveAntara = runningAntara;
-    else dbaActiveAntara = dbaActiveBukthi;
-    
-    dbaActiveLevel = targetLevel; 
+    // Prevent time changes from resetting the selection after the first load
+    // or if the user has manually selected a level.
+    if (!window._dbaIsManualMode) {
+        if (runningMaha && DBA_PLANETS.includes(runningMaha)) dbaActiveDasha = runningMaha;
+        else dbaActiveDasha = mLord;
+        
+        if (runningBukthi && DBA_PLANETS.includes(runningBukthi)) dbaActiveBukthi = runningBukthi;
+        else dbaActiveBukthi = dbaActiveDasha;
+        
+        if (runningAntara && DBA_PLANETS.includes(runningAntara)) dbaActiveAntara = runningAntara;
+        else dbaActiveAntara = dbaActiveBukthi;
+        
+        dbaActiveLevel = targetLevel; 
+        
+        // Lock it so subsequent date/time changes don't overwrite this initial setup
+        window._dbaIsManualMode = true;
+    }
     
     // UPDATE CURRENT RUNNING DBA UI (SOLID COLORS ONLY)
     const runningBoxText = document.getElementById("dbaCurrentRunningText");
@@ -12806,40 +12858,81 @@ function autoSelectRunningDba(targetLevel = "antara") {
     rebuildDbaColumns();
 }
 
+
+
+
+
+
+
+
+window._dbaIsManualMode = false; // Global flag to track manual overrides
+
+
+
+
+
+
+
+
+
+window._dbaIsManualMode = false; // Global flag to track manual overrides
+
 function setDbaLevel(level, pCode) {
+    window._dbaIsManualMode = true; // User took manual control
+
     if(document.getElementById('dbaBtnDB')) { document.getElementById('dbaBtnDB').style.background = 'transparent'; document.getElementById('dbaBtnDB').style.color = '#0bf4e6'; document.getElementById('dbaBtnDB').setAttribute('data-active', 'false'); }
     if(document.getElementById('dbaBtnDA')) { document.getElementById('dbaBtnDA').style.background = 'transparent'; document.getElementById('dbaBtnDA').style.color = '#ff8800'; document.getElementById('dbaBtnDA').setAttribute('data-active', 'false'); }
     if(document.getElementById('dbaBtnFDA')) { document.getElementById('dbaBtnFDA').style.background = 'transparent'; document.getElementById('dbaBtnFDA').style.color = '#c084fc'; document.getElementById('dbaBtnFDA').setAttribute('data-active', 'false'); }
 
     if (level === 'dasha') { 
-        dbaActiveDasha = pCode;
-        dbaActiveBukthi = pCode;
-        dbaActiveAntara = pCode;
-        dbaActiveLevel = "antara"; // Shifts focus to Antara, keeping the Antara grid column empty
+        if (dbaActiveLevel === 'dasha' && dbaActiveDasha === pCode) {
+            dbaActiveLevel = "none";
+        } else {
+            dbaActiveDasha = pCode;
+            dbaActiveLevel = "dasha"; 
+        }
     }
-    if (level === 'bukthi') { 
-        dbaActiveBukthi = pCode; 
-        dbaActiveAntara = pCode;
-        dbaActiveLevel = "bukthi"; 
+    else if (level === 'bukthi') { 
+        if ((dbaActiveLevel === 'bukthi' || dbaActiveLevel === 'antara') && dbaActiveBukthi === pCode) {
+            dbaActiveLevel = "dasha";
+        } else {
+            dbaActiveBukthi = pCode; 
+            dbaActiveLevel = "bukthi"; 
+        }
     }
-    if (level === 'antara') { 
-        dbaActiveAntara = pCode; 
-        dbaActiveLevel = "antara"; 
+    else if (level === 'antara') { 
+        if (dbaActiveLevel === 'antara' && dbaActiveAntara === pCode) {
+            dbaActiveLevel = "bukthi";
+        } else {
+            dbaActiveAntara = pCode; 
+            dbaActiveLevel = "antara"; 
+        }
     }
     rebuildDbaColumns();
     renderDbaMixer();
 }
 
+
+
+
+
+
+
+
+
+
+
 function syncDbaColumnHighlight() {
     document.querySelectorAll('.dasha-col-btn').forEach(el => {
-        el.style.background = (el.dataset.p === dbaActiveDasha) ? "linear-gradient(90deg, #10b981, #facc15)" : "#111";
-        el.style.color = (el.dataset.p === dbaActiveDasha) ? "#000" : "#0bf4e6";
-        el.style.border = "1px solid #0bf4e6";
+        let isActive = (dbaActiveLevel !== "none" && el.dataset.p === dbaActiveDasha);
+        el.style.background = isActive ? "linear-gradient(90deg, #10b981, #facc15)" : "#111";
+        el.style.color = isActive ? "#000" : "#0bf4e6";
+        el.style.border = isActive ? "1px solid #0bf4e6" : "1px dashed #0bf4e6";
         el.style.padding = "6px"; el.style.cursor = "pointer"; el.style.fontWeight = "bold"; el.style.borderRadius = "4px";
     });
     
     document.querySelectorAll('.bukthi-col-btn').forEach(el => {
-        let isActive = (dbaActiveLevel === "bukthi" && el.dataset.p === dbaActiveBukthi);
+        let isActive = ((dbaActiveLevel === "bukthi" || dbaActiveLevel === "antara") && el.dataset.p === dbaActiveBukthi);
         el.style.background = isActive ? "linear-gradient(90deg, #10b981, #facc15)" : "#111";
         el.style.color = isActive ? "#000" : "#ff8800";
         el.style.border = isActive ? "1px solid #ff8800" : "1px dashed #ff8800";
@@ -12855,15 +12948,27 @@ function syncDbaColumnHighlight() {
     });
 
     const headerGrid = document.getElementById("dbaIslandsHeader");
-    const antHeader = document.getElementById("dbaMainAntaraHeader");
     
-    if (headerGrid && antHeader) {
-        if (dbaActiveLevel === "antara") {
+    if (headerGrid && headerGrid.children.length >= 3) {
+        const dHeader = headerGrid.children[0];
+        const bHeader = headerGrid.children[1];
+        const aHeader = headerGrid.children[2];
+        
+        if (dbaActiveLevel === "none") {
+            headerGrid.style.gridTemplateColumns = "1fr";
+            dHeader.style.display = "block";
+            bHeader.style.display = "none";
+            aHeader.style.display = "none";
+        } else if (dbaActiveLevel === "dasha") {
             headerGrid.style.gridTemplateColumns = "repeat(2, 1fr)";
-            antHeader.style.display = "none";
+            dHeader.style.display = "block";
+            bHeader.style.display = "block";
+            aHeader.style.display = "none";
         } else {
             headerGrid.style.gridTemplateColumns = "repeat(3, 1fr)";
-            antHeader.style.display = "block";
+            dHeader.style.display = "block";
+            bHeader.style.display = "block";
+            aHeader.style.display = "block";
         }
     }
 }
@@ -12980,7 +13085,11 @@ function formatDbaHouses(houseString, placedHouse) {
         return `<span style="border: ${isPlaced ? '2px solid #888 !important' : '1px solid #333 !important'}; ${baseStyle}">${numInt}</span>`;
     }).filter(n => n !== null);
 
-    return formatted.length > 0 ? formatted.join("") : "-";
+    let joinedSpans = formatted.length > 0 ? formatted.join("") : "-";
+    if (joinedSpans !== "-") {
+        return `<span style="white-space: nowrap; display: inline-block;">${joinedSpans}</span>`;
+    }
+    return joinedSpans;
 }
 
 
@@ -13213,17 +13322,24 @@ function getDbaPlanetData(targetPlanet, vNum) {
         let placedHouse = base.h;
         let lordships = base.l;
 
-        // --- DYNAMIC CONJUNCTION MIXER ---
+        
+		
+		
+		
+		
+		
+		
+		
+		
+		// --- DYNAMIC CONJUNCTION MIXER ---
         let conjGroups = []; 
         let conjNames = [];  
         let rakeSymbolNames = []; 
         const dbaConjNumToggle = document.getElementById("dbaConjToggle")?.checked;
         const dbaConjSymToggle = document.getElementById("dbaConjSymbolToggle")?.checked;
         
-        let allPlanetsList = ["Sy", "Ch", "Ma", "Bu", "Ju", "Ve", "Sa"];
-        if (targetPlanet === "Ra" || targetPlanet === "Ke") {
-            allPlanetsList = ["Sy", "Ch", "Ma", "Bu", "Ju", "Ve", "Sa", "Ra", "Ke"];
-        }
+        // Always include all 9 planets so the 7 standard planets can detect Rahu & Ketu
+        let allPlanetsList = ["Sy", "Ch", "Ma", "Bu", "Ju", "Ve", "Sa", "Ra", "Ke"];
 
         let pDeg = getDbaAbsoluteLongitude(targetPlanet, vNum);
         if (pDeg !== -1) {
@@ -13251,22 +13367,44 @@ function getDbaPlanetData(targetPlanet, vNum) {
                         }
 
                         if (isConj) {
-                            conjNames.push(otherP); 
-                            if (targetPlanet === "Ra" || targetPlanet === "Ke") rakeSymbolNames.push(otherP);
-                            let otherBase = getPlanetBaseScript(otherP);
-                            let nums = [];
-                            
-                            if (otherBase.h !== "-" && otherBase.h != null) nums.push(otherBase.h);
-                            if (otherBase.l && otherBase.l.length > 0) nums.push(...otherBase.l);
-                            
-                            if (nums.length > 0) {
-                                conjGroups.push(nums);
+                            if (targetPlanet === "Ra" || targetPlanet === "Ke") {
+                                conjNames.push(otherP); 
+                                rakeSymbolNames.push(otherP);
+                                let otherBase = getPlanetBaseScript(otherP);
+                                let nums = [];
+                                if (otherBase.h !== "-" && otherBase.h != null) nums.push(otherBase.h);
+                                if (otherBase.l && otherBase.l.length > 0) nums.push(...otherBase.l);
+                                if (nums.length > 0) {
+                                    conjGroups.push(nums);
+                                }
+                            } else {
+                                // 1. Collect Symbols
+                                if (otherP === "Ra" || otherP === "Ke") {
+                                    conjNames.push("R_" + otherP); // Red Box style for Node
+                                } else {
+                                    conjNames.push(otherP); // Teal Box style for Planets
+                                }
+                                
+                                // 2. Collect Numbers
+                                let otherBase = getPlanetBaseScript(otherP);
+                                let nums = [];
+                                if (otherBase.h !== "-" && otherBase.h != null) nums.push(otherBase.h);
+                                if (otherP !== "Ra" && otherP !== "Ke") {
+                                    if (otherBase.l && otherBase.l.length > 0) nums.push(...otherBase.l);
+                                }
+                                if (nums.length > 0) conjGroups.push(nums);
                             }
                         }
                     }
                 }
             });
         }
+		
+		
+		
+		
+		
+		
 
         let immuneHouses = new Set();
         if (placedHouse !== "-" && placedHouse != null) immuneHouses.add(parseInt(placedHouse));
@@ -13277,6 +13415,7 @@ function getDbaPlanetData(targetPlanet, vNum) {
         }
 
         const rakeAspToggle = document.getElementById("dbaRaKeAspToggle")?.checked;
+        const rake7thAspToggle = document.getElementById("dbaRaKe7thAspToggle")?.checked;
 
         if (targetPlanet === "Ra" || targetPlanet === "Ke") {
             let tpDeg = getDbaAbsoluteLongitude(targetPlanet, vNum);
@@ -13286,13 +13425,20 @@ function getDbaPlanetData(targetPlanet, vNum) {
                     if (apDeg === -1) return;
                     
                     let dist = (Math.floor(tpDeg / 30) - Math.floor(apDeg / 30) + 12) % 12 + 1;
-                    let aspects = [7]; 
-                    if (ap === "Ma") aspects = [4, 7, 8];
-                    if (ap === "Ju") aspects = [5, 7, 9];
-                    if (ap === "Sa") aspects = [3, 7, 10]; 
-                    let isAsp = aspects.includes(dist);
                     
-                    if (isAsp && rakeAspToggle) {
+                    let specialAspects = [];
+                    if (ap === "Ma") specialAspects = [4, 8];
+                    if (ap === "Ju") specialAspects = [5, 9];
+                    if (ap === "Sa") specialAspects = [3, 10];
+                    
+                    let isSpecialAsp = specialAspects.includes(dist);
+                    let is7thAsp = (dist === 7);
+                    
+                    let aspectApplies = false;
+                    if (isSpecialAsp && rakeAspToggle) aspectApplies = true;
+                    if (is7thAsp && rake7thAspToggle) aspectApplies = true;
+                    
+                    if (aspectApplies) {
                         const dbaRaKeSymbolToggle = document.getElementById("dbaRaKeSymbolToggle")?.checked;
                         if (dbaRaKeSymbolToggle) {
                             rakeSymbolNames.push(ap);
@@ -13403,7 +13549,9 @@ function getDbaPlanetData(targetPlanet, vNum) {
                         else finalStr = finalConjGroups.join(" + ");
                     }
                 }
-            } else if (dbaConjSymToggle) {
+            } 
+            
+            if (dbaConjSymToggle) {
                 if (conjNames.length > 0) {
                     let uniqueNames = [...new Set(conjNames)];
                     if (finalStr) finalStr += " + " + uniqueNames.join(",");
@@ -13740,11 +13888,6 @@ function renderDbaMixer() {
             const signLords = { 1:"Ma",2:"Ve",3:"Bu",4:"Ch", 5:"Sy",6:"Bu",7:"Ve",8:"Ma", 9:"Ju",10:"Sa",11:"Sa",12:"Ju" };
             
             function housesOfLord(lord) {
-                let localAscForLordship = isPlanetPivot ? pivotDeg : ascAbsDegLocal;
-                if (typeof resolveDynamicLordships === "function") {
-                    // Pass localCusps to ensure accurate lordship in the UI
-                    return resolveDynamicLordships(lord, isKpActive, localCusps, ascIndex, vNum, localAscForLordship);
-                }
                 const arr = [];
                 for(let h=1; h<=12; h++) {
                     const signOfHouse = ((ascIndex + 1 + h - 2) % 12) + 1;
@@ -13834,7 +13977,44 @@ function renderDbaMixer() {
         let iterOrder = [];
         let dashaData, bukthiData, antaraData;
 
-        if (dbaActiveLevel === "bukthi") {
+        if (dbaActiveLevel === "none") {
+            let mLord = getDbaMoonStarLord();
+            let startIdx = DBA_PLANETS.indexOf(mLord);
+            if (startIdx === -1) startIdx = 0;
+            iterOrder = [...DBA_PLANETS.slice(startIdx), ...DBA_PLANETS.slice(0, startIdx)];
+
+            iterOrder.forEach(dashaCode => {
+                let dData = getDbaMinimalScript(dashaCode, vNum);
+                newGridHtml += `
+                    <div style="display:grid; grid-template-columns: 1fr; gap:20px; align-items: stretch; width: 100%;">
+                        <div style="background:#111; border:2px solid #0bf4e6; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5);">
+                            ${formatDbaBox(dData, false)}
+                        </div>
+                    </div>
+                `;
+            });
+        } else if (dbaActiveLevel === "dasha") {
+            let startIdx = DBA_PLANETS.indexOf(dbaActiveDasha);
+            if (startIdx === -1) startIdx = 0;
+            iterOrder = [...DBA_PLANETS.slice(startIdx), ...DBA_PLANETS.slice(0, startIdx)];
+            dashaData = getDbaMinimalScript(dbaActiveDasha, vNum);
+
+            if (!dashaData) return;
+
+            iterOrder.forEach(bukthiCode => {
+                bukthiData = getDbaMinimalScript(bukthiCode, vNum);
+                newGridHtml += `
+                    <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:20px; align-items: stretch; width: 100%;">
+                        <div style="background:#111; border:2px solid #0bf4e6; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5);">
+                            ${formatDbaBox(dashaData, false)}
+                        </div>
+                        <div style="background:#111; border:2px solid #ff8800; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5);">
+                            ${formatDbaBox(bukthiData, false)}
+                        </div>
+                    </div>
+                `;
+            });
+        } else if (dbaActiveLevel === "bukthi") {
             let startIdx = DBA_PLANETS.indexOf(dbaActiveBukthi);
             if (startIdx === -1) startIdx = 0;
             iterOrder = [...DBA_PLANETS.slice(startIdx), ...DBA_PLANETS.slice(0, startIdx)];
@@ -13859,29 +14039,26 @@ function renderDbaMixer() {
                     </div>
                 `;
             });
-
         } else if (dbaActiveLevel === "antara") {
-            let startIdx = DBA_PLANETS.indexOf(dbaActiveDasha);
-            if (startIdx === -1) startIdx = 0;
-            iterOrder = [...DBA_PLANETS.slice(startIdx), ...DBA_PLANETS.slice(0, startIdx)];
             dashaData = getDbaMinimalScript(dbaActiveDasha, vNum);
+            bukthiData = getDbaMinimalScript(dbaActiveBukthi, vNum);
             antaraData = getDbaMinimalScript(dbaActiveAntara, vNum); 
 
-            if (!dashaData || !antaraData) return;
+            if (!dashaData || !bukthiData || !antaraData) return;
 
-            iterOrder.forEach(bukthiCode => {
-                bukthiData = getDbaMinimalScript(bukthiCode, vNum);
-                newGridHtml += `
-                    <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:20px; align-items: stretch; width: 100%;">
-                        <div style="background:#111; border:2px solid #0bf4e6; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5);">
-                            ${formatDbaBox(dashaData, false)}
-                        </div>
-                        <div style="background:#111; border:2px solid #ff8800; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5);">
-                            ${formatDbaBox(bukthiData, false)}
-                        </div>
+            newGridHtml += `
+                <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:20px; align-items: stretch; width: 100%;">
+                    <div style="background:#111; border:2px solid #0bf4e6; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5);">
+                        ${formatDbaBox(dashaData, false)}
                     </div>
-                `;
-            });
+                    <div style="background:#111; border:2px solid #ff8800; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5);">
+                        ${formatDbaBox(bukthiData, false)}
+                    </div>
+                    <div style="background:#111; border:2px solid #c084fc; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5);">
+                        ${formatDbaBox(antaraData, false)}
+                    </div>
+                </div>
+            `;
         }
         
         grid.innerHTML = newGridHtml;
@@ -13913,49 +14090,64 @@ function renderDbaMixer() {
 
 
 
+window._dbaIsManualMode = false; // Global flag to track manual overrides
+
 function handleDbaQuickSelect(mode) {
-    const btnDB = document.getElementById('dbaBtnDB');
-    const btnDA = document.getElementById('dbaBtnDA');
-    const btnFDA = document.getElementById('dbaBtnFDA');
+    // Update button visual styles
+    if(document.getElementById('dbaBtnDB')) { document.getElementById('dbaBtnDB').style.background = mode === 'DB' ? '#0bf4e6' : 'transparent'; document.getElementById('dbaBtnDB').style.color = mode === 'DB' ? '#000' : '#0bf4e6'; }
+    if(document.getElementById('dbaBtnDA')) { document.getElementById('dbaBtnDA').style.background = mode === 'DA' ? '#ff8800' : 'transparent'; document.getElementById('dbaBtnDA').style.color = mode === 'DA' ? '#000' : '#ff8800'; }
+    if(document.getElementById('dbaBtnFDA')) { document.getElementById('dbaBtnFDA').style.background = mode === 'FDA' ? '#c084fc' : 'transparent'; document.getElementById('dbaBtnFDA').style.color = mode === 'FDA' ? '#000' : '#c084fc'; }
 
-    let targetBtn = mode === 'DB' ? btnDB : (mode === 'DA' ? btnDA : btnFDA);
-    let isAlreadyActive = targetBtn && targetBtn.getAttribute('data-active') === 'true';
-
-    // Reset all visually
-    if(btnDB) { btnDB.style.background = 'transparent'; btnDB.style.color = '#0bf4e6'; btnDB.setAttribute('data-active', 'false'); }
-    if(btnDA) { btnDA.style.background = 'transparent'; btnDA.style.color = '#ff8800'; btnDA.setAttribute('data-active', 'false'); }
-    if(btnFDA) { btnFDA.style.background = 'transparent'; btnFDA.style.color = '#c084fc'; btnFDA.setAttribute('data-active', 'false'); }
-
-    // If it was already on, we just shut it off and exit
-    if (isAlreadyActive) {
-        return; 
-    }
-
-    // Otherwise, turn the targeted one on
-    if (targetBtn) {
-        targetBtn.setAttribute('data-active', 'true');
-        targetBtn.style.color = '#000';
-        if(mode === 'DB') targetBtn.style.background = '#0bf4e6';
-        if(mode === 'DA') targetBtn.style.background = '#ff8800';
-        if(mode === 'FDA') targetBtn.style.background = '#c084fc';
-    }
-
-    let mLord = getDbaMoonStarLord();
-
-    if (mode === 'DB') {
-        autoSelectRunningDba('bukthi'); 
-        renderDbaMixer();
-    } else if (mode === 'DA') {
-        autoSelectRunningDba('antara'); 
-        renderDbaMixer();
-    } else if (mode === 'FDA') {
-        dbaActiveDasha = mLord;
-        dbaActiveBukthi = mLord;
-        dbaActiveAntara = mLord;
-        dbaActiveLevel = "antara";
+    if (mode === 'FDA') {
+        window._dbaIsManualMode = true; 
+        dbaActiveLevel = "none";
+        dbaActiveDasha = getDbaMoonStarLord();
         rebuildDbaColumns();
         renderDbaMixer();
+    } else if (mode === 'DB') {
+        window._dbaIsManualMode = false; 
+        autoSelectRunningDba("bukthi"); // Selects current Dasha & Bukthi, iterates Antaras (3-column table)
+        renderDbaMixer();
+    } else if (mode === 'DA') {
+        window._dbaIsManualMode = false; 
+        autoSelectRunningDba("antara"); // Selects current Dasha, Bukthi & Antara exactly
+        renderDbaMixer();
     }
+}
+
+function setDbaLevel(level, pCode) {
+    window._dbaIsManualMode = true; // User took manual control
+
+    if(document.getElementById('dbaBtnDB')) { document.getElementById('dbaBtnDB').style.background = 'transparent'; document.getElementById('dbaBtnDB').style.color = '#0bf4e6'; document.getElementById('dbaBtnDB').setAttribute('data-active', 'false'); }
+    if(document.getElementById('dbaBtnDA')) { document.getElementById('dbaBtnDA').style.background = 'transparent'; document.getElementById('dbaBtnDA').style.color = '#ff8800'; document.getElementById('dbaBtnDA').setAttribute('data-active', 'false'); }
+    if(document.getElementById('dbaBtnFDA')) { document.getElementById('dbaBtnFDA').style.background = 'transparent'; document.getElementById('dbaBtnFDA').style.color = '#c084fc'; document.getElementById('dbaBtnFDA').setAttribute('data-active', 'false'); }
+
+    if (level === 'dasha') { 
+        if (dbaActiveLevel === 'dasha' && dbaActiveDasha === pCode) {
+            dbaActiveLevel = "none";
+        } else {
+            dbaActiveDasha = pCode;
+            dbaActiveLevel = "dasha"; 
+        }
+    }
+    else if (level === 'bukthi') { 
+        if ((dbaActiveLevel === 'bukthi' || dbaActiveLevel === 'antara') && dbaActiveBukthi === pCode) {
+            dbaActiveLevel = "dasha";
+        } else {
+            dbaActiveBukthi = pCode; 
+            dbaActiveLevel = "bukthi"; 
+        }
+    }
+    else if (level === 'antara') { 
+        if (dbaActiveLevel === 'antara' && dbaActiveAntara === pCode) {
+            dbaActiveLevel = "bukthi";
+        } else {
+            dbaActiveAntara = pCode; 
+            dbaActiveLevel = "antara"; 
+        }
+    }
+    rebuildDbaColumns();
+    renderDbaMixer();
 }
 
 // Ensure the main calc cycle updates this table automatically
