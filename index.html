@@ -12066,6 +12066,7 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
 
 
 
+
 <!-- =========================================================
      NAKSHATRA NADI - DASHA BUKTHI ANTARA MIXER
 ========================================================= -->
@@ -12109,17 +12110,27 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
 
         <!-- Checkboxes Bottom Row (Ra/Ke Rules) - ALL UNCHECKED BY DEFAULT -->
         <div style="display:flex; justify-content:center; align-items:center; gap:25px; flex-wrap:wrap; margin-bottom:20px; border-bottom:1px solid #333; padding-bottom:15px;">
-            <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#39FF14; font-weight:bold; font-size:15px;">
-                <input type="checkbox" id="dbaNormalToggle" onchange="renderDbaMixer()" checked> Normal
-            </label>
+            
+            <!-- THE 3 DISPLAY MODES -->
+            <div style="display:flex; align-items:center; gap:15px; border-right:1px solid #444; padding-right:15px;">
+                <label style="cursor:pointer; display:flex; align-items:center; gap:4px; color:#ff9933; font-weight:bold; font-size:14px;">
+                    <input type="radio" name="dbaDisplayMode" value="1" onchange="renderDbaMixer()"> Mode 1
+                </label>
+                <label style="cursor:pointer; display:flex; align-items:center; gap:4px; color:#39FF14; font-weight:bold; font-size:14px;">
+                    <input type="radio" name="dbaDisplayMode" value="2" onchange="renderDbaMixer()" checked> Mode 2
+                </label>
+                <label style="cursor:pointer; display:flex; align-items:center; gap:4px; color:#0bf4e6; font-weight:bold; font-size:14px;">
+                    <input type="radio" name="dbaDisplayMode" value="3" onchange="renderDbaMixer()"> Mode 3 
+                </label>
+            </div>
             <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#39FF14; font-weight:bold; font-size:15px;">
                 <input type="checkbox" id="dbaShowPlacedToggle" onchange="renderDbaMixer()" checked> Show Placed
             </label>
-            <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#0bf4e6; font-weight:bold; font-size:15px;">
-                <input type="checkbox" id="dbaConjToggle" onchange="handleConjToggles('num')"> Conj Num
+			<label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#0bf4e6; font-weight:bold; font-size:15px;">
+                <input type="checkbox" id="dbaConjToggle" onchange="handleConjToggles('num')" checked> Conj Num
             </label>
             <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#0bf4e6; font-weight:bold; font-size:15px;">
-                <input type="checkbox" id="dbaConjSymbolToggle" onchange="handleConjToggles('symbol')" checked> Conj Symbol
+                <input type="checkbox" id="dbaConjSymbolToggle" onchange="handleConjToggles('symbol')"> Conj Symbol
             </label>
             <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#ff9933; font-weight:bold; font-size:15px;">
                 <input type="checkbox" id="dbaRaKeDispToggle" onchange="renderDbaMixer()"> RaKe Dispositor
@@ -12131,7 +12142,7 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
                 <input type="checkbox" id="dbaRaKeConjToggle" onchange="renderDbaMixer()" checked> RaKe Conjunct
             </label>
             <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#ff9933; font-weight:bold; font-size:15px;">
-                <input type="checkbox" id="dbaRaKeAspToggle" onchange="renderDbaMixer()"> RaKe Asp
+                <input type="checkbox" id="dbaRaKeAspToggle" onchange="renderDbaMixer()" checked> RaKe Asp
             </label>
             <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#ff9933; font-weight:bold; font-size:15px;">
                 <input type="checkbox" id="dbaRaKeSymbolToggle" onchange="renderDbaMixer()"> RaKe Symbols
@@ -13156,7 +13167,10 @@ function getDbaPlanetData(targetPlanet, vNum) {
         const signLords = {1:"Ma",2:"Ve",3:"Bu",4:"Ch",5:"Sy",6:"Bu",7:"Ve",8:"Ma",9:"Ju",10:"Sa",11:"Sa",12:"Ju"};
         const isKpActive = document.getElementById("modeKP")?.checked || false;
         const SHIFTED_LAGNA = document.getElementById("dbaLocalShiftToggle")?.checked;
-        const isNormalMode = document.getElementById("dbaNormalToggle")?.checked;
+        const displayMode = document.querySelector('input[name="dbaDisplayMode"]:checked')?.value || "2";
+        const isMode1 = (displayMode === "1");
+        const isMode2 = (displayMode === "2");
+        const isMode3 = (displayMode === "3");
         const showPlaced = document.getElementById("dbaShowPlacedToggle")?.checked;
         const isSignMode = document.getElementById("modeSign2Sign")?.checked;
 
@@ -13479,83 +13493,137 @@ function getDbaPlanetData(targetPlanet, vNum) {
                 rakeGroups.push(...conjGroups);
             }
 
-            let finalGroups = [];
-            if (isNormalMode && rakeGroups.length === 0 && !isNaN(placedH)) rakeGroups.push([]);
-            
-            rakeGroups.forEach((group, idx) => {
-                let validGroup = group.filter(h => {
+            if (isMode3) {
+                let allNums = [];
+                if (!isNaN(placedH)) allNums.push(placedH);
+                rakeGroups.forEach(group => {
+                    group.forEach(h => {
+                        let isHeavilyOccupied = (houseCounts[h] >= 2);
+                        if (!removeOccupiedToggle || (!isHeavilyOccupied || immuneHouses.has(h))) {
+                            allNums.push(parseInt(h));
+                        }
+                    });
+                });
+                
+                allNums = [...new Set(allNums)].sort((a, b) => a - b);
+                finalStr = allNums.join(",");
+
+                if (dbaRaKeSymbolToggle && rakeSymbolNames.length > 0) {
+                    let uniqueNames = [...new Set(rakeSymbolNames)].map(n => "R_" + n);
+                    if (finalStr) finalStr += " + " + uniqueNames.join(",");
+                    else finalStr = uniqueNames.join(",");
+                }
+            } else {
+                let finalGroups = [];
+                if (isMode2 && rakeGroups.length === 0 && !isNaN(placedH)) rakeGroups.push([]);
+                
+                rakeGroups.forEach((group, idx) => {
+                    let validGroup = group.filter(h => {
+                        let isHeavilyOccupied = (houseCounts[h] >= 2);
+                        return !removeOccupiedToggle || (!isHeavilyOccupied || immuneHouses.has(h));
+                    });
+
+                    if (isMode2) {
+                        validGroup = [...new Set(validGroup)];
+                        if (idx === 0 && !isNaN(placedH)) validGroup.push(placedH);
+                        validGroup.sort((a,b) => a - b);
+                    } else {
+                        validGroup = [...new Set(validGroup)].sort((a,b) => a - b);
+                    }
+                    
+                    if (validGroup.length > 0) finalGroups.push(validGroup.join(","));
+                });
+                
+                finalStr = finalGroups.join(" + ");
+                
+                if (isMode1) {
+                    if (finalStr) finalStr = placedHouse + " - " + finalStr;
+                    else finalStr = placedHouse;
+                } else {
+                    if (!finalStr && !isNaN(placedH)) finalStr = placedHouse;
+                }
+
+                if (dbaRaKeSymbolToggle && rakeSymbolNames.length > 0) {
+                    let uniqueNames = [...new Set(rakeSymbolNames)].map(n => "R_" + n);
+                    if (finalStr) finalStr += " + " + uniqueNames.join(",");
+                    else finalStr = uniqueNames.join(",");
+                }
+            }
+        } else {
+            if (isMode3) {
+                let allNums = [];
+                if (!isNaN(placedH)) allNums.push(placedH);
+                
+                lordships.forEach(h => {
+                    let isHeavilyOccupied = (houseCounts[h] >= 2);
+                    if (!removeOccupiedToggle || (!isHeavilyOccupied || immuneHouses.has(h))) {
+                        allNums.push(parseInt(h));
+                    }
+                });
+
+                if (dbaConjNumToggle) {
+                    conjGroups.forEach(group => {
+                        group.forEach(h => {
+                            let isHeavilyOccupied = (houseCounts[h] >= 2);
+                            if (!removeOccupiedToggle || (!isHeavilyOccupied || immuneHouses.has(h))) {
+                                allNums.push(parseInt(h));
+                            }
+                        });
+                    });
+                }
+
+                allNums = [...new Set(allNums)].sort((a, b) => a - b);
+                finalStr = allNums.join(",");
+
+                if (dbaConjSymToggle && conjNames.length > 0) {
+                    let uniqueNames = [...new Set(conjNames)];
+                    if (finalStr) finalStr += " + " + uniqueNames.join(",");
+                    else finalStr = uniqueNames.join(",");
+                }
+            } else {
+                let validLords = lordships.filter(h => {
                     let isHeavilyOccupied = (houseCounts[h] >= 2);
                     return !removeOccupiedToggle || (!isHeavilyOccupied || immuneHouses.has(h));
                 });
 
-                if (isNormalMode) {
-                    validGroup = [...new Set(validGroup)];
-                    if (idx === 0 && !isNaN(placedH)) validGroup.push(placedH);
-                    validGroup.sort((a,b) => a - b);
-                } else {
-                    validGroup = [...new Set(validGroup)].sort((a,b) => a - b);
-                }
-                
-                if (validGroup.length > 0) finalGroups.push(validGroup.join(","));
-            });
-            
-            finalStr = finalGroups.join(" + ");
-            
-            if (!isNormalMode) {
-                if (finalStr) finalStr = placedHouse + " - " + finalStr;
-                else finalStr = placedHouse;
-            } else {
-                if (!finalStr && !isNaN(placedH)) finalStr = placedHouse;
-            }
-
-            if (dbaRaKeSymbolToggle && rakeSymbolNames.length > 0) {
-                let uniqueNames = [...new Set(rakeSymbolNames)].map(n => "R_" + n);
-                if (finalStr) finalStr += " + " + uniqueNames.join(",");
-                else finalStr = uniqueNames.join(",");
-            }
-        } else {
-            let validLords = lordships.filter(h => {
-                let isHeavilyOccupied = (houseCounts[h] >= 2);
-                return !removeOccupiedToggle || (!isHeavilyOccupied || immuneHouses.has(h));
-            });
-
-            if (isNormalMode) {
-                validLords = [...new Set(validLords)];
-                if (!isNaN(placedH)) validLords.push(placedH);
-                validLords.sort((a,b) => a - b);
-                
-                finalStr = validLords.join(",");
-                if (!finalStr && !isNaN(placedH)) finalStr = placedHouse;
-            } else {
-                validLords = [...new Set(validLords)].sort((a,b) => a - b);
-                finalStr = placedHouse;
-                if (validLords.length > 0) finalStr += " - " + validLords.join(",");
-            }
-
-            if (dbaConjNumToggle) {
-                if (conjGroups.length > 0) {
-                    let finalConjGroups = [];
-                    conjGroups.forEach(group => {
-                        let vGroup = group.filter(h => {
-                            let isHeavilyOccupied = (houseCounts[h] >= 2);
-                            return !removeOccupiedToggle || (!isHeavilyOccupied || immuneHouses.has(h));
-                        });
-                        vGroup = [...new Set(vGroup)].sort((a,b) => a - b);
-                        if (vGroup.length > 0) finalConjGroups.push(vGroup.join(","));
-                    });
+                if (isMode2) {
+                    validLords = [...new Set(validLords)];
+                    if (!isNaN(placedH)) validLords.push(placedH);
+                    validLords.sort((a,b) => a - b);
                     
-                    if (finalConjGroups.length > 0) {
-                        if (finalStr) finalStr += " + " + finalConjGroups.join(" + ");
-                        else finalStr = finalConjGroups.join(" + ");
-                    }
+                    finalStr = validLords.join(",");
+                    if (!finalStr && !isNaN(placedH)) finalStr = placedHouse;
+                } else {
+                    validLords = [...new Set(validLords)].sort((a,b) => a - b);
+                    finalStr = placedHouse;
+                    if (validLords.length > 0) finalStr += " - " + validLords.join(",");
                 }
-            } 
-            
-            if (dbaConjSymToggle) {
-                if (conjNames.length > 0) {
-                    let uniqueNames = [...new Set(conjNames)];
-                    if (finalStr) finalStr += " + " + uniqueNames.join(",");
-                    else finalStr = uniqueNames.join(",");
+
+                if (dbaConjNumToggle) {
+                    if (conjGroups.length > 0) {
+                        let finalConjGroups = [];
+                        conjGroups.forEach(group => {
+                            let vGroup = group.filter(h => {
+                                let isHeavilyOccupied = (houseCounts[h] >= 2);
+                                return !removeOccupiedToggle || (!isHeavilyOccupied || immuneHouses.has(h));
+                            });
+                            vGroup = [...new Set(vGroup)].sort((a,b) => a - b);
+                            if (vGroup.length > 0) finalConjGroups.push(vGroup.join(","));
+                        });
+                        
+                        if (finalConjGroups.length > 0) {
+                            if (finalStr) finalStr += " + " + finalConjGroups.join(" + ");
+                            else finalStr = finalConjGroups.join(" + ");
+                        }
+                    }
+                } 
+                
+                if (dbaConjSymToggle) {
+                    if (conjNames.length > 0) {
+                        let uniqueNames = [...new Set(conjNames)];
+                        if (finalStr) finalStr += " + " + uniqueNames.join(",");
+                        else finalStr = uniqueNames.join(",");
+                    }
                 }
             }
         }
@@ -13623,6 +13691,13 @@ function getDbaMinimalScript(pCode, vNum) {
     return result;
 }
 
+
+
+
+
+
+
+
 function formatDbaBox(data, isHiddenText = false) {
     if (!data || !data.planet) return `<div>Data Unavailable</div>`;
     
@@ -13630,6 +13705,35 @@ function formatDbaBox(data, isHiddenText = false) {
     const hideSub = document.getElementById("dbaHideSublordToggle")?.checked;
     const hideStarSL = document.getElementById("dbaHideStarSLToggle")?.checked;
     const hideSubSub = document.getElementById("dbaHideSubSubToggle")?.checked;
+    
+    // --- PATCH: Capture the Untenanted toggle state ---
+    const hideUntenanted = document.getElementById("dbaUntenantedToggle")?.checked;
+    
+    // Default house and placement values
+    let pStarHouses = data.star.houses;
+    let pStarPlaced = data.star.placed;
+    
+    let pSubStarHouses = data.subStar ? data.subStar.houses : "-";
+    let pSubStarPlaced = data.subStar ? data.subStar.placed : -1;
+    
+    let pSubSubStarHouses = data.subSubStar ? data.subSubStar.houses : "-";
+    let pSubSubStarPlaced = data.subSubStar ? data.subSubStar.placed : -1;
+
+    // --- PATCH: If Untenanted is checked and $ exists, set house strings to empty "" ---
+    if (hideUntenanted) {
+        if (data.planet && data.planet.name && data.planet.name.includes("$")) {
+            pStarHouses = "";
+            pStarPlaced = -1;
+        }
+        if (data.sub && data.sub.name && data.sub.name.includes("$")) {
+            pSubStarHouses = "";
+            pSubStarPlaced = -1;
+        }
+        if (data.subSub && data.subSub.name && data.subSub.name.includes("$")) {
+            pSubSubStarHouses = "";
+            pSubSubStarPlaced = -1;
+        }
+    }
 
     let visibilityStyle = isHiddenText ? "visibility: hidden;" : "visibility: visible;";
 
@@ -13643,10 +13747,12 @@ function formatDbaBox(data, isHiddenText = false) {
     `;
 
     if (!hideStar) {
+        // Formats empty string if Untenanted rule triggers, avoiding the "-" symbol
+        let formattedStarHouses = pStarHouses === "" ? "" : formatDbaHouses(pStarHouses, pStarPlaced);
         html += `
             <div style="color:#facc15; font-weight:bold;">Starlord</div><div style="color:#facc15; font-weight:bold;">:</div>
             <div style="color:#facc15; font-weight:bold;">${data.star.name}</div>
-            <div style="color:#facc15; font-weight:bold; text-align:left; display:flex; align-items:center; flex-wrap:wrap; gap:2px;">${formatDbaHouses(data.star.houses, data.star.placed)}</div>
+            <div style="color:#facc15; font-weight:bold; text-align:left; display:flex; align-items:center; flex-wrap:wrap; gap:2px;">${formattedStarHouses}</div>
         `;
     }
 
@@ -13661,10 +13767,11 @@ function formatDbaBox(data, isHiddenText = false) {
         `;
         
         if (!hideStarSL) {
+            let formattedSubStarHouses = pSubStarHouses === "" ? "" : formatDbaHouses(pSubStarHouses, pSubStarPlaced);
             html += `
             <div style="color:#ff4444; font-weight:bold;">&#11088; SL</div><div style="color:#ff4444; font-weight:bold;">:</div>
             <div style="color:#ff4444; font-weight:bold;">${data.subStar.name}</div>
-            <div style="color:#ff4444; font-weight:bold; text-align:left; display:flex; align-items:center; flex-wrap:wrap; gap:2px;">${formatDbaHouses(data.subStar.houses, data.subStar.placed)}</div>
+            <div style="color:#ff4444; font-weight:bold; text-align:left; display:flex; align-items:center; flex-wrap:wrap; gap:2px;">${formattedSubStarHouses}</div>
             `;
         }
         
@@ -13672,6 +13779,7 @@ function formatDbaBox(data, isHiddenText = false) {
     }
 
     if (!hideSubSub) {
+        let formattedSubSubStarHouses = pSubSubStarHouses === "" ? "" : formatDbaHouses(pSubSubStarHouses, pSubSubStarPlaced);
         html += `
         <div style="border-top:1px solid #888; margin-top:6px; padding-top:6px; display:grid; grid-template-columns: 85px 10px 85px 1fr; gap:2px 4px; align-items:center;">
             <div style="color:#c084fc; font-weight:bold;">Sub-Sub</div><div style="color:#c084fc; font-weight:bold;">:</div>
@@ -13680,7 +13788,7 @@ function formatDbaBox(data, isHiddenText = false) {
 
             <div style="color:#c084fc; font-weight:bold;">&#11088; SSL</div><div style="color:#c084fc; font-weight:bold;">:</div>
             <div style="color:#c084fc; font-weight:bold;">${data.subSubStar.name}</div>
-            <div style="color:#c084fc; font-weight:bold; text-align:left; display:flex; align-items:center; flex-wrap:wrap; gap:2px;">${formatDbaHouses(data.subSubStar.houses, data.subSubStar.placed)}</div>
+            <div style="color:#c084fc; font-weight:bold; text-align:left; display:flex; align-items:center; flex-wrap:wrap; gap:2px;">${formattedSubSubStarHouses}</div>
         </div>
         `;
     }
@@ -14163,6 +14271,7 @@ function setDbaLevel(level, pCode) {
     };
 })();
 </script>
+
 
 
 
