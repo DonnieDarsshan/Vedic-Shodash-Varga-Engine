@@ -1373,12 +1373,18 @@ document.getElementById("toolEndDate").addEventListener("change", calcToolDateDi
 
 <div id="cuspalTablesWrapper" class="shoda-wrapper" style="display:none; padding-bottom: 40px;">
     
-    <div style="text-align:center; margin-bottom:14px;">
-        <label style="color:var(--grid-line); font-weight:bold; font-size:16px; margin-right:10px;">
-            SELECT DIVISIONAL CHART:
+    <div style="text-align:center; margin-bottom:14px; display:flex; justify-content:center; align-items:center; gap:20px;">
+        <div>
+            <label style="color:var(--grid-line); font-weight:bold; font-size:16px; margin-right:10px;">
+                SELECT DIVISIONAL CHART:
+            </label>
+            <select id="cuspalVargaSelect" onchange="renderCuspalTables()" style="background:#000;color:#fff;border:1px solid var(--grid-line); padding:6px 10px;font-size:16px;font-weight:bold;cursor:pointer;">
+            </select>
+        </div>
+        <label style="color:var(--asc-yellow); font-weight:bold; font-size:16px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+            <input type="checkbox" id="cuspalSymbolsToggle" checked onchange="renderCuspalTables()">
+            Symbols
         </label>
-        <select id="cuspalVargaSelect" onchange="renderCuspalTables()" style="background:#000;color:#fff;border:1px solid var(--grid-line); padding:6px 10px;font-size:16px;font-weight:bold;cursor:pointer;">
-        </select>
     </div>
 
     <div class="shoda-title">CUSPAL INTERLINK TABLE</div>
@@ -1446,6 +1452,78 @@ function renderCuspalTables() {
     const NADI_NAMES = { Sy:"Surya", Ch:"Chandra", Ma:"Mangala", Bu:"Budha", Ju:"Jupiter", Ve:"Venus", Sa:"Saturn", Ra:"Rahu", Ke:"Ketu" };
     const pList = ["Sy", "Ch", "Ma", "Ra", "Ju", "Sa", "Bu", "Ke", "Ve"];
 
+    const showSym = document.getElementById("cuspalSymbolsToggle")?.checked;
+    
+    // 1. Pre-calculate true degrees for all planets to ensure accurate Untenanted checks
+    let currentPlanetDegs = {};
+    let isTrueNodeGlobal = document.getElementById("useTrueNode")?.checked;
+    pList.forEach(tp => {
+        let tGlobal = NADI_NAMES[tp];
+        let tDeg = -1;
+        if (isTrueNodeGlobal && (tGlobal === "Rahu" || tGlobal === "Ketu")) {
+            let tName = tGlobal + "_true";
+            const aya = document.getElementById('aya')?.value || 'Lahiri';
+            if (raw && raw.ayanamshas && raw.ayanamshas[aya] && raw.ayanamshas[aya].planets && raw.ayanamshas[aya].planets[tName] !== undefined) {
+                tDeg = parseFloat(raw.ayanamshas[aya].planets[tName]);
+            } else if (raw && raw.planets && raw.planets[tName] !== undefined) {
+                tDeg = parseFloat(raw.planets[tName]);
+            }
+            if (tDeg !== -1 && typeof originalDateTime !== "undefined" && typeof currentDateTime !== "undefined" && originalDateTime && currentDateTime) {
+                let diffDays = (currentDateTime - originalDateTime) / 86400000;
+                tDeg += (-0.05295 * diffDays);
+                while(tDeg < 0) tDeg += 360;
+                while(tDeg >= 360) tDeg -= 360;
+            }
+        } 
+        if (tDeg === -1 && window._shiftedPlanetsGlobal && window._shiftedPlanetsGlobal[tGlobal] !== undefined) {
+            tDeg = window._shiftedPlanetsGlobal[tGlobal];
+        }
+        currentPlanetDegs[tp] = tDeg;
+    });
+
+    // 2. Pre-calculate Retro and Untenanted status into a map
+    let planetStatus = {};
+    pList.forEach(p => {
+        let globalName = NADI_NAMES[p];
+        
+        // Check retro status (accounting for True Nodes if active)
+        let isRetro = false;
+        let isTrueNodeGlobal = document.getElementById("useTrueNode")?.checked;
+        if (isTrueNodeGlobal && (p === "Ra" || p === "Ke")) {
+            let trueName = globalName + "_true";
+            isRetro = (raw && raw.planets_retro && raw.planets_retro[trueName]) ? true : false;
+        } else {
+            isRetro = (raw && raw.planets_retro && raw.planets_retro[globalName]) ? true : false;
+        }
+        
+        // Force nodes to be retro by default if the data source omits them (since Mean Nodes are always retro)
+        if (!isRetro && (p === "Ra" || p === "Ke")) {
+            isRetro = true;
+        }
+
+        let isUntenanted = true;
+        
+        pList.forEach(otherP => {
+            let deg = currentPlanetDegs[otherP];
+            if (deg !== undefined && deg !== -1) {
+                let stCode = (typeof getKpLordsNadi === "function") ? getKpLordsNadi(deg).star : "";
+                if (stCode === p) isUntenanted = false;
+            }
+        });
+        planetStatus[globalName] = { retro: isRetro, untenanted: isUntenanted };
+    });
+
+    // 3. Helper function to append (Rx) and $ dynamically
+    function wSym(name) {
+        if (!showSym || !name || name === "-") return name;
+        let status = planetStatus[name];
+        if (!status) return name; // Failsafe
+        let res = name;
+        if (status.retro) res += " (Rx)";
+        if (status.untenanted) res += " $";
+        return res;
+    }
+
     function formatDMS(deg) {
         let d = Math.floor(deg);
         let rem = (deg - d) * 60;
@@ -1511,8 +1589,8 @@ function renderCuspalTables() {
         <th style="color:#0bf4e6;">Bhava</th>
         <th style="color:#0bf4e6;">Degree</th>
         <th style="color:#0bf4e6;">Zodiac Sign</th>
-        <th style="color:#0bf4e6;">Nakshatra</th>
         <th style="color:#0bf4e6;">Sign Lord</th>
+        <th style="color:#0bf4e6;">Nakshatra</th>
         <th style="color:#0bf4e6;">Star Lord</th>
         <th style="color:#0bf4e6;">Sub Lord</th>
         <th style="color:#0bf4e6;">Sub-Sub Lord</th>
@@ -1529,11 +1607,11 @@ function renderCuspalTables() {
             <td style="font-weight:bold;">${i}</td>
             <td>${formatDMS(cDeg % 30)}</td>
             <td>${sd.sign}</td>
+            <td>${wSym(sd.lord)}</td>
             <td>${nak}</td>
-            <td>${sd.lord}</td>
-            <td>${NADI_NAMES[kp.star] || kp.star}</td>
-            <td>${NADI_NAMES[kp.sub] || kp.sub}</td>
-            <td>${NADI_NAMES[kp.subSub] || kp.subSub}</td>
+            <td>${wSym(NADI_NAMES[kp.star] || kp.star)}</td>
+            <td>${wSym(NADI_NAMES[kp.sub] || kp.sub)}</td>
+            <td>${wSym(NADI_NAMES[kp.subSub] || kp.subSub)}</td>
         </tr>`;
     }
     cTable.innerHTML = cHtml;
@@ -1543,8 +1621,8 @@ function renderCuspalTables() {
         <th style="color:#facc15;">Planet</th>
         <th style="color:#facc15;">Degree</th>
         <th style="color:#facc15;">Zodiac Sign</th>
-        <th style="color:#facc15;">Nakshatra</th>
         <th style="color:#facc15;">Sign Lord</th>
+        <th style="color:#facc15;">Nakshatra</th>
         <th style="color:#facc15;">Star Lord</th>
         <th style="color:#facc15;">Sub Lord</th>
         <th style="color:#facc15;">Sub-Sub Lord</th>
@@ -1625,15 +1703,18 @@ function renderCuspalTables() {
             let nak = getNakshatraPada(pDeg);
             let kp = typeof getKpLordsNadi === "function" ? getKpLordsNadi(pDeg) : {star:"-", sub:"-", subSub:"-"};
             
+            // Generate names applying the wSym toggle check dynamically
+            let displayName = wSym(pName);
+            
             pHtml += `<tr>
-                <td style="font-weight:bold;">${pName}</td>
+                <td style="font-weight:bold;">${displayName}</td>
                 <td>${formatDMS(pDeg % 30)}</td>
                 <td>${sd.sign}</td>
+                <td>${wSym(sd.lord)}</td>
                 <td>${nak}</td>
-                <td>${sd.lord}</td>
-                <td>${NADI_NAMES[kp.star] || kp.star}</td>
-                <td>${NADI_NAMES[kp.sub] || kp.sub}</td>
-                <td>${NADI_NAMES[kp.subSub] || kp.subSub}</td>
+                <td>${wSym(NADI_NAMES[kp.star] || kp.star)}</td>
+                <td>${wSym(NADI_NAMES[kp.sub] || kp.sub)}</td>
+                <td>${wSym(NADI_NAMES[kp.subSub] || kp.subSub)}</td>
             </tr>`;
         }
     });
@@ -12587,7 +12668,7 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
 
             <label style="color:var(--grid-line); font-weight:bold; font-size:16px; display:flex; align-items:center; gap:8px;">
                 VARGA:
-                <select id="dbaVargaSelect" onchange="renderDbaMixer()" style="background:#000; color:#fff; border:1px solid var(--grid-line); padding:6px 10px; font-size:14px; font-weight:bold; cursor:pointer;">
+                <select id="dbaVargaSelect" onchange="handleVargaChange()" style="background:#000; color:#fff; border:1px solid var(--grid-line); padding:6px 10px; font-size:14px; font-weight:bold; cursor:pointer;">
                 </select>
             </label>
 
@@ -12620,7 +12701,12 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
 
             <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:#ffffff; font-weight:bold; font-size:15px;">
                 <input type="checkbox" id="dbaHideUnselected" onchange="renderDbaMixer()">
-                Hide Unselected Numbers
+                Hide Unselected
+            </label>
+            
+            <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:#eab308; font-weight:bold; font-size:15px; margin-left:15px;">
+                <input type="checkbox" id="dbaHideLordship" onchange="renderDbaMixer()">
+                Hide Lordship
             </label>
 
             <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#ff3366; font-weight:bold; font-size:15px; margin-left:15px;">
@@ -13319,6 +13405,23 @@ function rebuildDbaColumns() {
     syncDbaColumnHighlight();
 }
 
+function handleVargaChange() {
+    const vNum = document.getElementById("dbaVargaSelect").value;
+    const hideStar = document.getElementById("dbaHideStarlordToggle");
+    const hideSub = document.getElementById("dbaHideSublordToggle");
+    
+    if (vNum === "1") {
+        // Revert to D1 default: Hide Sublord ON, Hide Starlord OFF
+        if (hideStar) hideStar.checked = false;
+        if (hideSub) hideSub.checked = true;
+        handleDbaHideToggles('sub'); 
+    } else {
+        // Divisional charts: Hide Starlord ON (which also hides sublords)
+        if (hideStar) hideStar.checked = true;
+        handleDbaHideToggles('star'); 
+    }
+}
+
 function initDbaMixerUI() {
     const vSel = document.getElementById("dbaVargaSelect");
     if (vSel && vSel.options.length === 0) {
@@ -13992,6 +14095,16 @@ function getDbaPlanetData(targetPlanet, vNum) {
                     }
                 }
             }
+            
+            // PATCH: Hide Lordship globally strips all lordships but keeps the placed house
+            if (document.getElementById("dbaHideLordship")?.checked) {
+                if ((tp === "Ra" || tp === "Ke") && dispForMix && t_lordships.length > 0) {
+                    t_lordships = [t_lordships[0]]; // Retain only the Dispositor's placed house
+                } else {
+                    t_lordships = []; // Wipe out standard lordships
+                }
+            }
+            
             return { h: t_placedHouse, l: t_lordships, disp: dispForMix };
         }
 
