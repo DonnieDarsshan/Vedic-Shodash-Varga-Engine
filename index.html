@@ -14151,23 +14151,18 @@ function getDbaPlanetData(targetPlanet, vNum) {
                 if (otherP !== targetPlanet) {
                     let otherDeg = getDbaAbsoluteLongitude(otherP, vNum);
                     if (otherDeg !== -1) {
-                        // FETCH ONCE FOR BOTH CONJUNCTION AND ASPECT (MOVED UP FOR HOUSE CHECK)
-                        let otherBase = getPlanetBaseScript(otherP, dbaRaKeFullToggle);
-                        
                         let isConj = false;
-                        // Strict check to ensure both planets share the exact same house placement
-                        let isSameHouse = (parseInt(placedHouse) === parseInt(otherBase.h));
                         
                         if (targetPlanet === "Ra" || targetPlanet === "Ke") {
                             if (isRakeConjActive) {
                                 if (rakeAspHouseToggle) {
                                     let diff = Math.abs(pDeg - otherDeg);
                                     if (diff > 180) diff = 360 - diff;
-                                    if (diff <= 12 && isSameHouse) isConj = true; 
+                                    if (diff <= 12) isConj = true; 
                                 } else {
                                     let pSign = Math.floor(pDeg / 30);
                                     let otherSign = Math.floor(otherDeg / 30);
-                                    if (pSign === otherSign && isSameHouse) isConj = true;
+                                    if (pSign === otherSign) isConj = true;
                                 }
                             }
                         } 
@@ -14175,9 +14170,12 @@ function getDbaPlanetData(targetPlanet, vNum) {
                             if (dbaConjNumToggle || dbaConjSymToggle || dbaConjMixToggle) {
                                 let diff = Math.abs(pDeg - otherDeg);
                                 if (diff > 180) diff = 360 - diff;
-                                if (diff <= 12 && isSameHouse) isConj = true; 
+                                if (diff <= 12) isConj = true; 
                             }
                         }
+
+                        // FETCH ONCE FOR BOTH CONJUNCTION AND ASPECT
+                        let otherBase = getPlanetBaseScript(otherP, dbaRaKeFullToggle);
                         
                         if (isConj) {
                             if (targetPlanet === "Ra" || targetPlanet === "Ke") {
