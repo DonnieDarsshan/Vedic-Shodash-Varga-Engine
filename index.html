@@ -995,6 +995,7 @@
 	<option value="Raman">Raman</option>
 	</select>
 
+	<span style="font-weight:bold; color:var(--asc-yellow); margin-left: 10px;">PIV:</span>
 	<select id="pivot" onchange="syncAllPivots(this.id)">
 		<option value="ASC">ASC</option>
 		<option value="Saturn">Saturn</option>
@@ -1079,30 +1080,32 @@
         if (!el) return;
         const val = el.value;
 
-        let globalVal = "ASC", mixerVal = "ASC", nadiVal = "1", dbaVal = "1";
+        let globalVal = "ASC", mixerVal = "ASC", nadiVal = "1", dbaVal = "1", topVal = "1";
 
         const pGlobal = { "Sy":"Surya", "Ch":"Chandra", "Ma":"Mangala", "Ra":"Rahu", "Ju":"Jupiter", "Sa":"Saturn", "Bu":"Budha", "Ke":"Ketu", "Ve":"Venus" };
         const pShort = { "Surya":"Sy", "Chandra":"Ch", "Mangala":"Ma", "Rahu":"Ra", "Jupiter":"Ju", "Saturn":"Sa", "Budha":"Bu", "Ketu":"Ke", "Venus":"Ve" };
 
         if (pGlobal[val]) { 
-            globalVal = pGlobal[val]; mixerVal = val; nadiVal = val; dbaVal = val;
+            globalVal = pGlobal[val]; mixerVal = val; nadiVal = val; dbaVal = val; topVal = val;
         } else if (pShort[val]) { 
-            globalVal = val; mixerVal = pShort[val]; nadiVal = pShort[val]; dbaVal = pShort[val];
-        } else if (val === "ASC") {
-            globalVal = "ASC"; mixerVal = "ASC"; nadiVal = "1"; dbaVal = "1";
+            globalVal = val; mixerVal = pShort[val]; nadiVal = pShort[val]; dbaVal = pShort[val]; topVal = pShort[val];
+        } else if (val === "ASC" || val === "1") {
+            globalVal = "ASC"; mixerVal = "ASC"; nadiVal = "1"; dbaVal = "1"; topVal = "1";
         } else {
-            globalVal = "ASC"; mixerVal = "ASC"; nadiVal = val; dbaVal = val;
+            globalVal = "ASC"; mixerVal = "ASC"; nadiVal = val; dbaVal = val; topVal = val;
         }
 
         const p1 = document.getElementById("pivot");
         const p2 = document.getElementById("mixerPivot");
         const p3 = document.getElementById("nadiHousePivot");
         const p4 = document.getElementById("dbaPivotSelect");
+        const p5 = document.getElementById("topBarPivot");
 
         if (p1 && sourceId !== "pivot") p1.value = globalVal;
         if (p2 && sourceId !== "mixerPivot") p2.value = mixerVal;
         if (p3 && sourceId !== "nadiHousePivot") p3.value = nadiVal;
         if (p4 && sourceId !== "dbaPivotSelect") p4.value = dbaVal;
+        if (p5 && sourceId !== "topBarPivot") p5.value = topVal;
 
         if (pGlobal[val] || pShort[val]) {
             let sortCode = pGlobal[val] ? val : pShort[val];
@@ -7404,32 +7407,48 @@ function attachInfiniteScroll(selectId, updateCallback) {
     const el = document.getElementById(selectId);
     if (!el) return;
     
-    // 1. Keyboard Loop (Overrides native to guarantee instant UI updates on ALL keys)
+    // 1. Keyboard Loop (Uses setTimeout to overwrite native double-jumps)
     el.addEventListener('keydown', function(e) {
         if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-            e.preventDefault(); // Stop native browser select behavior
+            e.preventDefault(); 
+            
             const max = this.options.length - 1;
+            let nextIdx = this.selectedIndex;
 
             if (e.key === 'ArrowDown') {
-                this.selectedIndex = (this.selectedIndex === max) ? 0 : this.selectedIndex + 1;
+                nextIdx = (this.selectedIndex >= max) ? 0 : this.selectedIndex + 1;
             } else if (e.key === 'ArrowUp') {
-                this.selectedIndex = (this.selectedIndex === 0) ? max : this.selectedIndex - 1;
+                nextIdx = (this.selectedIndex <= 0) ? max : this.selectedIndex - 1;
             }
-            if (typeof updateCallback === "function") updateCallback();
+
+            // Execute strictly AFTER browser's native ghost-increment to force correctness
+            setTimeout(() => {
+                if (this.selectedIndex !== nextIdx) {
+                    this.selectedIndex = nextIdx;
+                    this.dispatchEvent(new Event('change'));
+                    if (typeof updateCallback === "function") updateCallback();
+                }
+            }, 0);
         }
     });
 
-    // 2. Mouse Wheel Infinite Scroll (Hover over closed dropdown and scroll)
+    // 2. Mouse Wheel Infinite Scroll
     el.addEventListener('wheel', function(e) {
-        e.preventDefault(); // Stop page from scrolling
+        e.preventDefault(); 
         const max = this.options.length - 1;
+        let nextIdx = this.selectedIndex;
 
         if (e.deltaY > 0) {
-            this.selectedIndex = (this.selectedIndex === max) ? 0 : this.selectedIndex + 1;
+            nextIdx = (this.selectedIndex >= max) ? 0 : this.selectedIndex + 1;
         } else if (e.deltaY < 0) {
-            this.selectedIndex = (this.selectedIndex === 0) ? max : this.selectedIndex - 1;
+            nextIdx = (this.selectedIndex <= 0) ? max : this.selectedIndex - 1;
         }
-        if (typeof updateCallback === "function") updateCallback();
+
+        if (this.selectedIndex !== nextIdx) {
+            this.selectedIndex = nextIdx;
+            this.dispatchEvent(new Event('change'));
+            if (typeof updateCallback === "function") updateCallback();
+        }
     });
 }
 
@@ -12599,7 +12618,7 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
                 <input type="checkbox" id="dbaConjSymbolToggle" onchange="handleConjToggles('symbol')"> Conj Symbol
             </label>
             <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#0bf4e6; font-weight:bold; font-size:15px;">
-                <input type="checkbox" id="dbaConjMixToggle" onchange="handleConjToggles('mix')" checked> Conj Mix
+                <input type="checkbox" id="dbaConjMixToggle" onchange="handleConjToggles('mix')" > Conj Mix
             </label>
             
             <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#eab308; font-weight:bold; font-size:15px;">
@@ -12715,9 +12734,54 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
 
         </div>
 
-        <!-- POSITIVE / SUPPORTIVE / NEGATIVE BUTTONS WITH PERFECT GRID ALIGNMENT -->
-        <style>
-            .dba-hl-btn {
+			<!-- POSITIVE / SUPPORTIVE / NEGATIVE BUTTONS WITH PERFECT GRID ALIGNMENT -->
+		<style>
+			/* Dark Mode Custom Checkboxes & Radios */
+			input[type="checkbox"], input[type="radio"] {
+				appearance: none;
+				-webkit-appearance: none;
+				background-color: #111;
+				margin: 0;
+				color: currentColor;
+				width: 16px;
+				height: 16px;
+				border: 1px solid #555;
+				border-radius: 3px;
+				display: inline-grid;
+				place-content: center;
+				cursor: pointer;
+				transition: 0.2s ease-in-out;
+			}
+			input[type="radio"] {
+				border-radius: 50%;
+			}
+			input[type="checkbox"]::before {
+				content: "";
+				width: 10px;
+				height: 10px;
+				transform: scale(0);
+				transition: 120ms transform ease-in-out;
+				background-color: currentColor;
+				clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+			}
+			input[type="radio"]::before {
+				content: "";
+				width: 8px;
+				height: 8px;
+				border-radius: 50%;
+				transform: scale(0);
+				transition: 120ms transform ease-in-out;
+				background-color: currentColor;
+			}
+			input[type="checkbox"]:checked::before, input[type="radio"]:checked::before {
+				transform: scale(1);
+			}
+			input[type="checkbox"]:checked, input[type="radio"]:checked {
+				border-color: currentColor;
+				box-shadow: 0 0 5px currentColor;
+			}
+
+			.dba-hl-btn {
                 background: #111; color: #fff; border: 1px solid #555; 
                 padding: 6px 0; width: 100%; text-align: center;
                 font-weight: bold; cursor: pointer; 
@@ -12863,9 +12927,16 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
         <div id="dbaMainAntaraHeader" style="background:#2e004f; color:#c084fc; font-size:22px; font-weight:900; padding:12px; border:2px solid #c084fc; border-radius:6px; letter-spacing:1px; transition: opacity 0.3s ease;">ANTARA</div>
     </div>
 
-    <!-- 9 ROWS OF ISLANDS GRID -->
-    <div id="dbaIslandsGrid" style="display:flex; flex-direction:column; gap:20px; width:100%;">
-        <!-- Filled by JS -->
+    <!-- NEW COLLAPSIBLE WRAPPER FOR FIRST TABLE -->
+    <div style="margin-top: 20px; width:100%;">
+        <div style="color: #0bf4e6; font-size: 18px; font-weight: 900; text-align: center; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; border-bottom: 2px solid #0bf4e6; padding-bottom: 5px; display: inline-block; position: relative; left: 50%; transform: translateX(-50%);" onclick="const g = document.getElementById('dbaIslandsGrid'); g.style.display = (g.style.display === 'none' || g.style.display === '') ? 'grid' : 'none';">
+            Uniform Pivot Rotator &#9650;
+        </div>
+        
+        <!-- 9 ROWS OF ISLANDS GRID -->
+        <div id="dbaIslandsGrid" style="display:flex; flex-direction:column; gap:20px; width:100%;">
+            <!-- Filled by JS -->
+        </div>
     </div>
 
     <!-- BRACKET RULES LEGEND -->
@@ -12879,6 +12950,14 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
         <div style="color: #888; font-size: 13px; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase; display: flex; align-items: center;">
             <span style="color: #fff; font-size: var(--dba-font-bracket); font-family: Consolas, 'Courier New', monospace; margin-right: 6px; font-weight: bold;">[ ]</span> Dispositor
         </div>
+    </div>
+
+    <!-- NEW INDIVIDUAL PLANETS PIVOT ROTATOR -->
+    <div style="margin-top: 40px; padding-top: 20px; border-top: 2px dashed #444; width:100%;">
+        <div style="color: #39FF14; font-size: 18px; font-weight: 900; text-align: center; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; border-bottom: 2px solid #39FF14; padding-bottom: 5px; display: inline-block; position: relative; left: 50%; transform: translateX(-50%);" onclick="const g = document.getElementById('dbaRotatorGrid'); g.style.display = (g.style.display === 'none' || g.style.display === '') ? 'grid' : 'none';">
+            Individual Planets Pivot Rotator &#9650;
+        </div>
+        <div id="dbaRotatorGrid" style="display:grid; gap:20px; width:100%;"></div>
     </div>
 
 </div>
@@ -15194,14 +15273,207 @@ function renderDbaMixer() {
 
                     h.innerHTML += `<div class="${lineClass}" style="font-size:15px; color:#fff; white-space:nowrap;">${displayStr}</div>`;
                 });
-                
-                
-
                 k.appendChild(h);
             }
         });
         card.appendChild(k);
         kundaliContainer.appendChild(card);
+
+        // --- NEW: CREATE HOUSE & ASPECT TABLE UNDER LEGEND ---
+        let wrapper = document.getElementById("dbaMixerWrapper");
+        if (wrapper) {
+            let existingTable = document.getElementById("dbaHouseAspectTable");
+            if (existingTable) existingTable.remove();
+            
+            const tableSignLords = { 1:"Ma", 2:"Ve", 3:"Bu", 4:"Ch", 5:"Sy", 6:"Bu", 7:"Ve", 8:"Ma", 9:"Ju", 10:"Sa", 11:"Sa", 12:"Ju" };
+            const pFullNames = { Sy:"Surya", Ch:"Chandra", Ma:"Mangala", Bu:"Budha", Ju:"Jupiter", Ve:"Venus", Sa:"Saturn", Ra:"Rahu", Ke:"Ketu" };
+            
+            // Helper to get formatted string arrays per planet (with _U for underlines & Cuspal Conjs)
+            function getHouseStrArr(pCode) {
+                let placedHouse = null;
+                let pureSign = null;
+                let absDeg = getDbaAbsoluteLongitude(pCode, vNum);
+                let pNameFull = pFullNames[pCode] || pCode;
+                
+                for(let i=0; i<12; i++) {
+                    let found = isolatedChart[i].find(p => p.n === pCode);
+                    if(found) {
+                        placedHouse = ((i - ascIndex + 12) % 12) + 1;
+                        pureSign = found.pureSign !== undefined ? found.pureSign : Math.floor(absDeg / 30);
+                        break;
+                    }
+                }
+                if(!placedHouse) return [];
+
+                let houseOffset = isPlanetPivot ? 0 : (parseInt(document.getElementById("dbaPivotSelect")?.value || "1") - 1);
+                if (isNaN(houseOffset)) houseOffset = 0;
+                
+                let isCuspal = document.getElementById("dbaCuspalConjToggle")?.checked && vNum === 1 && localCusps;
+
+                if (pCode === "Ra" || pCode === "Ke") {
+                    let dispCode = tableSignLords[pureSign + 1];
+                    let dispNameFull = pFullNames[dispCode] || dispCode;
+                    let dispPlaced = null;
+                    for(let i=0; i<12; i++) {
+                        if(isolatedChart[i].find(p => p.n === dispCode)) {
+                            dispPlaced = ((i - ascIndex + 12) % 12) + 1;
+                            break;
+                        }
+                    }
+                    let dispLords = [];
+                    for(let h=1; h<=12; h++) {
+                        const signOfHouse = ((ascIndex + h - 1) % 12) + 1;
+                        if(tableSignLords[signOfHouse] === dispCode) dispLords.push(h);
+                    }
+                    
+                    if (isCuspal) {
+                        let dispDeg = getDbaAbsoluteLongitude(dispCode, vNum);
+                        for(let c=1; c<=12; c++) {
+                            let cuspDeg = isPlanetPivot ? (pivotDeg + (c - 1) * 30) % 360 : localCusps[c];
+                            if(cuspDeg !== undefined) {
+                                let diff = Math.abs(dispDeg - cuspDeg);
+                                if(diff>180) diff = 360 - diff;
+                                if(diff <= 3.3333) dispLords.push(((c - 1 - houseOffset + 12) % 12) + 1);
+                            }
+                        }
+                    }
+                    
+                    let dNums = [];
+                    if(dispPlaced) dNums.push(dispPlaced);
+                    dNums.push(...dispLords);
+                    dNums = [...new Set(dNums)].sort((a,b) => parseInt(a) - parseInt(b));
+                    dNums = dNums.map(n => parseInt(n) === dispPlaced ? n + "_U" : n);
+                    
+                    let rNums = [placedHouse].map(n => n + "_U");
+                    return [`${pNameFull}(${rNums.join(",")})`, `DISP|${dispNameFull}[${dNums.join(",")}]`];
+                } else {
+                    let lords = [];
+                    for(let h=1; h<=12; h++) {
+                        const signOfHouse = ((ascIndex + h - 1) % 12) + 1;
+                        if(tableSignLords[signOfHouse] === pCode) lords.push(h);
+                    }
+                    
+                    if (isCuspal) {
+                        for(let c=1; c<=12; c++) {
+                            let cuspDeg = isPlanetPivot ? (pivotDeg + (c - 1) * 30) % 360 : localCusps[c];
+                            if(cuspDeg !== undefined) {
+                                let diff = Math.abs(absDeg - cuspDeg);
+                                if(diff>180) diff = 360 - diff;
+                                if(diff <= 3.3333) lords.push(((c - 1 - houseOffset + 12) % 12) + 1);
+                            }
+                        }
+                    }
+                    
+                    let nums = [placedHouse, ...lords];
+                    nums = [...new Set(nums)].sort((a,b) => parseInt(a) - parseInt(b));
+                    nums = nums.map(n => parseInt(n) === placedHouse ? n + "_U" : n);
+                    return [`${pNameFull}(${nums.join(",")})`];
+                }
+            }
+
+            // Strips extra underlines for Aspects specifically
+            function getPntNums(pCode) {
+                let arr = getHouseStrArr(pCode);
+                if (pCode === "Ra" || pCode === "Ke") {
+                    let rMatch = arr[0].match(/\((.*?)\)/);
+                    let dMatch = arr[1].match(/\[(.*?)\]/);
+                    let merged = [];
+                    if(rMatch) merged.push(...rMatch[1].split(","));
+                    
+                    // NEW FIX: Remove "_U" from Dispositor so only the main node gets underlined in aspects
+                    if(dMatch) merged.push(...dMatch[1].split(",").map(n => n.replace("_U", "")));
+                    
+                    return [...new Set(merged)].sort((a,b) => parseInt(a) - parseInt(b));
+                } else {
+                    let match = arr[0].match(/\((.*?)\)/);
+                    return match ? match[1].split(",") : [];
+                }
+            }
+
+            let houseData = Array(13).fill().map(() => ({ placed: [], aspectedBy: [] }));
+            
+            for(let s=0; s<12; s++) {
+                let hNum = ((s - ascIndex + 12) % 12) + 1;
+                isolatedChart[s].filter(p => !p.isAsc).forEach(p => {
+                    // Push string arrays directly for Placements
+                    houseData[hNum].placed.push(...getHouseStrArr(p.n));
+                    
+                    // Calc Aspects
+                    let aspects = [];
+                    if (p.n === "Sa") aspects = [3, 7, 10];
+                    else if (p.n === "Ma") aspects = [4, 7, 8];
+                    else if (p.n === "Ju") aspects = [5, 7, 9];
+                    else if (p.n === "Ra" || p.n === "Ke") {
+                        if (document.getElementById("dbaRaKeAspToggle")?.checked) aspects.push(5, 9);
+                        if (document.getElementById("dbaRaKe7thAspToggle")?.checked) aspects.push(7);
+                    }
+                    else aspects = [7]; 
+                    
+                    let pNums = getPntNums(p.n);
+                    let pNameFull = pFullNames[p.n] || p.n;
+                    
+                    aspects.forEach(asp => {
+                        let target = (hNum + asp - 1) % 12;
+                        if (target === 0) target = 12;
+                        houseData[target].aspectedBy.push("ASP|" + pNameFull + "{" + pNums.join(",") + "}");
+                    });
+                });
+            }
+
+            let tbodyHTML = "";
+            let customPlus = ' <span style="color:#facc15; font-weight:bold; font-size:18px; margin:0 6px;">+</span> ';
+
+            for(let hNum=1; hNum<=12; hNum++) {
+                let signOfHouse = ((ascIndex + hNum - 1) % 12) + 1;
+                let slCode = tableSignLords[signOfHouse];
+                let slStr = formatDbaHouses(pFullNames[slCode] || slCode, -1);
+
+                let pStrArr = houseData[hNum].placed.map(x => formatDbaHouses(x, -1));
+                let pStr = pStrArr.length > 0 ? pStrArr.join(customPlus) : "-";
+                
+                let aStrArr = [...new Set(houseData[hNum].aspectedBy)].map(x => formatDbaHouses(x, -1));
+                let aStr = aStrArr.length > 0 ? aStrArr.join(customPlus) : "-";
+                
+                tbodyHTML += `
+                    <tr style="border-bottom:1px solid #333; background: #0a0a0a;">
+                        <td style="padding:12px 6px; border-right:1px solid #333; font-weight:900; color:#facc15; font-size: var(--dba-font-large);">${hNum}</td>
+                        <td style="padding:12px 6px; border-right:1px solid #333;">${slStr}</td>
+                        <td style="padding:12px 10px; border-right:1px solid #333; text-align: left; line-height: 2;">${pStr}</td>
+                        <td style="padding:12px 10px; text-align: left; line-height: 2;">${aStr}</td>
+                    </tr>
+                `;
+            }
+
+            let tableDiv = document.createElement("div");
+            tableDiv.id = "dbaHouseAspectTable";
+            tableDiv.style.width = "100%";
+            tableDiv.style.marginTop = "35px";
+            tableDiv.style.paddingTop = "25px";
+            tableDiv.style.borderTop = "1px dashed #444";
+            
+            tableDiv.innerHTML = `
+            <div style="color: #0bf4e6; font-size: 18px; font-weight: 900; text-align: center; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; border-bottom: 2px solid #0bf4e6; padding-bottom: 5px; display: inline-block; position: relative; left: 50%; transform: translateX(-50%);" onclick="const t = document.getElementById('dbaHouseAspectTableContent'); t.style.display = (t.style.display === 'none' || t.style.display === '') ? 'block' : 'none';">
+                House Placements & Aspects &#9650;
+            </div>
+            <div id="dbaHouseAspectTableContent" class="varga-card" style="max-width: 100%; width: 100%; margin: 0 auto; background: #111; padding: 20px; border: 1px solid var(--grid-line); border-radius: 6px; box-sizing: border-box; box-shadow: 0 4px 6px rgba(0,0,0,0.5); font-family: 'Segoe UI', Arial, sans-serif; display: block;">
+                <table style="width:100%; border-collapse: collapse; text-align:center; color:#fff; font-size: var(--dba-font-base); background: #000; border: 1px solid #333;">
+                    <thead>
+                        <tr style="background:#222; color:#ff8800; border-bottom:2px solid #ff8800;">
+                            <th style="padding:12px 8px; border-right:1px solid #444; width: 60px;">HOUSE</th>
+                            <th style="padding:12px 8px; border-right:1px solid #444; width: 100px;">SIGN LORD</th>
+                            <th style="padding:12px 8px; border-right:1px solid #444; width: 40%;">PLACED</th>
+                            <th style="padding:12px 8px;">ASPECTED BY</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tbodyHTML}
+                    </tbody>
+                </table>
+            </div>
+            `;
+            
+            wrapper.appendChild(tableDiv);
+        }
     }
 
     try {
@@ -15447,6 +15719,138 @@ function setDbaLevel(level, pCode) {
     rebuildDbaColumns();
     renderDbaMixer();
 }
+
+
+
+
+
+
+
+// --- NEW INDIVIDUAL PLANETS PIVOT ROTATOR LOGIC ---
+function renderDbaRotator() {
+    const rotGrid = document.getElementById("dbaRotatorGrid");
+    if (!rotGrid) return;
+    const vNum = parseInt(document.getElementById("dbaVargaSelect")?.value || "1");
+    const pivotSelect = document.getElementById("dbaPivotSelect");
+    if (!pivotSelect) return;
+    
+    // Store user's actual selected pivot so we can safely restore it after drawing our table
+    const originalPivot = pivotSelect.value;
+    let rotHtml = "";
+    
+    if (dbaActiveLevel === "none") {
+        rotHtml += `<div style="background:#004d40; color:#0bf4e6; font-size:22px; font-weight:900; padding:12px; border:2px solid #0bf4e6; border-radius:6px; text-align:center; letter-spacing:1px;">DASHA (Pivot: ASC)</div>`;
+        
+        pivotSelect.value = "1"; // Force Dasha Pivot to ASC
+        let mLord = getDbaMoonStarLord();
+        let startIdx = DBA_PLANETS.indexOf(mLord);
+        if (startIdx === -1) startIdx = 0;
+        let iterOrder = [...DBA_PLANETS.slice(startIdx), ...DBA_PLANETS.slice(0, startIdx)];
+
+        iterOrder.forEach(dCode => {
+            let dData = getDbaMinimalScript(dCode, vNum);
+            rotHtml += `<div style="background:#111; border:2px solid #0bf4e6; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5); height:100%; box-sizing:border-box;">${formatDbaBox(dData, false)}</div>`;
+        });
+    } else if (dbaActiveLevel === "dasha") {
+        rotHtml += `
+            <div style="position:relative; background:#004d40; color:#0bf4e6; font-size:22px; font-weight:900; padding:12px; border:2px solid #0bf4e6; border-radius:6px; text-align:center; letter-spacing:1px;">
+                DASHA (Pivot: ASC)
+                <div onmousedown="startDbaResize(event, 0)" onmouseenter="this.style.background='rgba(255,255,255,0.1)'" onmouseleave="this.style.background='transparent'" style="position:absolute; top:0; bottom:0; right:-20px; width:20px; cursor:col-resize; z-index:100; transition:0.2s;">
+                    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:2px; height:20px; background:rgba(255,255,255,0.3); border-radius:2px;"></div>
+                </div>
+            </div>
+            <div style="position:relative; background:#4d2b00; color:#ff8800; font-size:22px; font-weight:900; padding:12px; border:2px solid #ff8800; border-radius:6px; text-align:center; letter-spacing:1px;">BUKTHI (Pivot: ${DBA_NAMES[dbaActiveDasha]})</div>
+        `;
+        
+        let startIdx = DBA_PLANETS.indexOf(dbaActiveDasha);
+        if (startIdx === -1) startIdx = 0;
+        let iterOrder = [...DBA_PLANETS.slice(startIdx), ...DBA_PLANETS.slice(0, startIdx)];
+
+        pivotSelect.value = "1"; // Force Dasha Pivot to ASC
+        let dData = getDbaMinimalScript(dbaActiveDasha, vNum);
+
+        pivotSelect.value = dbaActiveDasha; // Force Bukthi column Pivot to Dasha planet
+        iterOrder.forEach(bCode => {
+            let bData = getDbaMinimalScript(bCode, vNum);
+            rotHtml += `
+                <div style="background:#111; border:2px solid #0bf4e6; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5); height:100%; box-sizing:border-box;">${formatDbaBox(dData, false)}</div>
+                <div style="background:#111; border:2px solid #ff8800; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5); height:100%; box-sizing:border-box;">${formatDbaBox(bData, false)}</div>
+            `;
+        });
+    } else if (dbaActiveLevel === "bukthi" || dbaActiveLevel === "antara") {
+        rotHtml += `
+            <div style="position:relative; background:#004d40; color:#0bf4e6; font-size:22px; font-weight:900; padding:12px; border:2px solid #0bf4e6; border-radius:6px; text-align:center; letter-spacing:1px;">
+                DASHA (Pivot: ASC)
+                <div onmousedown="startDbaResize(event, 0)" onmouseenter="this.style.background='rgba(255,255,255,0.1)'" onmouseleave="this.style.background='transparent'" style="position:absolute; top:0; bottom:0; right:-20px; width:20px; cursor:col-resize; z-index:100; transition:0.2s;">
+                    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:2px; height:20px; background:rgba(255,255,255,0.3); border-radius:2px;"></div>
+                </div>
+            </div>
+            <div style="position:relative; background:#4d2b00; color:#ff8800; font-size:22px; font-weight:900; padding:12px; border:2px solid #ff8800; border-radius:6px; text-align:center; letter-spacing:1px;">
+                BUKTHI (Pivot: ${DBA_NAMES[dbaActiveDasha]})
+                <div onmousedown="startDbaResize(event, 1)" onmouseenter="this.style.background='rgba(255,255,255,0.1)'" onmouseleave="this.style.background='transparent'" style="position:absolute; top:0; bottom:0; right:-20px; width:20px; cursor:col-resize; z-index:100; transition:0.2s;">
+                    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:2px; height:20px; background:rgba(255,255,255,0.3); border-radius:2px;"></div>
+                </div>
+            </div>
+            <div style="position:relative; background:#2e004f; color:#c084fc; font-size:22px; font-weight:900; padding:12px; border:2px solid #c084fc; border-radius:6px; text-align:center; letter-spacing:1px;">ANTARA (Pivot: ${DBA_NAMES[dbaActiveBukthi]})</div>
+        `;
+
+        pivotSelect.value = "1"; // Force Dasha Pivot to ASC
+        let dData = getDbaMinimalScript(dbaActiveDasha, vNum);
+
+        pivotSelect.value = dbaActiveDasha; // Force Bukthi Pivot to Dasha Planet
+        let bData = getDbaMinimalScript(dbaActiveBukthi, vNum);
+
+        if (dbaActiveLevel === "bukthi") {
+            let startIdx = DBA_PLANETS.indexOf(dbaActiveBukthi);
+            if (startIdx === -1) startIdx = 0;
+            let iterOrder = [...DBA_PLANETS.slice(startIdx), ...DBA_PLANETS.slice(0, startIdx)];
+
+            pivotSelect.value = dbaActiveBukthi; // Force Antara Pivot to Bukthi Planet
+            iterOrder.forEach(aCode => {
+                let aData = getDbaMinimalScript(aCode, vNum);
+                rotHtml += `
+                    <div style="background:#111; border:2px solid #0bf4e6; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5); height:100%; box-sizing:border-box;">${formatDbaBox(dData, false)}</div>
+                    <div style="background:#111; border:2px solid #ff8800; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5); height:100%; box-sizing:border-box;">${formatDbaBox(bData, false)}</div>
+                    <div style="background:#111; border:2px solid #c084fc; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5); height:100%; box-sizing:border-box;">${formatDbaBox(aData, false)}</div>
+                `;
+            });
+        } else if (dbaActiveLevel === "antara") {
+            pivotSelect.value = dbaActiveBukthi; // Force Antara Pivot to Bukthi Planet
+            let aData = getDbaMinimalScript(dbaActiveAntara, vNum);
+            
+            rotHtml += `
+                <div style="background:#111; border:2px solid #0bf4e6; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5); height:100%; box-sizing:border-box;">${formatDbaBox(dData, false)}</div>
+                <div style="background:#111; border:2px solid #ff8800; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5); height:100%; box-sizing:border-box;">${formatDbaBox(bData, false)}</div>
+                <div style="background:#111; border:2px solid #c084fc; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5); height:100%; box-sizing:border-box;">${formatDbaBox(aData, false)}</div>
+            `;
+        }
+    }
+    
+    // Safely restore user's active pivot so it doesn't break upper tables
+    pivotSelect.value = originalPivot;
+
+    rotGrid.style.display = "grid";
+    const mainGrid = document.getElementById("dbaIslandsGrid");
+    if (mainGrid) rotGrid.style.gridTemplateColumns = mainGrid.style.gridTemplateColumns; // Match dragging rules dynamically
+    rotGrid.style.alignItems = "stretch";
+    rotGrid.innerHTML = rotHtml;
+}
+
+// Hook into existing Render logic smoothly without altering original definitions
+const originalRenderDbaMixer = window.renderDbaMixer;
+window.renderDbaMixer = function() {
+    if(typeof originalRenderDbaMixer === "function") originalRenderDbaMixer();
+    renderDbaRotator();
+};
+
+// Hook into existing Drag logic to sync column widths effortlessly
+const originalHandleDbaMouseMove = window.handleDbaMouseMove;
+window.handleDbaMouseMove = function(e) {
+    if(typeof originalHandleDbaMouseMove === "function") originalHandleDbaMouseMove(e);
+    const mainGrid = document.getElementById("dbaIslandsGrid");
+    const rotGrid = document.getElementById("dbaRotatorGrid");
+    if (mainGrid && rotGrid) rotGrid.style.gridTemplateColumns = mainGrid.style.gridTemplateColumns;
+};
 
 // Ensure the main calc cycle updates this table automatically
 (function hookDbaMixerIntoCalc(){
