@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1210,19 +1211,49 @@
 
 	</div>
 
-	<div id="vimContainer" class="vim-row" style="display:none;">
-
-		<div class="vim-col">
-			<div class="vim-title">Vimshottari Dasha – Chandra</div>
-			<div id="vimChandra"></div>
+	<div id="vimContainer" style="display:none; flex-direction: column; gap: 20px; width: 100%;">
+		
+		<!-- PRIMARY HEADING VISIBLE DATA -->
+		<div class="vim-row">
+			<div class="vim-col"><div class="vim-title">Vimshottari Dasha – Chandra</div><div id="vimChandra1"></div></div>
+			<div class="vim-col"><div class="vim-title">Vimshottari Dasha – Lagna</div><div id="vimLagna"></div></div>
 		</div>
 
-		<div class="vim-col">
-			<div class="vim-title">Vimshottari Dasha – Lagna</div>
-			<div id="vimLagna"></div>
+		<!-- SECONDARY HEADING -->
+		<div class="vim-heading" onclick="toggleVimSecondary()" style="font-size:18px; margin-top:10px; padding:8px; border-radius:4px;">
+			Rest All Planets &#9660;
+		</div>
+
+		<!-- HIDDEN SECONDARY CONTAINER -->
+		<div id="vimSecondaryContainer" style="display:none; flex-direction: column; gap: 20px; width: 100%;">
+			<div class="vim-row">
+				<div class="vim-col"><div class="vim-title">Vimshottari Dasha – Shani</div><div id="vimShani"></div></div>
+				<div class="vim-col"><div class="vim-title">Vimshottari Dasha – Jupiter</div><div id="vimJupiter"></div></div>
+			</div>
+			<div class="vim-row">
+				<div class="vim-col"><div class="vim-title">Vimshottari Dasha – Rahu</div><div id="vimRahu"></div></div>
+				<div class="vim-col"><div class="vim-title">Vimshottari Dasha – Ketu</div><div id="vimKetu"></div></div>
+			</div>
+			<div class="vim-row">
+				<div class="vim-col"><div class="vim-title">Vimshottari Dasha – Surya</div><div id="vimSurya"></div></div>
+				<div class="vim-col"><div class="vim-title">Vimshottari Dasha – Mangala</div><div id="vimMangala"></div></div>
+			</div>
+			<div class="vim-row">
+				<div class="vim-col"><div class="vim-title">Vimshottari Dasha – Chandra</div><div id="vimChandra2"></div></div>
+				<div class="vim-col"><div class="vim-title">Vimshottari Dasha – Venus</div><div id="vimVenus"></div></div>
+			</div>
+			<div class="vim-row">
+				<div class="vim-col"><div class="vim-title">Vimshottari Dasha – Budha</div><div id="vimBudha"></div></div>
+				<div class="vim-col"><div class="vim-title">Vimshottari Dasha – Lagna</div><div id="vimLagna2"></div></div>
+			</div>
 		</div>
 
 	</div>
+
+	<button id="floatBtnVim" onclick="toggleVim(); document.querySelector('.vim-heading[onclick=\'toggleVim()\']').scrollIntoView({behavior:'smooth', block:'start'});" 
+		style="display:none; position:fixed; bottom:90px; right:20px; z-index:9999; background:#000; color:var(--asc-yellow); border:1px solid var(--asc-yellow); padding:5px 10px; font-weight:900; font-size:12px; border-radius:4px; cursor:pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">
+		▲
+	</button>
 
 </div>
 
@@ -5899,11 +5930,25 @@ pNames.forEach(p=>{
 		} catch(e) {}
 
 		// Build Vimshottari
-		window._lastMoonShifted = moonShifted;
-		window._lastLagnaShifted = lagnaShifted;
+		window._lastVimDegs = {
+			"vimChandra1": shiftedPlanets["Chandra"],
+			"vimLagna": lagnaShifted,
+			"vimShani": shiftedPlanets["Saturn"],
+			"vimJupiter": shiftedPlanets["Jupiter"],
+			"vimRahu": shiftedPlanets["Rahu"],
+			"vimKetu": shiftedPlanets["Ketu"],
+			"vimSurya": shiftedPlanets["Surya"],
+			"vimMangala": shiftedPlanets["Mangala"],
+			"vimChandra2": shiftedPlanets["Chandra"],
+			"vimVenus": shiftedPlanets["Venus"],
+			"vimBudha": shiftedPlanets["Budha"],
+			"vimLagna2": lagnaShifted
+		};
 		
-		buildFullDasha("vimChandra", moonShifted);
-		buildFullDasha("vimLagna", lagnaShifted);
+		Object.keys(window._lastVimDegs).forEach(id => {
+			buildFullDasha(id, window._lastVimDegs[id]);
+		});
+
 		// --- force stable highlight order ---
 		highlightTodayVim();
 		highlightRunningMahaInTable();
@@ -7403,8 +7448,23 @@ const KN_NAMES = {
 };
 
 function toggleVim(){
-	const box=document.getElementById("vimContainer");
-	box.style.display = (box.style.display==="none") ? "flex" : "none";
+	const box = document.getElementById("vimContainer");
+	const floatBtn = document.getElementById("floatBtnVim");
+	if(!box) return;
+	
+	const isOpening = (box.style.display === "none");
+	box.style.display = isOpening ? "flex" : "none";
+	
+	if(floatBtn) {
+		floatBtn.style.display = isOpening ? "block" : "none";
+	}
+}
+
+function toggleVimSecondary(){
+	const box = document.getElementById("vimSecondaryContainer");
+	if(!box) return;
+	
+	box.style.display = (box.style.display === "none") ? "flex" : "none";
 }
 
 
@@ -7483,7 +7543,7 @@ function highlightRunningMahaInTable(){
 	let activeMaha = null;
 
 	if(moonBox && moonBox.checked){
-		activeMaha = getRunningMaha("vimChandra");
+		activeMaha = getRunningMaha("vimChandra1");
 	}
 	else if(lagnaBox && lagnaBox.checked){
 		activeMaha = getRunningMaha("vimLagna");
@@ -7526,7 +7586,7 @@ function highlightTodayVim(){
   document.querySelectorAll(".vimSym")
 	.forEach(s=>s.textContent="");
 
-  const containers=["vimChandra","vimLagna"];
+  const containers=["vimChandra1","vimLagna","vimShani","vimJupiter","vimRahu","vimKetu","vimSurya","vimMangala","vimChandra2","vimVenus","vimBudha","vimLagna2"];
 
   containers.forEach(id=>{
 
@@ -7572,8 +7632,11 @@ function applyVimOffset(direction) {
     window._vimOffsetDays += (direction * days);
     
     // Instantly Re-render 
-    if (window._lastMoonShifted !== undefined) buildFullDasha("vimChandra", window._lastMoonShifted);
-    if (window._lastLagnaShifted !== undefined) buildFullDasha("vimLagna", window._lastLagnaShifted);
+    if (window._lastVimDegs) {
+        Object.keys(window._lastVimDegs).forEach(id => {
+            buildFullDasha(id, window._lastVimDegs[id]);
+        });
+    }
     
     highlightTodayVim();
     highlightRunningMahaInTable();
@@ -7582,8 +7645,11 @@ function applyVimOffset(direction) {
 function resetVimOffset() {
     window._vimOffsetDays = 0;
     
-    if (window._lastMoonShifted !== undefined) buildFullDasha("vimChandra", window._lastMoonShifted);
-    if (window._lastLagnaShifted !== undefined) buildFullDasha("vimLagna", window._lastLagnaShifted);
+    if (window._lastVimDegs) {
+        Object.keys(window._lastVimDegs).forEach(id => {
+            buildFullDasha(id, window._lastVimDegs[id]);
+        });
+    }
     
     highlightTodayVim();
     highlightRunningMahaInTable();
@@ -7600,7 +7666,7 @@ function findVimDate(){
 
   const target = new Date(val+"T00:00:00");
 
-  ["vimChandra","vimLagna"].forEach(id=>{
+  ["vimChandra1","vimLagna","vimShani","vimJupiter","vimRahu","vimKetu","vimSurya","vimMangala","vimChandra2","vimVenus","vimBudha","vimLagna2"].forEach(id=>{
 	expandVimForDate(id,target);
   });
   
@@ -7651,7 +7717,7 @@ function setTodayVimDate(){
 
 function collapseVim(){
 
-  ["vimChandra","vimLagna"].forEach(id=>{
+  ["vimChandra1","vimLagna","vimShani","vimJupiter","vimRahu","vimKetu","vimSurya","vimMangala","vimChandra2","vimVenus","vimBudha","vimLagna2"].forEach(id=>{
 
 	const container = document.getElementById(id);
 	if(!container) return;
@@ -12668,6 +12734,12 @@ async function fetchVarshaphalaBatch() {
     renderVarshaphala();
 }
 
+window.setVpDashaStart = function(year, planet) {
+    window._vpDashaOverride = window._vpDashaOverride || {};
+    window._vpDashaOverride[year] = planet;
+    renderVarshaphala();
+};
+
 function renderVarshaphala() {
     const grid = document.getElementById("varshaphalaGrid");
     if (!grid) return;
@@ -12757,6 +12829,14 @@ function renderVarshaphala() {
         }
         const natalNakIdx = Math.floor(natalMoon / (40 / 3));
         let currentDashaIdx = (natalNakIdx + targetAge) % 9;
+
+        window._vpDashaOverride = window._vpDashaOverride || {};
+        if (window._vpDashaOverride[targetYear]) {
+            let overrideIdx = dashaOrder.indexOf(window._vpDashaOverride[targetYear]);
+            if (overrideIdx !== -1) {
+                currentDashaIdx = overrideIdx;
+            }
+        }
 
         const dashaLengthsMs = dashaYears.map(y => (y / 120) * MS_YEAR);
         
@@ -13028,7 +13108,7 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
 
             html += `
                 <tr style="${rowStyle} transition: all 0.2s ease-in-out;">
-                    <td style="padding:4px 5px; color:${pColor}; font-weight:bold; text-align:left; padding-left:15px;">${pName}</td>
+                    <td style="padding:4px 5px; color:${pColor}; font-weight:bold; text-align:left; padding-left:15px; cursor:pointer;" onclick="setVpDashaStart(${targetYear}, '${row.planet}')" title="Click to set as starting Dasha">${pName}</td>
                     <td style="padding:4px 5px; color:#fff;">${formatD(row.start)}</td>
                     <td style="padding:4px 5px; color:#fff;">${formatD(row.end)}</td>
                 </tr>`;
@@ -13055,10 +13135,14 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
             let pScript = planetScripts[pCode] || "-";
             let slCode = planetStarlords[pCode];
             let slScript = slCode ? (planetScripts[slCode] || "-") : "-";
+
+            // CLEAN RED OUTLINE HIGHLIGHT FOR SCRIPT TABLE
+            let isRunning = (currentTransitMs !== null && currentTransitMs >= row.start.getTime() && currentTransitMs < row.end.getTime());
+            let rowStyle = isRunning ? "outline: 2px solid #ff3333; outline-offset: -2px; background: rgba(255, 51, 51, 0.1);" : "outline: 2px solid transparent;";
             
             html += `
-                <tr>
-                    <td style="padding:6px 5px; color:${pColor}; font-weight:bold; word-wrap:break-word;">${pName}</td>
+                <tr style="${rowStyle} transition: all 0.2s ease-in-out;">
+                    <td style="padding:6px 5px; color:${pColor}; font-weight:bold; word-wrap:break-word; cursor:pointer;" onclick="setVpDashaStart(${targetYear}, '${pCode}')" title="Click to set as starting Dasha">${pName}</td>
                     <td style="padding:6px 5px; color:#ffffff; font-weight:bold; word-wrap:break-word;">${pScript}</td>
                     <td style="padding:6px 5px; color:#ffffff; font-weight:bold; word-wrap:break-word;">${slScript}</td>
                 </tr>`;
@@ -13389,8 +13473,26 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
             </div>
 
             <!-- NEW QUICK SELECTION BUTTONS -->
-            <div style="display:flex; justify-content:center; align-items:center; gap:25px; flex-wrap:wrap; width:100%; margin-top:5px; padding-top:15px; border-top:1px solid #333;">
-                <button id="dbaBtnFDA" data-active="false" onclick="handleDbaQuickSelect('FDA')" style="background:transparent; border:2px solid #c084fc; color:#c084fc; font-size:13px; font-weight:bold; padding:4px 12px; border-radius:4px; cursor:pointer; text-transform:uppercase; transition:0.2s;">First Dasha</button>
+            <div style="display:flex; flex-direction:column; gap:15px; width:100%; margin-top:5px; padding-top:15px; border-top:1px solid #333;">
+                
+                <!-- 10 ANCHOR BUTTONS -->
+                <div style="display:flex; justify-content:center; align-items:center; gap:12px; flex-wrap:wrap; width:100%;">
+                    <span style="color:#888; font-weight:900; font-size:13px; text-transform:uppercase; letter-spacing:1px; margin-right:5px;">Anchor:</span>
+                    <button id="dbaAnchorCh" onclick="setDbaAnchor('Ch')" style="background:#0bf4e6; border:2px solid #0bf4e6; color:#000; font-size:12px; font-weight:bold; padding:4px 10px; border-radius:4px; cursor:pointer; text-transform:uppercase; transition:0.2s;">Chandra</button>
+                    <button id="dbaAnchorASC" onclick="setDbaAnchor('ASC')" style="background:transparent; border:2px solid #555; color:#fff; font-size:12px; font-weight:bold; padding:4px 10px; border-radius:4px; cursor:pointer; text-transform:uppercase; transition:0.2s;">Lagna</button>
+                    <button id="dbaAnchorSa" onclick="setDbaAnchor('Sa')" style="background:transparent; border:2px solid #555; color:#fff; font-size:12px; font-weight:bold; padding:4px 10px; border-radius:4px; cursor:pointer; text-transform:uppercase; transition:0.2s;">Shani</button>
+                    <button id="dbaAnchorJu" onclick="setDbaAnchor('Ju')" style="background:transparent; border:2px solid #555; color:#fff; font-size:12px; font-weight:bold; padding:4px 10px; border-radius:4px; cursor:pointer; text-transform:uppercase; transition:0.2s;">Jupiter</button>
+                    <button id="dbaAnchorRa" onclick="setDbaAnchor('Ra')" style="background:transparent; border:2px solid #555; color:#fff; font-size:12px; font-weight:bold; padding:4px 10px; border-radius:4px; cursor:pointer; text-transform:uppercase; transition:0.2s;">Rahu</button>
+                    <button id="dbaAnchorKe" onclick="setDbaAnchor('Ke')" style="background:transparent; border:2px solid #555; color:#fff; font-size:12px; font-weight:bold; padding:4px 10px; border-radius:4px; cursor:pointer; text-transform:uppercase; transition:0.2s;">Ketu</button>
+                    <button id="dbaAnchorSy" onclick="setDbaAnchor('Sy')" style="background:transparent; border:2px solid #555; color:#fff; font-size:12px; font-weight:bold; padding:4px 10px; border-radius:4px; cursor:pointer; text-transform:uppercase; transition:0.2s;">Surya</button>
+                    <button id="dbaAnchorMa" onclick="setDbaAnchor('Ma')" style="background:transparent; border:2px solid #555; color:#fff; font-size:12px; font-weight:bold; padding:4px 10px; border-radius:4px; cursor:pointer; text-transform:uppercase; transition:0.2s;">Mangala</button>
+                    <button id="dbaAnchorVe" onclick="setDbaAnchor('Ve')" style="background:transparent; border:2px solid #555; color:#fff; font-size:12px; font-weight:bold; padding:4px 10px; border-radius:4px; cursor:pointer; text-transform:uppercase; transition:0.2s;">Venus</button>
+                    <button id="dbaAnchorBu" onclick="setDbaAnchor('Bu')" style="background:transparent; border:2px solid #555; color:#fff; font-size:12px; font-weight:bold; padding:4px 10px; border-radius:4px; cursor:pointer; text-transform:uppercase; transition:0.2s;">Budha</button>
+                </div>
+
+                <!-- DASHA LEVEL QUICK SELECT -->
+                <div style="display:flex; justify-content:center; align-items:center; gap:25px; flex-wrap:wrap; width:100%;">
+                    <button id="dbaBtnFDA" data-active="false" onclick="handleDbaQuickSelect('FDA')" style="background:transparent; border:2px solid #c084fc; color:#c084fc; font-size:13px; font-weight:bold; padding:4px 12px; border-radius:4px; cursor:pointer; text-transform:uppercase; transition:0.2s;">First Dasha</button>
                 <button id="dbaBtnD" data-active="false" onclick="handleDbaQuickSelect('D')" style="background:transparent; border:2px solid #39FF14; color:#39FF14; font-size:13px; font-weight:bold; padding:4px 12px; border-radius:4px; cursor:pointer; text-transform:uppercase; transition:0.2s;">Dasha</button>
                 <button id="dbaBtnDB" data-active="false" onclick="handleDbaQuickSelect('DB')" style="background:transparent; border:2px solid #0bf4e6; color:#0bf4e6; font-size:13px; font-weight:bold; padding:4px 12px; border-radius:4px; cursor:pointer; text-transform:uppercase; transition:0.2s;">Dasha Bukthi</button>
                 <button id="dbaBtnDA" data-active="true" onclick="handleDbaQuickSelect('DA')" style="background:#ff8800; border:2px solid #ff8800; color:#000; font-size:13px; font-weight:bold; padding:4px 12px; border-radius:4px; cursor:pointer; text-transform:uppercase; transition:0.2s;">Dasha Antara</button>
@@ -13887,11 +13989,45 @@ function getDbaCusps() {
 
 
 
+window.dbaActiveAnchor = window.dbaActiveAnchor || "Ch"; // Default to Chandra
+
+function setDbaAnchor(anchorCode) {
+    window.dbaActiveAnchor = anchorCode;
+    
+    // Update button visual styles
+    const anchors = ["ASC", "Sy", "Ch", "Ma", "Bu", "Ju", "Ve", "Sa", "Ra", "Ke"];
+    anchors.forEach(a => {
+        document.querySelectorAll("#dbaAnchor" + a).forEach(btn => {
+            if (a === anchorCode) {
+                btn.style.background = "#0bf4e6";
+                btn.style.borderColor = "#0bf4e6";
+                btn.style.color = "#000";
+            } else {
+                btn.style.background = "transparent";
+                btn.style.borderColor = "#555";
+                btn.style.color = "#fff";
+            }
+        });
+    });
+
+    // Force Dasha (D) mode selection automatically when switching anchors
+    window._dbaIsManualMode = false;
+    handleDbaQuickSelect('D');
+}
+
 function getDbaMoonStarLord() {
-    let moonDeg = getDbaAbsoluteLongitude("Ch", 1);
-    if (moonDeg === -1 || moonDeg === undefined) return "Ke";
+    let deg = -1;
+    let anchor = window.dbaActiveAnchor || "Ch";
+    
+    if (anchor === "ASC") {
+        deg = getDbaAscendantAbsolute(1);
+    } else {
+        deg = getDbaAbsoluteLongitude(anchor, 1);
+    }
+    
+    if (deg === -1 || deg === undefined) return "Ke";
     const nakSize = 360 / 27;
-    let nakIndex = Math.floor(moonDeg / nakSize);
+    let nakIndex = Math.floor(deg / nakSize);
     return DBA_PLANETS[nakIndex % 9];
 }
 
@@ -14113,13 +14249,20 @@ function initDbaMixerUI() {
 
 
 
-
 function autoSelectRunningDba(targetLevel = "dasha") {
     let runningMaha = null;
     let runningBukthi = null;
     let runningAntara = null;
     
-    const vimContainer = document.getElementById("vimChandra");
+    // Dynamically match the active anchor to its corresponding Vimshottari container ID
+    const containerMap = {
+        "ASC": "vimLagna", "Sy": "vimSurya", "Ch": "vimChandra1", 
+        "Ma": "vimMangala", "Bu": "vimBudha", "Ju": "vimJupiter", 
+        "Ve": "vimVenus", "Sa": "vimShani", "Ra": "vimRahu", "Ke": "vimKetu"
+    };
+    const activeAnchor = window.dbaActiveAnchor || "Ch";
+    const activeContainerId = containerMap[activeAnchor] || "vimChandra1";
+    const vimContainer = document.getElementById(activeContainerId);
     if (vimContainer) {
         const today = new Date();
         const rows = [...vimContainer.querySelectorAll("div[data-s]")];
@@ -14165,8 +14308,6 @@ function autoSelectRunningDba(targetLevel = "dasha") {
 
     let mLord = getDbaMoonStarLord();
     
-    // Prevent time changes from resetting the selection after the first load
-    // or if the user has manually selected a level.
     if (!window._dbaIsManualMode) {
         if (runningMaha && DBA_PLANETS.includes(runningMaha)) dbaActiveDasha = runningMaha;
         else dbaActiveDasha = mLord;
@@ -14179,11 +14320,9 @@ function autoSelectRunningDba(targetLevel = "dasha") {
         
         dbaActiveLevel = targetLevel; 
         
-        // Lock it so subsequent date/time changes don't overwrite this initial setup
         window._dbaIsManualMode = true;
     }
     
-    // UPDATE CURRENT RUNNING DBA UI (SOLID COLORS ONLY)
     const runningBoxText = document.getElementById("dbaCurrentRunningText");
     if (runningBoxText) {
         let displayD = (runningMaha && DBA_PLANETS.includes(runningMaha)) ? DBA_NAMES[runningMaha] : (DBA_NAMES[mLord] || "-");
@@ -14201,6 +14340,13 @@ function autoSelectRunningDba(targetLevel = "dasha") {
 
     rebuildDbaColumns();
 }
+
+
+
+
+
+
+
 
 
 
@@ -16435,6 +16581,11 @@ window.handleDbaMouseMove = function(e) {
 </script>
 
 <!-- Nakshatra Nadi DBA Mixer ▲ ---- ENDS HERE -->
+
+
+
+
+
 
 
 
