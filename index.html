@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1435,7 +1434,20 @@ document.getElementById("toolEndDate").addEventListener("change", calcToolDateDi
             <input type="checkbox" id="cuspalSymbolsToggle" checked onchange="renderCuspalTables()">
             Symbols
         </label>
+        <label style="color:#10b981; font-weight:bold; font-size:16px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+            <input type="checkbox" id="highlightHoverToggle">
+            Highlight Hover
+        </label>
     </div>
+    
+    <style>
+        .planet-highlight-active {
+            background: #ff8800 !important;
+            color: #000000 !important;
+            font-weight: bold !important;
+            transition: background 0.1s;
+        }
+    </style>
 
     <div class="shoda-title">CUSPAL INTERLINK TABLE</div>
     <div style="display:flex; justify-content:center; overflow-x:auto; margin-bottom: 40px; width: 100%;">
@@ -1706,11 +1718,11 @@ function renderCuspalTables() {
             <td style="font-weight:bold;">${i}</td>
             <td>${formatDMS(modeDeg)}</td>
             <td>${sd.sign}</td>
-            <td>${wSym(sd.lord)}</td>
+            <td class="hover-planet-cell" data-planet="${sd.lord}">${wSym(sd.lord)}</td>
             <td>${nak}</td>
-            <td>${wSym(NADI_NAMES[kp.star] || kp.star)}</td>
-            <td>${wSym(NADI_NAMES[kp.sub] || kp.sub)}</td>
-            <td>${wSym(NADI_NAMES[kp.subSub] || kp.subSub)}</td>
+            <td class="hover-planet-cell" data-planet="${NADI_NAMES[kp.star] || kp.star}">${wSym(NADI_NAMES[kp.star] || kp.star)}</td>
+            <td class="hover-planet-cell" data-planet="${NADI_NAMES[kp.sub] || kp.sub}">${wSym(NADI_NAMES[kp.sub] || kp.sub)}</td>
+            <td class="hover-planet-cell" data-planet="${NADI_NAMES[kp.subSub] || kp.subSub}">${wSym(NADI_NAMES[kp.subSub] || kp.subSub)}</td>
         </tr>`;
     }
     cTable.innerHTML = cHtml;
@@ -1766,19 +1778,19 @@ function renderCuspalTables() {
             let displayName = wSym(pName);
             
             pHtml += `<tr>
-                <td style="font-weight:bold;">${displayName}</td>
+                <td style="font-weight:bold;" class="hover-planet-cell" data-planet="${pName}">${displayName}</td>
                 <td>${formatDMS(modeDeg)}</td>
                 <td>${sd.sign}</td>
-                <td>${wSym(sd.lord)}</td>
+                <td class="hover-planet-cell" data-planet="${sd.lord}">${wSym(sd.lord)}</td>
                 <td>${nak}</td>
-                <td>${wSym(NADI_NAMES[kp.star] || kp.star)}</td>
-                <td>${wSym(NADI_NAMES[kp.sub] || kp.sub)}</td>
-                <td>${wSym(NADI_NAMES[kp.subSub] || kp.subSub)}</td>
+                <td class="hover-planet-cell" data-planet="${NADI_NAMES[kp.star] || kp.star}">${wSym(NADI_NAMES[kp.star] || kp.star)}</td>
+                <td class="hover-planet-cell" data-planet="${NADI_NAMES[kp.sub] || kp.sub}">${wSym(NADI_NAMES[kp.sub] || kp.sub)}</td>
+                <td class="hover-planet-cell" data-planet="${NADI_NAMES[kp.subSub] || kp.subSub}">${wSym(NADI_NAMES[kp.subSub] || kp.subSub)}</td>
             </tr>`;
 
             let signProps = getSignProperties(sd.sign);
             zHtml += `<tr>
-                <td style="font-weight:bold;">${displayName}</td>
+                <td style="font-weight:bold;" class="hover-planet-cell" data-planet="${pName}">${displayName}</td>
                 <td>${sd.sign}</td>
                 <td>${signProps.fruit}</td>
                 <td>${signProps.gender}</td>
@@ -1802,6 +1814,28 @@ function renderCuspalTables() {
             attachMemoryEvents(zTable);
         }, 50);
     }
+
+    // Attach Hover Highlight for Planets
+    setTimeout(() => {
+        function attachHover(table) {
+            if (!table) return;
+            table.querySelectorAll('.hover-planet-cell').forEach(cell => {
+                cell.addEventListener('mouseenter', function() {
+                    if (!document.getElementById("highlightHoverToggle")?.checked) return;
+                    const planet = this.getAttribute('data-planet');
+                    if (planet && planet !== '-' && planet !== 'undefined') {
+                        table.querySelectorAll(`.hover-planet-cell[data-planet="${planet}"]`).forEach(c => c.classList.add('planet-highlight-active'));
+                    }
+                });
+                cell.addEventListener('mouseleave', function() {
+                    table.querySelectorAll('.planet-highlight-active').forEach(c => c.classList.remove('planet-highlight-active'));
+                });
+            });
+        }
+        attachHover(cTable);
+        attachHover(pTable);
+        attachHover(zTable);
+    }, 60);
 }
 
 // Automatically update tables on time/location change if open
