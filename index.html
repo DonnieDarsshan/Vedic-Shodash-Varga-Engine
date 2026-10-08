@@ -3475,6 +3475,12 @@ function attachVedicInteractions(tableId) {
 
 
 
+
+
+<!-- Divisional Tables  -->
+
+
+
 <div class="division-title" onclick="toggleTables()">
 	Divisional Tables &#9660;
 </div>
@@ -3588,21 +3594,51 @@ function attachVedicInteractions(tableId) {
     Sarvashtaka Varga Calculator &#9660;
 </div>
 
-<div id="ashtakavargaWrapper" class="shoda-wrapper" style="display:none; padding-bottom:50vh;">
-    <div style="text-align:center; margin-bottom:20px;">
-        <label style="color:var(--grid-line); font-weight:bold; font-size:16px; margin-right:10px;">
-            SELECT KUNDALI:
-        </label>
+<div id="ashtakavargaWrapper" class="shoda-wrapper" style="display:none; padding-bottom:40px;">
+    
+    <div style="margin-bottom:20px; width:100%;">
+        <div style="background:#0a0a0a; border:1px solid var(--grid-line); padding:18px 25px; margin-bottom:20px; border-radius:4px; width:100%; box-sizing:border-box;">
+            
+            <div style="display:flex; gap:15px; justify-content:center; align-items:center; flex-wrap:wrap;">
+                
+                <div style="display:flex; align-items:center; gap:15px; border-right:1px solid #333; padding-right:15px;">
+                    <label style="color:#10b981; font-weight:bold; font-size:16px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                        <input type="checkbox" id="savShowNatal" checked onchange="toggleSavMode('natal')"> SHOW NATAL
+                    </label>
+                    <label style="color:#ff8800; font-weight:bold; font-size:16px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                        <input type="checkbox" id="savShowTransit" onchange="toggleSavMode('transit')"> SHOW TRANSIT
+                    </label>
+                    <label style="color:#f43f5e; font-weight:bold; font-size:16px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                        <input type="checkbox" id="savShowIndicator" onchange="renderVargaAshtakavarga()"> Show SAV
+                    </label>
+                </div>
 
-        <select id="savVargaSelect"
-                onchange="renderVargaAshtakavarga()"
-                style="background:#000;color:#fff;border:1px solid var(--grid-line);
-                       padding:6px 10px;font-size:16px;font-weight:bold;cursor:pointer;">
-        </select>
+                <div style="display:flex; gap:4px; align-items:center; background:#111; border:1px solid var(--grid-line); padding:6px 10px; border-radius:4px;">
+                    <input type="text" id="savMixD" placeholder="DD" maxlength="2" style="width:28px; text-align:center; background:transparent; color:#fff; border:none; outline:none; font-size:15px; font-weight:bold;" onkeydown="handleSavMixerSpin(event, 'D')" oninput="mixerJump(this, 'savMixM', 2); syncSavToolbar()"> <span style="color:#555;">-</span>
+                    <input type="text" id="savMixM" placeholder="MM" maxlength="2" style="width:28px; text-align:center; background:transparent; color:#fff; border:none; outline:none; font-size:15px; font-weight:bold;" onkeydown="handleSavMixerSpin(event, 'M')" oninput="mixerJump(this, 'savMixY', 2); syncSavToolbar()"> <span style="color:#555;">-</span>
+                    <input type="text" id="savMixY" placeholder="YYYY" maxlength="4" style="width:42px; text-align:center; background:transparent; color:#fff; border:none; outline:none; font-size:15px; font-weight:bold;" onkeydown="handleSavMixerSpin(event, 'Y')" oninput="mixerJump(this, 'savMixH', 4); syncSavToolbar()">
+                </div>
+
+                <div style="display:flex; gap:4px; align-items:center; background:#111; border:1px solid var(--grid-line); padding:6px 10px; border-radius:4px;">
+                    <input type="text" id="savMixH" placeholder="HH" maxlength="2" style="width:28px; text-align:center; background:transparent; color:#fff; border:none; outline:none; font-size:15px; font-weight:bold;" onkeydown="handleSavMixerSpin(event, 'h')" oninput="mixerJump(this, 'savMixMin', 2); syncSavToolbar()"> <span style="color:#555;">:</span>
+                    <input type="text" id="savMixMin" placeholder="MM" maxlength="2" style="width:28px; text-align:center; background:transparent; color:#fff; border:none; outline:none; font-size:15px; font-weight:bold;" onkeydown="handleSavMixerSpin(event, 'm')" oninput="mixerJump(this, 'savMixS', 2); syncSavToolbar()"> <span style="color:#555;">:</span>
+                    <input type="text" id="savMixS" placeholder="SS" maxlength="2" style="width:28px; text-align:center; background:transparent; color:#fff; border:none; outline:none; font-size:15px; font-weight:bold;" onkeydown="handleSavMixerSpin(event, 's')" oninput="syncSavToolbar()">
+                </div>
+
+                <button onclick="setSavMixerToNow()" style="padding:6px 12px; font-size:15px; background:var(--grid-line); color:#000; font-weight:bold; cursor:pointer; border:none; border-radius:4px;">Set to Now</button>
+
+                <div style="display:flex; align-items:center; gap:10px; margin-left:10px;">
+                    <span style="color:var(--grid-line); font-weight:bold; font-size:16px;">SELECT KUNDALI:</span>
+                    <select id="savVargaSelect" onchange="renderVargaAshtakavarga()" style="background:#000; color:#fff; border:1px solid var(--grid-line); padding:6px 10px; font-size:16px; font-weight:bold; cursor:pointer;">
+                    </select>
+                </div>
+
+                <span id="savTransitStatus" style="color:#10b981; font-weight:bold; font-size:14px; min-width:70px; text-align:right;"></span>
+            </div>
+        </div>
     </div>
 
-    <div id="ashtakavargaContainer"
-         style="display:flex;flex-direction:column;gap:20px;align-items:center;">
+    <div id="ashtakavargaContainer" style="display:flex; flex-direction:column; gap:30px; align-items:center; width:100%; box-sizing:border-box;">
     </div>
 </div>
 
@@ -4457,13 +4493,32 @@ function getVSign(baseDeg, v) {
 };
 const LAGNA_BAV_RULES_GLOBAL = { Surya: [3,4,6,10,11,12], Chandra: [3,6,10,11,12], Mangala: [1,3,6,10,11], Budha: [1,2,4,6,8,10,11], Jupiter: [1,2,4,5,6,7,9,10,11], Venus: [1,2,3,4,5,8,9], Saturn: [1,3,4,6,10,11], Lagna: [3,6,10,11] };
 
-function toggleAshtakavarga() { const box = document.getElementById("ashtakavargaWrapper"); if(!box) return; box.style.display = (box.style.display === "none") ? "block" : "none"; }
+function toggleAshtakavarga() { 
+    const box = document.getElementById("ashtakavargaWrapper"); 
+    if(!box) return; 
+    box.style.display = (box.style.display === "none") ? "block" : "none"; 
+    
+    // Auto-sync transit fields on open
+    if (box.style.display === "block") {
+        const mixY = document.getElementById("mixY");
+        if (mixY && mixY.value && document.getElementById("savMixY") && !document.getElementById("savMixY").value) {
+            document.getElementById("savMixY").value = mixY.value;
+            document.getElementById("savMixM").value = document.getElementById("mixM").value;
+            document.getElementById("savMixD").value = document.getElementById("mixD").value;
+            document.getElementById("savMixH").value = document.getElementById("mixH").value;
+            document.getElementById("savMixMin").value = document.getElementById("mixMin").value;
+            document.getElementById("savMixS").value = document.getElementById("mixS").value;
+        } else if (document.getElementById("savMixY") && !document.getElementById("savMixY").value) {
+            setSavMixerToNow();
+        }
+    }
+}
 
 
 
 
 function getVargaPosSign(v) { 
-    const pMap = {Surya: "Sy", Chandra: "Ch", Mangala: "Ma", Budha: "Bu", Jupiter: "Ju", Venus: "Ve", Saturn: "Sa", Rahu: "Ra"}; 
+    const pMap = {Surya: "Sy", Chandra: "Ch", Mangala: "Ma", Budha: "Bu", Jupiter: "Ju", Venus: "Ve", Saturn: "Sa", Rahu: "Ra", Ketu: "Ke"}; 
     const rashiData = window._shodaRashi[v]; 
     const posSign = {}; 
     
@@ -4503,6 +4558,151 @@ function calcVargaSingleBAV(v, target) { const posSign = getVargaPosSign(v); con
 
 
 
+
+// --- SAV Transit Handler Helpers ---
+function toggleSavMode(mode) {
+    const nBox = document.getElementById("savShowNatal");
+    const tBox = document.getElementById("savShowTransit");
+    if (mode === 'natal') {
+        nBox.checked = true;
+        tBox.checked = false;
+    } else {
+        tBox.checked = true;
+        nBox.checked = false;
+        if (!window.transitRaw) {
+            setSavMixerToNow();
+        }
+    }
+    renderVargaAshtakavarga();
+}
+
+function handleSavMixerSpin(event, unit) {
+    if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+        event.preventDefault();
+        let y = parseInt(document.getElementById("savMixY").value) || new Date().getFullYear();
+        let m = parseInt(document.getElementById("savMixM").value) || 1;
+        let d = parseInt(document.getElementById("savMixD").value) || 1;
+        let h = parseInt(document.getElementById("savMixH").value) || 12;
+        let min = parseInt(document.getElementById("savMixMin").value) || 0;
+        let s = parseInt(document.getElementById("savMixS").value) || 0;
+        
+        let dateObj = new Date(y, m - 1, d, h, min, s);
+        let dir = (event.key === "ArrowUp") ? 1 : -1;
+        
+        if (unit === 'Y') dateObj.setFullYear(dateObj.getFullYear() + dir);
+        if (unit === 'M') dateObj.setMonth(dateObj.getMonth() + dir);
+        if (unit === 'D') dateObj.setDate(dateObj.getDate() + dir);
+        if (unit === 'h') dateObj.setHours(dateObj.getHours() + dir);
+        if (unit === 'm') dateObj.setMinutes(dateObj.getMinutes() + dir);
+        if (unit === 's') dateObj.setSeconds(dateObj.getSeconds() + dir);
+        
+        document.getElementById("savMixY").value = dateObj.getFullYear();
+        document.getElementById("savMixM").value = String(dateObj.getMonth() + 1).padStart(2, '0');
+        document.getElementById("savMixD").value = String(dateObj.getDate()).padStart(2, '0');
+        document.getElementById("savMixH").value = String(dateObj.getHours()).padStart(2, '0');
+        document.getElementById("savMixMin").value = String(dateObj.getMinutes()).padStart(2, '0');
+        document.getElementById("savMixS").value = String(dateObj.getSeconds()).padStart(2, '0');
+        
+        syncSavToolbar();
+    }
+}
+
+function syncSavToolbar() {
+    let y = (document.getElementById("savMixY").value || new Date().getFullYear()).toString().padStart(4, '0');
+    let m = (document.getElementById("savMixM").value || 1).toString().padStart(2, '0');
+    let d = (document.getElementById("savMixD").value || 1).toString().padStart(2, '0');
+    let h = (document.getElementById("savMixH").value || 0).toString().padStart(2, '0');
+    let min = (document.getElementById("savMixMin").value || 0).toString().padStart(2, '0');
+    let s = (document.getElementById("savMixS").value || 0).toString().padStart(2, '0');
+    
+    if (document.getElementById("mixY")) {
+        // Echo values down to the primary transit engine
+        document.getElementById("mixY").value = y;
+        document.getElementById("mixM").value = m;
+        document.getElementById("mixD").value = d;
+        document.getElementById("mixH").value = h;
+        document.getElementById("mixMin").value = min;
+        document.getElementById("mixS").value = s;
+        if(typeof syncMixerHidden === 'function') syncMixerHidden(true);
+    }
+    
+    const stat = document.getElementById("savTransitStatus");
+    if(stat) stat.innerHTML = "<span style='color:#10b981;'>Syncing...</span>";
+    setTimeout(() => { 
+        if(stat) stat.innerHTML = ""; 
+        renderVargaAshtakavarga(); 
+    }, 1500);
+}
+
+function setSavMixerToNow() {
+    const now = new Date();
+    document.getElementById('savMixY').value = now.getFullYear();
+    document.getElementById('savMixM').value = String(now.getMonth() + 1).padStart(2, "0");
+    document.getElementById('savMixD').value = String(now.getDate()).padStart(2, "0");
+    document.getElementById('savMixH').value = String(now.getHours()).padStart(2, "0");
+    document.getElementById('savMixMin').value = String(now.getMinutes()).padStart(2, "0");
+    document.getElementById('savMixS').value = String(now.getSeconds()).padStart(2, "0");
+    syncSavToolbar();
+}
+
+function getTransitVargaPosSign(v) {
+    const posSign = {};
+    if (!window.transitRaw) return posSign;
+    const aya = document.getElementById('aya')?.value || 'Lahiri';
+    if (!window.transitRaw.ayanamshas || !window.transitRaw.ayanamshas[aya]) return posSign;
+    
+    const tPlanets = window.transitRaw.ayanamshas[aya].planets;
+    const pMap = {Surya: "Surya", Chandra: "Chandra", Mangala: "Mangala", Budha: "Budha", Jupiter: "Jupiter", Venus: "Venus", Saturn: "Saturn", Rahu: "Rahu", Ketu: "Ketu"}; 
+    const useTrueNode = document.getElementById("useTrueNode")?.checked;
+    
+    Object.keys(pMap).forEach(target => {
+        let pKey = pMap[target];
+        if (useTrueNode && (pKey === "Rahu" || pKey === "Ketu")) pKey += "_true";
+        
+        let rawDeg = tPlanets[pKey];
+        if (rawDeg !== undefined) {
+            let vSign = 0;
+            if (v === 30) {
+                 const sign = Math.floor(rawDeg / 30);
+                 const deg = rawDeg % 30;
+                 const isOdd = (sign % 2 === 0);
+                 let start, length, targetSign;
+                 if (isOdd) {
+                     if (deg < 5) { start = 0; length = 5; targetSign = 0; }
+                     else if (deg < 10) { start = 5; length = 5; targetSign = 10; }
+                     else if (deg < 18) { start = 10; length = 8; targetSign = 8; }
+                     else if (deg < 25) { start = 18; length = 7; targetSign = 2; }
+                     else { start = 25; length = 5; targetSign = 6; }
+                 } else {
+                     if (deg < 5) { start = 0; length = 5; targetSign = 1; }
+                     else if (deg < 12) { start = 5; length = 7; targetSign = 5; }
+                     else if (deg < 20) { start = 12; length = 8; targetSign = 11; }
+                     else if (deg < 25) { start = 20; length = 5; targetSign = 9; }
+                     else { start = 25; length = 5; targetSign = 7; }
+                 }
+                 vSign = targetSign;
+            } else if (v === 5) {
+                const sign = Math.floor(rawDeg / 30);
+                const deg = rawDeg % 30;
+                const part = Math.floor(deg / 6);
+                const isOdd = (sign % 2 === 0);
+                const oddCycle = [0, 10, 8, 2, 6];
+                const evenCycle = [1, 5, 11, 9, 7];
+                vSign = isOdd ? oddCycle[part] : evenCycle[part];
+            } else {
+                vSign = getVSign(rawDeg, v);
+            }
+            posSign[target] = vSign;
+        }
+    });
+    
+    let tLagna = window.transitRaw.ayanamshas[aya].lagna;
+    if (tLagna !== undefined) {
+        posSign["Lagna"] = getVSign(parseFloat(tLagna), v);
+    }
+    return posSign;
+}
+// ------------------------------------
 
 function renderVargaAshtakavarga() { 
     const container = document.getElementById("ashtakavargaContainer"); 
@@ -4544,7 +4744,6 @@ function renderVargaAshtakavarga() {
         return k; 
     }
     
-    // 🔒 FIX 4: Determine exactly how many signs the array needs to rotate visually
     let shiftAmount = 0;
     const modeKP = document.getElementById('modeKP')?.checked;
     if (modeKP) {
@@ -4561,6 +4760,21 @@ function renderVargaAshtakavarga() {
         return [...arr.slice(-shift), ...arr.slice(0, len - shift)];
     }
 
+    // Capture transit settings
+    const showTransit = document.getElementById("savShowTransit")?.checked;
+    let posSign;
+    if (showTransit) {
+        if (!window.transitRaw) {
+            const stat = document.getElementById("savTransitStatus");
+            if(stat) stat.innerHTML = "<span style='color:#ff4444;'>Fetch Transit First</span>";
+            posSign = getVargaPosSign(v); // fallback to natal
+        } else {
+            posSign = getTransitVargaPosSign(v);
+        }
+    } else {
+        posSign = getVargaPosSign(v);
+    }
+
     // Row-by-row layout as requested
     const layoutRows = [
         ["SAV", "Lagna"],
@@ -4570,27 +4784,35 @@ function renderVargaAshtakavarga() {
     ];
 
     layoutRows.forEach(rowPlanets => {
-        // Create a separate grid container for each row to enforce the structure
+        // Create a separate flex container for each row to distribute spacing equally
         const grid = document.createElement("div"); 
         grid.className = "ashta-grid"; 
-        grid.style.marginBottom = "10px"; // Optional tweak for row spacing
+        grid.style.display = "flex";
+        grid.style.justifyContent = "space-evenly"; // Splits gaps equally across the width
+        grid.style.alignItems = "center";
+        grid.style.width = "100%";
+        grid.style.maxWidth = "100%"; // Allow full stretch
+        grid.style.flexWrap = "wrap";
+        grid.style.gap = "20px";
+        grid.style.marginBottom = "15px";
 
         rowPlanets.forEach(p => {
             if (p === "SAV") {
                 let SAV = calcVargaSAV(v); 
                 SAV = rotateArrayRight(SAV, shiftAmount); 
-                const ascSign = window._ascSigns?.[v] ?? 0;
-                grid.appendChild(makeKundali(SAV, "D" + v + "\nSAV", ascSign));
+                const ascSign = posSign["Lagna"] !== undefined ? posSign["Lagna"] : (window._ascSigns?.[v] ?? 0);
+                const showIndicator = document.getElementById("savShowIndicator")?.checked;
+                grid.appendChild(makeKundali(SAV, "D" + v + "\nSAV", showIndicator ? ascSign : null));
             } 
             else if (p === "Ketu") {
-                // Generate an empty dummy Kundali for Ketu
+                // Generate an empty dummy Kundali for Ketu, but show the location marker
                 const emptyArr = Array(12).fill("");
-                grid.appendChild(makeKundali(emptyArr, "BAV\nKetu", null));
-            } 
+                const planetSign = posSign["Ketu"];
+                grid.appendChild(makeKundali(emptyArr, "BAV\nKetu", planetSign));
+            }
             else {
                 let row = calcVargaSingleBAV(v, p); 
                 row = rotateArrayRight(row, shiftAmount);
-                const posSign = getVargaPosSign(v);
                 const planetSign = posSign[p];
                 grid.appendChild(makeKundali(row, "BAV\n" + p, planetSign));
             }
