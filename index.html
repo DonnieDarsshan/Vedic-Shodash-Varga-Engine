@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>Vedic Varga - Precision Final</title>
+	<title>Divisional Charts Nakshatra Nadi Interpretor</title>
 	<style>
 		:root { 
 			--bg-gradient: linear-gradient(135deg, #1a001a 0%, #2b0000 100%);
@@ -11331,7 +11331,7 @@ function handleNadiPivotChange() {
 
 
 
-
+<!-- Transit - Natal Mixer Kundali  -->
 
 
 <div class="division-title" onclick="toggleMixer()">
@@ -11513,6 +11513,10 @@ function handleNadiPivotChange() {
         <div id="sideTransitContainer" style="flex: 1; min-width: 300px; max-width: 450px;"></div>
     </div>
 
+    <div id="transitMixerTableContainer" style="width: 100%; max-width: 1400px; margin: 40px auto 0 auto; padding: 0 20px; box-sizing: border-box;">
+        <!-- Dynamic Table Generated via JS -->
+    </div>
+
     <div id="innerOuterHeading" style="max-width: 1000px; margin: 50px auto 10px auto; border: 1px solid var(--grid-line); background: #000; padding: 8px; color: var(--text-white); font-weight: bold; border-radius: 4px; text-align: center; font-size: 16px;">
         INNER <span style="color:#facc15;">(NATAL)</span> | OUTER <span style="color:#ff8800;">(TRANSIT)</span>
     </div>
@@ -11600,7 +11604,7 @@ function setMixerToNow() {
 document.getElementById("mixerDate").addEventListener("change", autoFetchTransit);
 document.getElementById("mixerTime").addEventListener("change", autoFetchTransit);
 
-function autoFetchTransit() {
+function autoFetchTransit(force = false) {
     const status = document.getElementById("transitStatus");
     
     // Prevent Server DOS on Cold Start
@@ -11620,9 +11624,21 @@ function autoFetchTransit() {
         return;
     }
 
-    // Lazy loading removed — fetches instantly only when the date is fully valid
-    if (status) status.innerHTML = "<span style='color:#10b981;'>Fetching Now... &#x23F3;</span>";
-    fetchTransitFromCloud();
+    // Clear previous timer if typing continues
+    clearTimeout(mixerDebounceTimer);
+
+    if (force === true) {
+        // Fetch instantly if forced (e.g., clicking "Set to Now")
+        if (status) status.innerHTML = "<span style='color:#10b981;'>Fetching Now... &#x23F3;</span>";
+        fetchTransitFromCloud();
+    } else {
+        // Apply 2-second lazy loading delay for manual typing
+        if (status) status.innerHTML = "<span style='color:#facc15;'>Waiting to fetch... &#x23F3;</span>";
+        mixerDebounceTimer = setTimeout(() => {
+            if (status) status.innerHTML = "<span style='color:#10b981;'>Fetching Now... &#x23F3;</span>";
+            fetchTransitFromCloud();
+        }, 2000);
+    }
 }
 
 
@@ -12476,6 +12492,165 @@ const calcH = (base, p) => p >= 3 ? (p + 2) * 25 : base;
         }
     }
     dirContainer.innerHTML = dirHtml;
+
+    // =========================================================
+    // 7. TRANSIT D1 TABLE (WITH VIMSHOTTARI TARA)
+    // =========================================================
+    const nakNames = ["Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashira", "Ardra", "Punarvasu", "Pushya", "Ashlesha", "Magha", "Purva Phalguni", "Uttara Phalguni", "Hasta", "Chitra", "Swati", "Vishakha", "Anuradha", "Jyeshtha", "Mula", "Purva Ashadha", "Uttara Ashadha", "Shravana", "Dhanishta", "Shatabhisha", "Purva Bhadrapada", "Uttara Bhadrapada", "Revati"];
+    const dashaLords = ["Ketu", "Venus", "Surya", "Chandra", "Mangala", "Rahu", "Jupiter", "Saturn", "Budha"];
+    const dashaYears = [7, 20, 6, 10, 7, 18, 16, 19, 17];
+    const taraNames = ["Janma", "Sampath", "Vipath", "Kshema", "Pratyari", "Sadhana", "Nidana", "Mithra", "Ati Mithra"];
+    
+    // Exact requested sequence
+    const tablePlanets = [
+        { key: "Saturn", name: "SHANI" },
+        { key: "Jupiter", name: "JUPITER" },
+        { key: "Rahu", name: "RAHU" },
+        { key: "Ketu", name: "KETU" },
+        { key: "Surya", name: "SURYA" },
+        { key: "Mangala", name: "MANGALA" },
+        { key: "Budha", name: "BUDHA" },
+        { key: "Venus", name: "VENUS" },
+        { key: "Chandra", name: "CHANDRA" }
+    ];
+
+    // Calculate Vimshottari Balance at Birth & Find Current Dasha
+    let nMoon = raw.ayanamshas && raw.ayanamshas[aya] ? parseFloat(raw.ayanamshas[aya].planets["Chandra"]) : parseFloat(raw.planets["Chandra"]);
+    let bNak = nMoon / 13.333333;
+    let bNakIdx = Math.floor(bNak);
+    let remFrac = 1 - (bNak - bNakIdx);
+    let lIdx = bNakIdx % 9;
+    let yLeft = dashaYears[lIdx] * remFrac;
+    
+    let bDate = (typeof originalDateTime !== "undefined" && originalDateTime) ? new Date(originalDateTime) : new Date();
+    let mixDateVal = document.getElementById("mixerDate").value || new Date().toISOString().split('T')[0];
+    let mixTimeVal = document.getElementById("mixerTime").value || "12:00:00";
+    let tDate = new Date(mixDateVal + "T" + mixTimeVal);
+    
+    let ageYrs = (tDate - bDate) / (1000 * 60 * 60 * 24 * 365.25);
+    let curIdx = lIdx;
+    
+    if (ageYrs > yLeft && ageYrs > 0) {
+        let remAge = ageYrs - yLeft;
+        curIdx = (curIdx + 1) % 9;
+        while (remAge > dashaYears[curIdx]) {
+            remAge -= dashaYears[curIdx];
+            curIdx = (curIdx + 1) % 9;
+        }
+    }
+    
+    let autoRefPlanet = dashaLords[curIdx]; 
+    
+    // Auto-update to the Dasha running at the Transit Date if the date/time is changed
+    let currentTransitStr = mixDateVal + "_" + mixTimeVal;
+    if (window._lastTaraTransitStr !== currentTransitStr) {
+        window.userTaraRefPlanet = autoRefPlanet;
+        window._lastTaraTransitStr = currentTransitStr;
+    }
+    
+    // Fallback if unset
+    if (!window.userTaraRefPlanet) window.userTaraRefPlanet = autoRefPlanet;
+    
+    // Get the sequence index of the selected Dasha Lord (This becomes "Janma")
+    let mappedKey = window.userTaraRefPlanet;
+    let refDashaIdx = dashaLords.indexOf(mappedKey);
+
+    const getPosData = (lon) => {
+        // 1. Get the exact 0-360 degree placement of the planet in the currently selected Varga
+        let pVData = getVargaPlacement(lon, v); 
+        let vLon = pVData.full;
+        
+        // 2. Calculate Nakshatra, Pada, and Lord strictly based on this Varga Longitude
+        let nIdx = Math.floor(vLon / 13.333333);
+        let pada = Math.floor((vLon % 13.333333) / 3.333333) + 1;
+        let lordIdx = nIdx % 9; // Position in the Vimshottari Sequence
+        let lord = dashaLords[lordIdx];
+        let name = nakNames[nIdx];
+        
+        let finalHouseNum = 0;
+        
+        // 3. Dynamically recalculate active Varga Ascendant to enforce Sign / KP toggles for Houses
+        let vPivotVData = getVargaPlacement(pivotBaseDeg, v);
+        let vShiftOffset = (modeKP && isShiftActive && vPivotVData.deg >= 15) ? 1 : 0;
+        let vForcedTransitAscIdx = modeKP ? ((vPivotVData.sign + vShiftOffset) % 12) : vPivotVData.sign;
+
+        if (modeKP) {
+            let relativeDeg = (pVData.full - vPivotVData.full + 360) % 360;
+            finalHouseNum = Math.floor(relativeDeg / 30) + 1;
+        } else {
+            finalHouseNum = (pVData.sign - vForcedTransitAscIdx + 12) % 12 + 1;
+        }
+
+        return { name, pada, lord, lordIdx, house: finalHouseNum };
+    };
+
+    let tableHtml = `
+    <div style="background:#111; border:1px solid var(--grid-line); border-radius:6px; padding:20px; box-shadow: 0 4px 8px rgba(0,0,0,0.5); overflow-x: auto;">
+        
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; flex-wrap:wrap; gap:15px;">
+            <div style="color:var(--grid-line); font-weight:900; font-size:22px; text-transform:uppercase; letter-spacing:1px;">Transit Navatara (D${v})</div>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span style="color:#0bf4e6; font-weight:bold; font-size:16px;">TARA REFERENCE (DASHA):</span>
+                <select id="taraRefPlanetSelect" onchange="window.userTaraRefPlanet=this.value; renderMixer();" style="background:#000; color:#fff; border:1px solid #0bf4e6; padding:6px 12px; font-weight:bold; font-size:15px; cursor:pointer; border-radius:4px;">
+                    ${dashaLords.map(lord => `<option value="${lord}" ${window.userTaraRefPlanet === lord ? "selected" : ""}>${lord.toUpperCase()}</option>`).join("")}
+                </select>
+                <span style="color:#aaa; font-size:13px; font-style:italic;">(Auto: ${autoRefPlanet.toUpperCase()})</span>
+            </div>
+        </div>
+
+        <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 14px; min-width: 700px;">
+            <thead>
+                <tr style="background: #222; color: #fff; border-bottom: 2px solid var(--grid-line);">
+                    <th style="padding: 12px; border-right: 1px solid #444;">PLANET</th>
+                    <th style="padding: 12px; border-right: 1px solid #444;">NAKSHATRA</th>
+                    <th style="padding: 12px; border-right: 1px solid #444;">PADA</th>
+                    <th style="padding: 12px; border-right: 1px solid #444; color: #0bf4e6;">TARA</th>
+                    <th style="padding: 12px; border-right: 1px solid #444;">NAKSHATRA LORD</th>
+                    <th style="padding: 12px;">HOUSE</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    tablePlanets.forEach(pObj => {
+        let actualNameT = pObj.key;
+        if (document.getElementById("useTrueNode")?.checked && (pObj.key === "Rahu" || pObj.key === "Ketu")) {
+            actualNameT = pObj.key + "_true";
+        }
+        
+        let tLon = 0;
+        if (tPlanets && tPlanets[actualNameT] !== undefined) {
+            tLon = parseFloat(tPlanets[actualNameT]);
+        }
+        
+        let tData = getPosData(tLon);
+        
+        // NEW TARA LOGIC: Modulo 9 difference between Transit Planet's Nakshatra Lord and Reference Dasha Lord
+        let taraIdx = (tData.lordIdx - refDashaIdx + 9) % 9;
+        let taraVal = taraNames[taraIdx];
+        
+        tableHtml += `
+            <tr style="border-bottom: 1px solid #333; transition: background 0.2s;" onmouseover="this.style.background='#1a1a1a'" onmouseout="this.style.background='transparent'">
+                <td style="padding: 10px; font-weight: bold; border-right: 1px solid #444; color: #ff8800;">${pObj.name}</td>
+                <td style="padding: 10px; color: #ddd; border-right: 1px solid #444;">${tData.name}</td>
+                <td style="padding: 10px; color: #ddd; border-right: 1px solid #444;">${tData.pada}</td>
+                <td style="padding: 10px; color: #0bf4e6; font-weight: bold; border-right: 1px solid #444;">${taraVal}</td>
+                <td style="padding: 10px; color: #ddd; border-right: 1px solid #444;">${tData.lord}</td>
+                <td style="padding: 10px; color: #facc15; font-weight:bold;">${tData.house}</td>
+            </tr>
+        `;
+    });
+
+    tableHtml += `
+            </tbody>
+        </table>
+    </div>
+    `;
+
+    let tableContainer = document.getElementById("transitMixerTableContainer");
+    if (tableContainer) {
+        tableContainer.innerHTML = tableHtml;
+    }
 }
 
 
@@ -12674,7 +12849,7 @@ window.addEventListener("DOMContentLoaded", () => {
 </script>
 
 
-
+<!-- Transit - Natal Mixer Kundali  -->
 
 
 
