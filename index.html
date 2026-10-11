@@ -12556,20 +12556,21 @@ const calcH = (base, p) => p >= 3 ? (p + 2) * 25 : base;
     let refDashaIdx = dashaLords.indexOf(mappedKey);
 
     const getPosData = (lon) => {
-        // 1. Get the exact 0-360 degree placement of the planet in the currently selected Varga
-        let pVData = getVargaPlacement(lon, v); 
-        let vLon = pVData.full;
+        // 1. MUST use D1 placement strictly for Nakshatra/Tara calculation
+        let d1Data = getVargaPlacement(lon, 1);
+        let d1Lon = d1Data.full;
         
-        // 2. Calculate Nakshatra, Pada, and Lord strictly based on this Varga Longitude
-        let nIdx = Math.floor(vLon / 13.333333);
-        let pada = Math.floor((vLon % 13.333333) / 3.333333) + 1;
-        let lordIdx = nIdx % 9; // Position in the Vimshottari Sequence
+        // 2. Varga placement strictly for House calculation
+        let pVData = getVargaPlacement(lon, v); 
+        
+        // 3. Nakshatra, Pada, and Lord MUST use D1 to match the Entry/Exit dates perfectly
+        let nIdx = Math.floor(d1Lon / 13.333333);
+        let pada = Math.floor((d1Lon % 13.333333) / 3.333333) + 1;
+        let lordIdx = nIdx % 9; 
         let lord = dashaLords[lordIdx];
         let name = nakNames[nIdx];
         
         let finalHouseNum = 0;
-        
-        // 3. Dynamically recalculate active Varga Ascendant to enforce Sign / KP toggles for Houses
         let vPivotVData = getVargaPlacement(pivotBaseDeg, v);
         let vShiftOffset = (modeKP && isShiftActive && vPivotVData.deg >= 15) ? 1 : 0;
         let vForcedTransitAscIdx = modeKP ? ((vPivotVData.sign + vShiftOffset) % 12) : vPivotVData.sign;
@@ -12584,11 +12585,22 @@ const calcH = (base, p) => p >= 3 ? (p + 2) * 25 : base;
         return { name, pada, lord, lordIdx, house: finalHouseNum };
     };
 
+    const useNumMonth = document.getElementById("transitMonthToggle")?.checked || false;
+    const useShortDate = document.getElementById("transitShortToggle") !== null ? document.getElementById("transitShortToggle").checked : true;
+
     let tableHtml = `
     <div style="background:#111; border:1px solid var(--grid-line); border-radius:6px; padding:20px; box-shadow: 0 4px 8px rgba(0,0,0,0.5); overflow-x: auto;">
         
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; flex-wrap:wrap; gap:15px;">
-            <div style="color:var(--grid-line); font-weight:900; font-size:22px; text-transform:uppercase; letter-spacing:1px;">Transit Navatara (D${v})</div>
+            <div style="display:flex; align-items:center; gap:15px; flex-wrap:wrap;">
+                <div style="color:var(--grid-line); font-weight:900; font-size:22px; text-transform:uppercase; letter-spacing:1px;">Transit Navatara (D${v})</div>
+                <label style="color:#facc15; font-weight:bold; cursor:pointer; display:flex; align-items:center; gap:6px; font-size:16px; margin-left:5px;">
+                    <input type="checkbox" id="transitMonthToggle" onchange="renderMixer()" ${useNumMonth ? 'checked' : ''}> Month
+                </label>
+                <label style="color:#facc15; font-weight:bold; cursor:pointer; display:flex; align-items:center; gap:6px; font-size:16px;">
+                    <input type="checkbox" id="transitShortToggle" onchange="renderMixer()" ${useShortDate ? 'checked' : ''}> Short
+                </label>
+            </div>
             <div style="display:flex; align-items:center; gap:10px;">
                 <span style="color:#0bf4e6; font-weight:bold; font-size:16px;">TARA REFERENCE (DASHA):</span>
                 <select id="taraRefPlanetSelect" onchange="window.userTaraRefPlanet=this.value; renderMixer();" style="background:#000; color:#fff; border:1px solid #0bf4e6; padding:6px 12px; font-weight:bold; font-size:15px; cursor:pointer; border-radius:4px;">
@@ -12598,19 +12610,42 @@ const calcH = (base, p) => p >= 3 ? (p + 2) * 25 : base;
             </div>
         </div>
 
-        <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 14px; min-width: 700px;">
+        <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 17px; min-width: 900px;">
             <thead>
                 <tr style="background: #222; color: #fff; border-bottom: 2px solid var(--grid-line);">
-                    <th style="padding: 12px; border-right: 1px solid #444;">PLANET</th>
-                    <th style="padding: 12px; border-right: 1px solid #444;">NAKSHATRA</th>
-                    <th style="padding: 12px; border-right: 1px solid #444;">PADA</th>
-                    <th style="padding: 12px; border-right: 1px solid #444; color: #0bf4e6;">TARA</th>
-                    <th style="padding: 12px; border-right: 1px solid #444;">NAKSHATRA LORD</th>
-                    <th style="padding: 12px;">HOUSE</th>
+                    <th style="padding: 15px; border-right: 1px solid #444;">PLANET</th>
+                    <th style="padding: 15px; border-right: 1px solid #444;">NAKSHATRA</th>
+                    <th style="padding: 15px; border-right: 1px solid #444;">PADA</th>
+                    <th style="padding: 15px; border-right: 1px solid #444; color: #0bf4e6;">TARA</th>
+                    <th style="padding: 15px; border-right: 1px solid #444; color: #a3e635;">ENTRY</th>
+                    <th style="padding: 15px; border-right: 1px solid #444; color: #ef4444;">EXIT</th>
+                    <th style="padding: 15px; border-right: 1px solid #444;">NAKSHATRA LORD</th>
+                    <th style="padding: 15px;">HOUSE</th>
                 </tr>
             </thead>
             <tbody>
     `;
+
+    const formatNakDate = (isoString, isMoon = false) => {
+        if (!isoString || isoString === "N/A") return "--";
+        const d = new Date(isoString);
+        if (isNaN(d)) return isoString; 
+        
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const yyyy = d.getFullYear();
+        const mmm = useNumMonth ? String(d.getMonth() + 1).padStart(2, '0') : months[d.getMonth()];
+        const dd = String(d.getDate()).padStart(2, '0');
+        
+        let dateStr = useShortDate ? `${yyyy}-${mmm}` : `${yyyy}-${mmm}-${dd}`;
+        
+        if (isMoon) {
+            const hh = String(d.getHours()).padStart(2, '0');
+            const min = String(d.getMinutes()).padStart(2, '0');
+            return `${dateStr}<br><span style="font-size:14px; color:#bbb; font-weight:normal;">${hh}:${min}</span>`;
+        }
+        
+        return dateStr;
+    };
 
     tablePlanets.forEach(pObj => {
         let actualNameT = pObj.key;
@@ -12619,29 +12654,68 @@ const calcH = (base, p) => p >= 3 ? (p + 2) * 25 : base;
         }
         
         let tLon = 0;
+        let entryHtml = "--";
+        let exitHtml = "--";
+        let isMoon = (pObj.key === "Chandra");
+        
         if (tPlanets && tPlanets[actualNameT] !== undefined) {
             tLon = parseFloat(tPlanets[actualNameT]);
         }
         
-        let tData = getPosData(tLon);
+        // Only show Entry/Exit dates for D1 (Rasi). For divisional charts, leave them blank!
+        if (v === 1) {
+            const ayaName = document.getElementById('aya')?.value || 'Lahiri';
+            let activeData = window.transitRaw.ayanamshas && window.transitRaw.ayanamshas[ayaName] ? window.transitRaw.ayanamshas[ayaName] : window.transitRaw;
+            
+            let datesData = null;
+            if (activeData.transit_dates && activeData.transit_dates[actualNameT]) {
+                datesData = activeData.transit_dates[actualNameT];
+            } else if (window.transitRaw.transit_dates && window.transitRaw.transit_dates[actualNameT]) {
+                datesData = window.transitRaw.transit_dates[actualNameT];
+            }
+
+            if (datesData) {
+                if (Array.isArray(datesData)) {
+                    let eArr = datesData.map(d => `<div style="padding: 5px 0; border-bottom: 1px dashed #444; white-space: nowrap;">${formatNakDate(d.entry, isMoon)}</div>`);
+                    let xArr = datesData.map(d => `<div style="padding: 5px 0; border-bottom: 1px dashed #444; white-space: nowrap;">${formatNakDate(d.exit, isMoon)}</div>`);
+                    
+                    entryHtml = `<div style="display:flex; flex-direction:column; justify-content:center; height:100%;">${eArr.join("")}</div>`;
+                    exitHtml = `<div style="display:flex; flex-direction:column; justify-content:center; height:100%;">${xArr.join("")}</div>`;
+                    
+                    entryHtml = entryHtml.replace(/border-bottom: 1px dashed #444;([^>]+)>([^<]+)<\/div><\/div>$/, 'border-bottom: none;$1>$2</div></div>');
+                    exitHtml = exitHtml.replace(/border-bottom: 1px dashed #444;([^>]+)>([^<]+)<\/div><\/div>$/, 'border-bottom: none;$1>$2</div></div>');
+                } else {
+                    entryHtml = formatNakDate(datesData.entry, isMoon);
+                    exitHtml = formatNakDate(datesData.exit, isMoon);
+                }
+            }
+        } else {
+            entryHtml = "--";
+            exitHtml = "--";
+        }
         
-        // NEW TARA LOGIC: Modulo 9 difference between Transit Planet's Nakshatra Lord and Reference Dasha Lord
+        let tData = getPosData(tLon);
         let taraIdx = (tData.lordIdx - refDashaIdx + 9) % 9;
         let taraVal = taraNames[taraIdx];
         
         tableHtml += `
-            <tr style="border-bottom: 1px solid #333; transition: background 0.2s;" onmouseover="this.style.background='#1a1a1a'" onmouseout="this.style.background='transparent'">
-                <td style="padding: 10px; font-weight: bold; border-right: 1px solid #444; color: #ff8800;">${pObj.name}</td>
-                <td style="padding: 10px; color: #ddd; border-right: 1px solid #444;">${tData.name}</td>
-                <td style="padding: 10px; color: #ddd; border-right: 1px solid #444;">${tData.pada}</td>
-                <td style="padding: 10px; color: #0bf4e6; font-weight: bold; border-right: 1px solid #444;">${taraVal}</td>
-                <td style="padding: 10px; color: #ddd; border-right: 1px solid #444;">${tData.lord}</td>
-                <td style="padding: 10px; color: #facc15; font-weight:bold;">${tData.house}</td>
+            <tr style="border-bottom: 2px solid #555; transition: background 0.2s;" onmouseover="this.style.background='#1a1a1a'" onmouseout="this.style.background='transparent'">
+                <td style="padding: 18px 10px; font-weight: bold; border-right: 1px solid #444; color: #ff8800; vertical-align: middle;">${pObj.name}</td>
+                <td style="padding: 18px 10px; color: #ddd; border-right: 1px solid #444; vertical-align: middle;">${tData.name}</td>
+                <td style="padding: 18px 10px; color: #ddd; border-right: 1px solid #444; vertical-align: middle;">${tData.pada}</td>
+                <td style="padding: 18px 10px; color: #0bf4e6; font-weight: bold; border-right: 1px solid #444; vertical-align: middle;">${taraVal}</td>
+                <td style="padding: 18px 10px; color: #a3e635; border-right: 1px solid #444; font-weight: bold; vertical-align: middle;">${entryHtml}</td>
+                <td style="padding: 18px 10px; color: #ef4444; border-right: 1px solid #444; font-weight: bold; vertical-align: middle;">${exitHtml}</td>
+                <td style="padding: 18px 10px; color: #ddd; border-right: 1px solid #444; vertical-align: middle;">${tData.lord}</td>
+                <td style="padding: 18px 10px; color: #facc15; font-weight:bold; vertical-align: middle;">${tData.house}</td>
             </tr>
         `;
     });
 
     tableHtml += `
+                <tr style="height: 30px; border: none;">
+                    <td colspan="8"></td>
+                </tr>
             </tbody>
         </table>
     </div>
