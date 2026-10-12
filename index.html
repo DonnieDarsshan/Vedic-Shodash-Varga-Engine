@@ -12570,6 +12570,9 @@ const calcH = (base, p) => p >= 3 ? (p + 2) * 25 : base;
         let lord = dashaLords[lordIdx];
         let name = nakNames[nIdx];
         
+        const zNames = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
+        let zodiac = zNames[d1Data.sign];
+        
         let finalHouseNum = 0;
         let vPivotVData = getVargaPlacement(pivotBaseDeg, v);
         let vShiftOffset = (modeKP && isShiftActive && vPivotVData.deg >= 15) ? 1 : 0;
@@ -12582,7 +12585,7 @@ const calcH = (base, p) => p >= 3 ? (p + 2) * 25 : base;
             finalHouseNum = (pVData.sign - vForcedTransitAscIdx + 12) % 12 + 1;
         }
 
-        return { name, pada, lord, lordIdx, house: finalHouseNum };
+        return { name, pada, lord, lordIdx, house: finalHouseNum, zodiac };
     };
 
     const useNumMonth = document.getElementById("transitMonthToggle")?.checked || false;
@@ -12629,7 +12632,8 @@ const calcH = (base, p) => p >= 3 ? (p + 2) * 25 : base;
                     <th style="padding: 15px; border-right: 1px solid #444; color: #0bf4e6;">TARA</th>
                     <th style="padding: 15px; border-right: 1px solid #444; color: #a3e635;">ENTRY</th>
                     <th style="padding: 15px; border-right: 1px solid #444; color: #ef4444;">EXIT</th>
-                    <th style="padding: 15px; border-right: 1px solid #444;">NAKSHATRA LORD</th>
+                    <th style="padding: 15px; border-right: 1px solid #444;">LORD</th>
+                    <th style="padding: 15px; border-right: 1px solid #444;">ZODIAC</th>
                     <th style="padding: 15px;">HOUSE</th>
                 </tr>
             </thead>
@@ -12717,6 +12721,7 @@ const calcH = (base, p) => p >= 3 ? (p + 2) * 25 : base;
                 <td style="padding: 18px 10px; color: #a3e635; border-right: 1px solid #444; font-weight: bold; vertical-align: middle;">${entryHtml}</td>
                 <td style="padding: 18px 10px; color: #ef4444; border-right: 1px solid #444; font-weight: bold; vertical-align: middle;">${exitHtml}</td>
                 <td style="padding: 18px 10px; color: #ddd; border-right: 1px solid #444; vertical-align: middle;">${tData.lord}</td>
+                <td style="padding: 18px 10px; color: #bbb; border-right: 1px solid #444; vertical-align: middle;">${tData.zodiac}</td>
                 <td style="padding: 18px 10px; color: #facc15; font-weight:bold; vertical-align: middle;">${tData.house}</td>
             </tr>
         `;
@@ -12724,7 +12729,7 @@ const calcH = (base, p) => p >= 3 ? (p + 2) * 25 : base;
 
     tableHtml += `
                 <tr style="height: 30px; border: none;">
-                    <td colspan="8"></td>
+                    <td colspan="9"></td>
                 </tr>
             </tbody>
         </table>
