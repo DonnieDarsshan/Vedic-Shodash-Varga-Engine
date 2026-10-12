@@ -12588,6 +12588,13 @@ const calcH = (base, p) => p >= 3 ? (p + 2) * 25 : base;
     const useNumMonth = document.getElementById("transitMonthToggle")?.checked || false;
     const useShortDate = document.getElementById("transitShortToggle") !== null ? document.getElementById("transitShortToggle").checked : true;
 
+    const sysToday = new Date();
+    const t_months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const t_yyyy = sysToday.getFullYear();
+    const t_mmm = useNumMonth ? String(sysToday.getMonth() + 1).padStart(2, '0') : t_months[sysToday.getMonth()];
+    const t_dd = String(sysToday.getDate()).padStart(2, '0');
+    const sysTodayStr = useShortDate ? `${t_yyyy}-${t_mmm}` : `${t_yyyy}-${t_mmm}-${t_dd}`;
+
     let tableHtml = `
     <div style="background:#111; border:1px solid var(--grid-line); border-radius:6px; padding:20px; box-shadow: 0 4px 8px rgba(0,0,0,0.5); overflow-x: auto;">
         
@@ -12600,6 +12607,9 @@ const calcH = (base, p) => p >= 3 ? (p + 2) * 25 : base;
                 <label style="color:#facc15; font-weight:bold; cursor:pointer; display:flex; align-items:center; gap:6px; font-size:16px;">
                     <input type="checkbox" id="transitShortToggle" onchange="renderMixer()" ${useShortDate ? 'checked' : ''}> Short
                 </label>
+                <div style="border: 1px solid #555; padding: 4px 12px; border-radius: 4px; color: var(--text-white); font-weight: bold; font-size: 15px; background: #000; letter-spacing: 1px; margin-left: 5px;">
+                    ${sysTodayStr}
+                </div>
             </div>
             <div style="display:flex; align-items:center; gap:10px;">
                 <span style="color:#0bf4e6; font-weight:bold; font-size:16px;">TARA REFERENCE (DASHA):</span>
