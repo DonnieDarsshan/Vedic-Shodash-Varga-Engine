@@ -3624,6 +3624,62 @@ function attachVedicInteractions(tableId) {
 
 
 
+
+
+
+
+
+
+
+
+
+<!-- Sarvashtaka Varga Calculator -->
+
+<!-- ========================================================= -->
+<!-- UNIFIED SARVASHTAKA & PRASHTHARA ASHTAKAVARGA MODULE      -->
+<!-- ========================================================= -->
+<style>
+    .prash-kundali {
+        width: 380px;
+        min-height: 380px;
+        border: 3px solid var(--grid-line);
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(4, minmax(95px, auto));
+        background: #111;
+    }
+    .prash-cell {
+        display: flex;
+        flex-wrap: wrap;
+        align-content: center;
+        justify-content: center;
+        gap: 4px 6px;
+        font-weight: bold;
+        font-size: 13px;
+        border: 1px solid #555;
+        color: var(--text-white);
+        padding: 6px 4px;
+        text-align: center;
+        line-height: 1.35;
+        box-sizing: border-box;
+    }
+    .prash-center {
+        grid-column: 2/4;
+        grid-row: 2/4;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 18px;
+        color: var(--asc-yellow);
+        text-align: center;
+        padding: 10px;
+        border: 1px solid #555;
+        line-height: 1.4;
+    }
+</style>
+
 <div class="division-title" onclick="toggleAshtakavarga()">
     Sarvashtaka Varga Calculator &#9660;
 </div>
@@ -3672,9 +3728,652 @@ function attachVedicInteractions(tableId) {
         </div>
     </div>
 
+    <!-- MAIN SAV / BAV KUNDALIS -->
     <div id="ashtakavargaContainer" style="display:flex; flex-direction:column; gap:30px; align-items:center; width:100%; box-sizing:border-box;">
     </div>
+
+    <!-- PRASHTHARA ASHTAKAVARGA SUB-TABLE AT THE BOTTOM -->
+    <div class="division-title" onclick="togglePrashthara()" style="margin-top: 40px; max-width: 100%;">
+        Prashthara Ashtakavarga &#9660;
+    </div>
+    <div id="prashtharaWrapper" style="display:block; margin-top: 25px; width: 100%;">
+        <div id="prashtharaContainer" style="display:flex; flex-direction:column; gap:30px; align-items:center; width:100%; box-sizing:border-box;">
+        </div>
+    </div>
 </div>
+
+
+
+
+
+<script>
+const BAV_RULES = {
+    Surya: { Surya: [1,2,4,7,8,9,10,11], Chandra: [3,6,10,11], Mangala: [1,2,4,7,8,9,10,11], Budha: [3,5,6,9,10,11,12], Jupiter: [5,6,9,11], Venus: [6,7,12], Saturn: [1,2,4,7,8,9,10,11], Lagna: [3,4,6,10,11,12] },
+    Chandra: { Surya: [3,6,7,8,10,11], Chandra: [1,3,6,7,10,11], Mangala: [2,3,5,6,9,10,11], Budha: [1,3,4,5,7,8,10,11], Jupiter: [1,4,7,8,10,11,12], Venus: [3,4,5,7,9,10,11], Saturn: [3,5,6,11], Lagna: [3,6,10,11,12] },
+    Mangala: { Surya: [3,5,6,10,11], Chandra: [3,6,11], Mangala: [1,2,4,7,8,10,11], Budha: [3,5,6,11], Jupiter: [6,10,11,12], Venus: [6,8,11,12], Saturn: [1,4,7,8,9,10,11], Lagna: [1,3,6,10,11] },
+    Budha: { Surya: [5,6,9,11,12], Chandra: [2,4,6,8,10,11], Mangala: [1,2,4,7,8,9,10,11], Budha: [1,3,5,6,9,10,11,12], Jupiter: [6,8,11,12], Venus: [1,2,3,4,5,8,9,11], Saturn: [1,2,4,7,8,9,10,11], Lagna: [1,2,4,6,8,10,11] },
+    Jupiter: { Surya: [1,2,3,4,7,8,9,10,11], Chandra: [2,5,7,9,11], Mangala: [1,2,4,7,8,10,11], Budha: [1,2,4,5,6,9,10,11], Jupiter: [1,2,3,4,7,8,10,11], Venus: [2,5,6,9,10,11], Saturn: [3,5,6,12], Lagna: [1,2,4,5,6,7,9,10,11] },
+    Venus: { Surya: [8,11,12], Chandra: [1,2,3,4,5,8,9,11,12], Mangala: [3,5,6,9,11,12], Budha: [3,5,6,9,11], Jupiter: [5,8,9,10,11], Venus: [1,2,3,4,5,8,9,10,11], Saturn: [3,4,5,8,9,10,11], Lagna: [1,2,3,4,5,8,9] },
+    Saturn: { Surya: [1,2,4,7,8,10,11], Chandra: [3,6,11], Mangala: [3,5,6,10,11,12], Budha: [6,8,9,10,11,12], Jupiter: [5,6,11,12], Venus: [6,11,12], Saturn: [3,5,6,11], Lagna: [1,3,4,6,10,11] },
+    Rahu: { Surya: [1,2,3,5,7,8,10], Chandra: [1,3,5,7,8,9,10], Mangala: [2,3,5,12], Budha: [2,4,7,8,12], Jupiter: [1,3,4,6,8], Venus: [6,7,11,12], Saturn: [3,5,7,10,11,12], Lagna: [3,4,5,9,12] }
+};
+
+const LAGNA_BAV_RULES_GLOBAL = {
+    Surya: [3,4,6,10,11,12],
+    Chandra: [3,6,10,11,12],
+    Mangala: [1,3,6,10,11],
+    Budha: [1,2,4,6,8,10,11],
+    Jupiter: [1,2,4,5,6,7,9,10,11],
+    Venus: [1,2,3,4,5,8,9],
+    Saturn: [1,3,4,6,10,11],
+    Lagna: [3,6,10,11]
+};
+
+function toggleAshtakavarga() { 
+    const box = document.getElementById("ashtakavargaWrapper"); 
+    if(!box) return; 
+    box.style.display = (box.style.display === "none") ? "block" : "none"; 
+    
+    if (box.style.display === "block") {
+        const mixY = document.getElementById("mixY");
+        if (mixY && mixY.value) {
+            document.getElementById("savMixY").value = mixY.value;
+            document.getElementById("savMixM").value = document.getElementById("mixM").value;
+            document.getElementById("savMixD").value = document.getElementById("mixD").value;
+            document.getElementById("savMixH").value = document.getElementById("mixH").value;
+            document.getElementById("savMixMin").value = document.getElementById("mixMin").value;
+            document.getElementById("savMixS").value = document.getElementById("mixS").value;
+        } else if (document.getElementById("savMixY") && !document.getElementById("savMixY").value) {
+            setSavMixerToNow();
+        }
+        renderVargaAshtakavarga();
+    }
+}
+
+function togglePrashthara() {
+    const box = document.getElementById("prashtharaWrapper");
+    if (!box) return;
+    box.style.display = (box.style.display === "none") ? "block" : "none";
+}
+
+// 1. Pure unshifted Rashi positions (strictly used for calculating base BAV/SAV bindus before KP shift)
+function getVargaPosSign(v) { 
+    const pMap = {Surya: "Sy", Chandra: "Ch", Mangala: "Ma", Budha: "Bu", Jupiter: "Ju", Venus: "Ve", Saturn: "Sa", Rahu: "Ra", Ketu: "Ke"}; 
+    const rashiData = window._shodaRashi ? window._shodaRashi[v] : null; 
+    const posSign = {}; 
+    
+    if (!rashiData) return posSign; 
+    
+    Object.keys(pMap).forEach(target => { 
+        const code = pMap[target]; 
+        if (rashiData[code] && rashiData[code] !== "-") { 
+            posSign[target] = parseInt(rashiData[code]) - 1; 
+        } 
+    }); 
+    
+    posSign["Lagna"] = (window._pureAscSigns && window._pureAscSigns[v] !== undefined) 
+                        ? window._pureAscSigns[v] 
+                        : (window._ascSigns && window._ascSigns[v] !== undefined ? window._ascSigns[v] : 0); 
+    
+    return posSign; 
+}
+
+// 2. Active Visual Positions for NATAL (Respects KP Mode, Vedic Mode, Sign2Sign Mode, and Shifted Lagna!)
+function getNatalVisualPosSign(v) {
+    const chartData = window._vargaChartStore ? window._vargaChartStore[v] : null;
+    if (!chartData) return getVargaPosSign(v);
+
+    const codeToFull = { Sy: "Surya", Ch: "Chandra", Ma: "Mangala", Bu: "Budha", Ju: "Jupiter", Ve: "Venus", Sa: "Saturn", Ra: "Rahu", Ke: "Ketu" };
+    const posSign = {};
+
+    for (let sIdx = 0; sIdx < 12; sIdx++) {
+        chartData[sIdx].forEach(pObj => {
+            if (pObj.isAsc) {
+                posSign["Lagna"] = sIdx;
+            } else if (codeToFull[pObj.n]) {
+                posSign[codeToFull[pObj.n]] = sIdx;
+            }
+        });
+    }
+    return posSign;
+}
+
+function calcVargaSAV(v) {
+    const posSign = getVargaPosSign(v);
+    const planets7 = ["Surya", "Chandra", "Mangala", "Budha", "Jupiter", "Venus", "Saturn"];
+    const SAV = Array(12).fill(0);
+    if (Object.keys(posSign).length < 8) return SAV;
+    planets7.forEach(targetPlanet => {
+        const contributors = [...planets7, "Lagna"];
+        contributors.forEach(source => {
+            const rules = BAV_RULES[targetPlanet][source];
+            const sourceSign = posSign[source];
+            if (rules && sourceSign !== undefined) {
+                rules.forEach(houseOffset => {
+                    SAV[(sourceSign + (houseOffset - 1)) % 12]++;
+                });
+            }
+        });
+    });
+    return SAV;
+}
+
+function calcVargaSingleBAV(v, target) {
+    const posSign = getVargaPosSign(v);
+    const planets7 = ["Surya", "Chandra", "Mangala", "Budha", "Jupiter", "Venus", "Saturn"];
+    const row = Array(12).fill(0);
+    if (Object.keys(posSign).length < 8) return row;
+    if (target === "Lagna") {
+        Object.entries(LAGNA_BAV_RULES_GLOBAL).forEach(([source, rules]) => {
+            const sSign = posSign[source];
+            if (sSign !== undefined) {
+                rules.forEach(offset => { row[(sSign + (offset - 1)) % 12]++; });
+            }
+        });
+        return row;
+    }
+    if (target === "Rahu") {
+        [...planets7, "Lagna"].forEach(source => {
+            const rules = BAV_RULES["Rahu"][source];
+            const sSign = posSign[source];
+            if (rules && sSign !== undefined) {
+                rules.forEach(offset => { row[(sSign + (offset - 1)) % 12]++; });
+            }
+        });
+        return row;
+    }
+    [...planets7, "Lagna"].forEach(source => {
+        const rules = BAV_RULES[target]?.[source];
+        const sSign = posSign[source];
+        if (rules && sSign !== undefined) {
+            rules.forEach(offset => { row[(sSign + (offset - 1)) % 12]++; });
+        }
+    });
+    return row;
+}
+
+function calcVargaPrashtharaSingle(v, target) {
+    const posSign = getVargaPosSign(v);
+    const contributorsOrder = ["Surya", "Chandra", "Mangala", "Budha", "Jupiter", "Venus", "Saturn", "Lagna"];
+    const cells = Array(12).fill(null).map(() => []);
+    if (Object.keys(posSign).length < 8) return cells;
+
+    const ruleSet = (target === "Lagna") ? LAGNA_BAV_RULES_GLOBAL : BAV_RULES[target];
+    if (!ruleSet) return cells;
+
+    contributorsOrder.forEach(source => {
+        const rules = ruleSet[source];
+        const sSign = posSign[source];
+        if (rules && sSign !== undefined) {
+            rules.forEach(offset => {
+                const targetSign = (sSign + (offset - 1)) % 12;
+                cells[targetSign].push(source);
+            });
+        }
+    });
+    return cells;
+}
+
+function toggleSavMode(mode) {
+    const nBox = document.getElementById("savShowNatal");
+    const tBox = document.getElementById("savShowTransit");
+    if (mode === 'natal') {
+        nBox.checked = true;
+        tBox.checked = false;
+        renderVargaAshtakavarga();
+    } else {
+        tBox.checked = true;
+        nBox.checked = false;
+        if (!window.transitRaw) {
+            setSavMixerToNow();
+        } else {
+            renderVargaAshtakavarga();
+        }
+    }
+}
+
+function handleSavMixerSpin(event, unit) {
+    if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+        event.preventDefault();
+        let y = parseInt(document.getElementById("savMixY").value) || new Date().getFullYear();
+        let m = parseInt(document.getElementById("savMixM").value) || 1;
+        let d = parseInt(document.getElementById("savMixD").value) || 1;
+        let h = parseInt(document.getElementById("savMixH").value) || 12;
+        let min = parseInt(document.getElementById("savMixMin").value) || 0;
+        let s = parseInt(document.getElementById("savMixS").value) || 0;
+        
+        let dateObj = new Date(y, m - 1, d, h, min, s);
+        let dir = (event.key === "ArrowUp") ? 1 : -1;
+        
+        if (unit === 'Y') dateObj.setFullYear(dateObj.getFullYear() + dir);
+        if (unit === 'M') dateObj.setMonth(dateObj.getMonth() + dir);
+        if (unit === 'D') dateObj.setDate(dateObj.getDate() + dir);
+        if (unit === 'h') dateObj.setHours(dateObj.getHours() + dir);
+        if (unit === 'm') dateObj.setMinutes(dateObj.getMinutes() + dir);
+        if (unit === 's') dateObj.setSeconds(dateObj.getSeconds() + dir);
+        
+        document.getElementById("savMixY").value = dateObj.getFullYear();
+        document.getElementById("savMixM").value = String(dateObj.getMonth() + 1).padStart(2, '0');
+        document.getElementById("savMixD").value = String(dateObj.getDate()).padStart(2, '0');
+        document.getElementById("savMixH").value = String(dateObj.getHours()).padStart(2, '0');
+        document.getElementById("savMixMin").value = String(dateObj.getMinutes()).padStart(2, '0');
+        document.getElementById("savMixS").value = String(dateObj.getSeconds()).padStart(2, '0');
+        
+        syncSavToolbar();
+    }
+}
+
+function syncSavToolbar() {
+    let y = (document.getElementById("savMixY").value || new Date().getFullYear()).toString().padStart(4, '0');
+    let m = (document.getElementById("savMixM").value || 1).toString().padStart(2, '0');
+    let d = (document.getElementById("savMixD").value || 1).toString().padStart(2, '0');
+    let h = (document.getElementById("savMixH").value || 0).toString().padStart(2, '0');
+    let min = (document.getElementById("savMixMin").value || 0).toString().padStart(2, '0');
+    let s = (document.getElementById("savMixS").value || 0).toString().padStart(2, '0');
+    
+    if (document.getElementById("mixY")) {
+        document.getElementById("mixY").value = y;
+        document.getElementById("mixM").value = m;
+        document.getElementById("mixD").value = d;
+        document.getElementById("mixH").value = h;
+        document.getElementById("mixMin").value = min;
+        document.getElementById("mixS").value = s;
+        if (typeof syncMixerHidden === 'function') syncMixerHidden(true);
+    }
+    
+    const stat = document.getElementById("savTransitStatus");
+    if (stat) stat.innerHTML = "";
+    renderVargaAshtakavarga();
+}
+
+function setSavMixerToNow() {
+    const now = new Date();
+    document.getElementById('savMixY').value = now.getFullYear();
+    document.getElementById('savMixM').value = String(now.getMonth() + 1).padStart(2, "0");
+    document.getElementById('savMixD').value = String(now.getDate()).padStart(2, "0");
+    document.getElementById('savMixH').value = String(now.getHours()).padStart(2, "0");
+    document.getElementById('savMixMin').value = String(now.getMinutes()).padStart(2, "0");
+    document.getElementById('savMixS').value = String(now.getSeconds()).padStart(2, "0");
+    syncSavToolbar();
+}
+
+// Hook into Transit Mixer so whenever Transit Mixer finishes fetching/rendering, SAV updates too!
+window.addEventListener("load", () => {
+    const origRenderMixer = window.renderMixerKundali || window.calcMixer;
+    if (typeof origRenderMixer === "function" && !window._savMixerHooked) {
+        window._savMixerHooked = true;
+        if (typeof window.renderMixerKundali === "function") {
+            const origRMK = window.renderMixerKundali;
+            window.renderMixerKundali = function() {
+                origRMK.apply(this, arguments);
+                const stat = document.getElementById("savTransitStatus");
+                if (stat) stat.innerHTML = "";
+                renderVargaAshtakavarga();
+            };
+        }
+    }
+});
+
+// 3. Active Visual Positions for TRANSIT (Follows exact KP Mode, Vedic Mode, or Sign2Sign Mode!)
+function getTransitVargaPosSign(v) {
+    const posSign = {};
+    if (!window.transitRaw) return posSign;
+    const aya = document.getElementById('aya')?.value || 'Lahiri';
+    if (!window.transitRaw.ayanamshas || !window.transitRaw.ayanamshas[aya]) return posSign;
+    
+    const tPlanets = window.transitRaw.ayanamshas[aya].planets;
+    const pMap = {Surya: "Surya", Chandra: "Chandra", Mangala: "Mangala", Budha: "Budha", Jupiter: "Jupiter", Venus: "Venus", Saturn: "Saturn", Rahu: "Rahu", Ketu: "Ketu"}; 
+    const useTrueNode = document.getElementById("useTrueNode")?.checked;
+
+    const modeKP = document.getElementById("modeKP")?.checked;
+    const modeVedic = document.getElementById("modeVedic")?.checked;
+    const pivot = document.getElementById("pivot")?.value || "ASC";
+    const kpShift = modeKP ? (window._kpSignShift?.[v] || 0) : 0;
+
+    // Get Natal Pivot base degree for KP / Vedic shifting
+    let baseDeg = 0;
+    let hasNatal = false;
+    if (raw && raw.ayanamshas && raw.ayanamshas[aya]) {
+        hasNatal = true;
+        const nData = raw.ayanamshas[aya];
+        let lagnaShifted = nData.lagna;
+        if (originalDateTime && currentDateTime) {
+            lagnaShifted = (lagnaShifted + ((currentDateTime - originalDateTime) / 60000) * 0.25) % 360;
+            if (lagnaShifted < 0) lagnaShifted += 360;
+        }
+        baseDeg = (pivot === "ASC") ? lagnaShifted : (window._shiftedPlanetsGlobal?.[pivot] ?? nData.planets[pivot]);
+    }
+
+    function getD30SignAndDeg(rawDeg) {
+        const sign = Math.floor(rawDeg / 30);
+        const deg = rawDeg % 30;
+        const isOdd = (sign % 2 === 0);
+        let start, length, targetSign;
+        if (isOdd) {
+            if (deg < 5) { start = 0; length = 5; targetSign = 0; }
+            else if (deg < 10) { start = 5; length = 5; targetSign = 10; }
+            else if (deg < 18) { start = 10; length = 8; targetSign = 8; }
+            else if (deg < 25) { start = 18; length = 7; targetSign = 2; }
+            else { start = 25; length = 5; targetSign = 6; }
+        } else {
+            if (deg < 5) { start = 0; length = 5; targetSign = 1; }
+            else if (deg < 12) { start = 5; length = 7; targetSign = 5; }
+            else if (deg < 20) { start = 12; length = 8; targetSign = 11; }
+            else if (deg < 25) { start = 20; length = 5; targetSign = 9; }
+            else { start = 25; length = 5; targetSign = 7; }
+        }
+        return { sign: targetSign, deg: ((deg - start) / length) * 30 };
+    }
+
+    Object.keys(pMap).forEach(target => {
+        let pKey = pMap[target];
+        if (useTrueNode && (pKey === "Rahu" || pKey === "Ketu")) pKey += "_true";
+        
+        let rawDeg = tPlanets[pKey];
+        if (rawDeg === undefined) rawDeg = tPlanets[pMap[target]];
+        if (rawDeg !== undefined) {
+            rawDeg = parseFloat(rawDeg);
+            let finalBox = 0;
+
+            if (modeKP && hasNatal) {
+                if (v === 1 && currentCusps && Object.keys(currentCusps).length === 12 && pivot === "ASC") {
+                    // D1 KP Placidus Unequal Cusp placement (matches main D1 KP & Transit Mixer)
+                    let kpHouseNum = getPlacidusHouse(rawDeg, currentCusps);
+                    let baseAscBox = window._ascSigns?.[1] ?? ((Math.floor(baseDeg / 30) + kpShift) % 12);
+                    if (kpHouseNum !== null) {
+                        finalBox = (baseAscBox + kpHouseNum - 1) % 12;
+                    } else {
+                        finalBox = (Math.floor(rawDeg / 30) + kpShift) % 12;
+                    }
+                } else if (v === 30) {
+                    const pivD30 = getD30SignAndDeg(baseDeg);
+                    const pD30 = getD30SignAndDeg(rawDeg);
+                    let newDeg = (pD30.sign * 30 + pD30.deg) - pivD30.deg;
+                    if (newDeg < 0) newDeg += 360;
+                    finalBox = (Math.floor(newDeg / 30) + kpShift) % 12;
+                } else {
+                    const pDegPivot = (baseDeg * v) % 30;
+                    const sign = getVSign(rawDeg, v);
+                    const deg = (rawDeg * v) % 30;
+                    let newDeg = (sign * 30 + deg) - pDegPivot;
+                    if (newDeg < 0) newDeg += 360;
+                    finalBox = (Math.floor(newDeg / 30) + kpShift) % 12;
+                }
+            } else if (modeVedic && hasNatal) {
+                if (v === 30) {
+                    const pivD30 = getD30SignAndDeg(baseDeg);
+                    const pD30 = getD30SignAndDeg(rawDeg);
+                    let newDeg = (pD30.sign * 30 + pD30.deg) - (pivD30.deg - 15);
+                    if (newDeg < 0) newDeg += 360;
+                    if (newDeg >= 360) newDeg -= 360;
+                    finalBox = Math.floor(newDeg / 30);
+                } else {
+                    const shift = ((baseDeg * v) % 30) - 15;
+                    const sign = getVSign(rawDeg, v);
+                    const deg = (rawDeg * v) % 30;
+                    let newDeg = (sign * 30 + deg) - shift;
+                    if (newDeg < 0) newDeg += 360;
+                    if (newDeg >= 360) newDeg -= 360;
+                    finalBox = Math.floor(newDeg / 30);
+                }
+            } else {
+                // Sign2Sign Mode
+                if (v === 30) {
+                    finalBox = getD30SignAndDeg(rawDeg).sign;
+                } else if (v === 5) {
+                    const sign = Math.floor(rawDeg / 30);
+                    const deg = rawDeg % 30;
+                    const part = Math.floor(deg / 6);
+                    const isOdd = (sign % 2 === 0);
+                    const oddCycle = [0, 10, 8, 2, 6];
+                    const evenCycle = [1, 5, 11, 9, 7];
+                    finalBox = isOdd ? oddCycle[part] : evenCycle[part];
+                } else {
+                    finalBox = getVSign(rawDeg, v);
+                }
+            }
+
+            posSign[target] = finalBox;
+        }
+    });
+    
+    // Lagna highlight box
+    if (modeKP && hasNatal) {
+        posSign["Lagna"] = window._ascSigns?.[v] ?? 0;
+    } else {
+        let tLagna = window.transitRaw.ayanamshas[aya].lagna;
+        if (tLagna !== undefined) {
+            posSign["Lagna"] = getVSign(parseFloat(tLagna), v);
+        }
+    }
+    return posSign;
+}
+
+function renderVargaAshtakavarga() { 
+    const container = document.getElementById("ashtakavargaContainer"); 
+    const prashContainer = document.getElementById("prashtharaContainer");
+    const sel = document.getElementById("savVargaSelect"); 
+    
+    if (!container || !sel) return; 
+    container.innerHTML = ""; 
+    if (prashContainer) prashContainer.innerHTML = "";
+    
+    const v = parseInt(sel.value); 
+    if (!window._shodaRashi || !window._shodaRashi[v]) return; 
+    
+    function makeKundali(values, title, highlightSign=null) { 
+        const k = document.createElement("div"); 
+        k.className = "ashta-kundali"; 
+
+        const map = [11, 0, 1, 2, 10, -1, -1, 3, 9, -1, -1, 4, 8, 7, 6, 5]; 
+
+        map.forEach(idx => { 
+            if (idx === -1) { 
+                const c = document.createElement("div"); 
+                c.className = "ashta-center"; 
+                c.innerText = title; 
+                k.appendChild(c); 
+            } 
+            else { 
+                const c = document.createElement("div"); 
+                c.className = "ashta-cell"; 
+                c.innerText = values[idx] ?? ""; 
+
+                if(highlightSign !== null && idx === highlightSign){
+                    c.classList.add("ashta-highlight");
+                }
+
+                k.appendChild(c); 
+            } 
+        }); 
+
+        return k; 
+    }
+    
+    // RESTORED: Shift SAV/BAV/Prashthara arrays by KP/Sign shiftAmount
+    let shiftAmount = 0;
+    const modeKP = document.getElementById('modeKP')?.checked;
+    if (modeKP) {
+        shiftAmount = window._kpSignShift?.[v] || 0;
+    } else {
+        shiftAmount = window._signShiftVarga?.[v] || 0;
+    }
+
+    function rotateArrayRight(arr, shift) {
+        if (!shift) return arr;
+        const len = arr.length;
+        shift = ((shift % len) + len) % len;
+        return [...arr.slice(-shift), ...arr.slice(0, len - shift)];
+    }
+
+    // Use mode-aware visual positions for both Natal and Transit!
+    const showTransit = document.getElementById("savShowTransit")?.checked;
+    let posSign;
+    if (showTransit) {
+        if (!window.transitRaw) {
+            const stat = document.getElementById("savTransitStatus");
+            if(stat) stat.innerHTML = "<span style='color:#ff4444;'>Fetch Transit First</span>";
+            posSign = getNatalVisualPosSign(v);
+        } else {
+            posSign = getTransitVargaPosSign(v);
+        }
+    } else {
+        posSign = getNatalVisualPosSign(v);
+    }
+
+    // 1. RENDER MAIN SAV & BAV KUNDALIS
+    const layoutRows = [
+        ["SAV", "Lagna"],
+        ["Jupiter", "Saturn", "Budha"],
+        ["Ketu", "Venus", "Surya"],
+        ["Chandra", "Mangala", "Rahu"]
+    ];
+
+    layoutRows.forEach(rowPlanets => {
+        const grid = document.createElement("div"); 
+        grid.className = "ashta-grid"; 
+        grid.style.display = "flex";
+        grid.style.justifyContent = "space-evenly";
+        grid.style.alignItems = "center";
+        grid.style.width = "100%";
+        grid.style.maxWidth = "100%";
+        grid.style.flexWrap = "wrap";
+        grid.style.gap = "20px";
+        grid.style.marginBottom = "15px";
+
+        rowPlanets.forEach(p => {
+            if (p === "SAV") {
+                let SAV = calcVargaSAV(v); 
+                SAV = rotateArrayRight(SAV, shiftAmount); 
+                const ascSign = posSign["Lagna"] !== undefined ? posSign["Lagna"] : (window._ascSigns?.[v] ?? 0);
+                const showIndicator = document.getElementById("savShowIndicator")?.checked;
+                grid.appendChild(makeKundali(SAV, "D" + v + "\nSAV", showIndicator ? ascSign : null));
+            } 
+            else if (p === "Ketu") {
+                const emptyArr = Array(12).fill("");
+                const planetSign = posSign["Ketu"];
+                grid.appendChild(makeKundali(emptyArr, "BAV\nKetu", planetSign));
+            }
+            else {
+                let row = calcVargaSingleBAV(v, p); 
+                row = rotateArrayRight(row, shiftAmount);
+                const planetSign = posSign[p];
+                grid.appendChild(makeKundali(row, "BAV\n" + p, planetSign));
+            }
+        });
+
+        container.appendChild(grid);
+    });
+
+    // 2. RENDER PRASHTHARA ASHTAKAVARGA (9 KUNDALIS AT BOTTOM)
+    if (prashContainer) {
+        const useKN = document.getElementById("modeKN")?.checked;
+        const prashDisplayNamesEN = {
+            Surya: "Sun",
+            Chandra: "Moon",
+            Mangala: "Mars",
+            Budha: "Mercury",
+            Jupiter: "Jupiter",
+            Venus: "Venus",
+            Saturn: "Saturn",
+            Lagna: "Asc",
+            Rahu: "Rahu",
+            Ketu: "Ketu"
+        };
+        const prashDisplayNamesKN = {
+            Surya: "\u0CB0\u0CB5\u0CBF",
+            Chandra: "\u0C9A\u0C82\u0CA6\u0CCD\u0CB0",
+            Mangala: "\u0C95\u0CC1\u0C9C",
+            Budha: "\u0CAC\u0CC1\u0CA7",
+            Jupiter: "\u0C97\u0CC1\u0CB0\u0CC1",
+            Venus: "\u0CB6\u0CC1\u0C95\u0CCD\u0CB0",
+            Saturn: "\u0CB6\u0CA8\u0CBF",
+            Lagna: "\u0CB2\u0C97\u0CCD\u0CA8",
+            Rahu: "\u0CB0\u0CBE\u0CB9\u0CC1",
+            Ketu: "\u0C95\u0CC7\u0CA4\u0CC1"
+        };
+
+        function makePrashtharaKundali(cellsData, targetPlanet, highlightSign = null) {
+            const k = document.createElement("div");
+            k.className = "prash-kundali";
+
+            const map = [11, 0, 1, 2, 10, -1, -1, 3, 9, -1, -1, 4, 8, 7, 6, 5];
+            let centerAdded = false;
+
+            const centerTitlePlanet = useKN
+                ? (prashDisplayNamesKN[targetPlanet] || targetPlanet)
+                : (prashDisplayNamesEN[targetPlanet] || targetPlanet);
+
+            map.forEach(idx => {
+                if (idx === -1) {
+                    if (!centerAdded) {
+                        const c = document.createElement("div");
+                        c.className = "prash-center";
+                        c.innerHTML = `<div>Prashthara</div><div>Ashtakavarga</div><div style="color:#fff; margin-top:4px;">${centerTitlePlanet}</div>`;
+                        k.appendChild(c);
+                        centerAdded = true;
+                    }
+                } else {
+                    const c = document.createElement("div");
+                    c.className = "prash-cell";
+
+                    const contributors = cellsData[idx] || [];
+                    c.innerHTML = contributors.map(src => {
+                        const label = useKN ? (prashDisplayNamesKN[src] || src) : (prashDisplayNamesEN[src] || src);
+                        return `<span>${label}</span>`;
+                    }).join(" ");
+
+                    if (highlightSign !== null && idx === highlightSign) {
+                        c.classList.add("ashta-highlight");
+                    }
+
+                    k.appendChild(c);
+                }
+            });
+
+            return k;
+        }
+
+        const prashRows = [
+            ["Lagna", "Jupiter", "Saturn"],
+            ["Budha", "Venus", "Surya"],
+            ["Chandra", "Mangala", "Rahu"]
+        ];
+
+        prashRows.forEach(rowPlanets => {
+            const pGrid = document.createElement("div");
+            pGrid.style.display = "flex";
+            pGrid.style.justifyContent = "space-evenly";
+            pGrid.style.alignItems = "stretch";
+            pGrid.style.width = "100%";
+            pGrid.style.flexWrap = "wrap";
+            pGrid.style.gap = "20px";
+            pGrid.style.marginBottom = "15px";
+
+            rowPlanets.forEach(p => {
+                let prashCells = calcVargaPrashtharaSingle(v, p);
+                prashCells = rotateArrayRight(prashCells, shiftAmount);
+                const planetSign = posSign[p];
+                pGrid.appendChild(makePrashtharaKundali(prashCells, p, planetSign));
+            });
+
+            prashContainer.appendChild(pGrid);
+        });
+    }
+}
+</script>
+
+
+
+
+
+
+
+
+<!-- Sarvashtaka Varga Calculator -->
+
+
+
 
 
 
@@ -4515,346 +5214,7 @@ function getVSign(baseDeg, v) {
 	
 	
 	
-	const BAV_RULES = {
-    Surya: { Surya: [1,2,4,7,8,9,10,11], Chandra: [3,6,10,11], Mangala: [1,2,4,7,8,9,10,11], Budha: [3,5,6,9,10,11,12], Jupiter: [5,6,9,11], Venus: [6,7,12], Saturn: [1,2,4,7,8,9,10,11], Lagna: [3,4,6,10,11,12] },
-    Chandra: { Surya: [3,6,7,8,10,11], Chandra: [1,3,6,7,10,11], Mangala: [2,3,5,6,9,10,11], Budha: [1,3,4,5,7,8,10,11], Jupiter: [1,4,7,8,10,11,12], Venus: [3,4,5,7,9,10,11], Saturn: [3,5,6,11], Lagna: [3,6,10,11,12] },
-    Mangala: { Surya: [3,5,6,10,11], Chandra: [3,6,11], Mangala: [1,2,4,7,8,10,11], Budha: [3,5,6,11], Jupiter: [6,10,11,12], Venus: [6,8,11,12], Saturn: [1,4,7,8,9,10,11], Lagna: [1,3,6,10,11] },
-    Budha: { Surya: [5,6,9,11,12], Chandra: [2,4,6,8,10,11], Mangala: [1,2,4,7,8,9,10,11], Budha: [1,3,5,6,9,10,11,12], Jupiter: [6,8,11,12], Venus: [1,2,3,4,5,8,9,11], Saturn: [1,2,4,7,8,9,10,11], Lagna: [1,2,4,6,8,10,11] },
-    Jupiter: { Surya: [1,2,3,4,7,8,9,10,11], Chandra: [2,5,7,9,11], Mangala: [1,2,4,7,8,10,11], Budha: [1,2,4,5,6,9,10,11], Jupiter: [1,2,3,4,7,8,10,11], Venus: [2,5,6,9,10,11], Saturn: [3,5,6,12], Lagna: [1,2,4,5,6,7,9,10,11] },
-    Venus: { Surya: [8,11,12], Chandra: [1,2,3,4,5,8,9,11,12], Mangala: [3,5,6,9,11,12], Budha: [3,5,6,9,11], Jupiter: [5,8,9,10,11], Venus: [1,2,3,4,5,8,9,10,11], Saturn: [3,4,5,8,9,10,11], Lagna: [1,2,3,4,5,8,9] },
-    Saturn: { Surya: [1,2,4,7,8,10,11], Chandra: [3,6,11], Mangala: [3,5,6,10,11,12], Budha: [6,8,9,10,11,12], Jupiter: [5,6,11,12], Venus: [6,11,12], Saturn: [3,5,6,11], Lagna: [1,3,4,6,10,11] },
-    Rahu: { Surya: [1,2,3,5,7,8,10], Chandra: [1,3,5,7,8,9,10], Mangala: [2,3,5,12], Budha: [2,4,7,8,12], Jupiter: [1,3,4,6,8], Venus: [6,7,11,12], Saturn: [3,5,7,10,11,12], Lagna: [3,4,5,9,12] }
-};
-const LAGNA_BAV_RULES_GLOBAL = { Surya: [3,4,6,10,11,12], Chandra: [3,6,10,11,12], Mangala: [1,3,6,10,11], Budha: [1,2,4,6,8,10,11], Jupiter: [1,2,4,5,6,7,9,10,11], Venus: [1,2,3,4,5,8,9], Saturn: [1,3,4,6,10,11], Lagna: [3,6,10,11] };
-
-function toggleAshtakavarga() { 
-    const box = document.getElementById("ashtakavargaWrapper"); 
-    if(!box) return; 
-    box.style.display = (box.style.display === "none") ? "block" : "none"; 
-    
-    // Auto-sync transit fields on open
-    if (box.style.display === "block") {
-        const mixY = document.getElementById("mixY");
-        if (mixY && mixY.value && document.getElementById("savMixY") && !document.getElementById("savMixY").value) {
-            document.getElementById("savMixY").value = mixY.value;
-            document.getElementById("savMixM").value = document.getElementById("mixM").value;
-            document.getElementById("savMixD").value = document.getElementById("mixD").value;
-            document.getElementById("savMixH").value = document.getElementById("mixH").value;
-            document.getElementById("savMixMin").value = document.getElementById("mixMin").value;
-            document.getElementById("savMixS").value = document.getElementById("mixS").value;
-        } else if (document.getElementById("savMixY") && !document.getElementById("savMixY").value) {
-            setSavMixerToNow();
-        }
-    }
-}
-
-
-
-
-function getVargaPosSign(v) { 
-    const pMap = {Surya: "Sy", Chandra: "Ch", Mangala: "Ma", Budha: "Bu", Jupiter: "Ju", Venus: "Ve", Saturn: "Sa", Rahu: "Ra", Ketu: "Ke"}; 
-    const rashiData = window._shodaRashi[v]; 
-    const posSign = {}; 
-    
-    if (!rashiData) return posSign; 
-    
-    Object.keys(pMap).forEach(target => { 
-        const code = pMap[target]; 
-        if (rashiData[code] && rashiData[code] !== "-") { 
-            posSign[target] = parseInt(rashiData[code]) - 1; 
-        } 
-    }); 
-    
-    // 🔒 FIX 3: Use pure unshifted lagna instead of the shifted lagna to prevent rule recalculation
-    posSign["Lagna"] = (window._pureAscSigns && window._pureAscSigns[v] !== undefined) 
-                        ? window._pureAscSigns[v] 
-                        : (window._ascSigns[v] !== undefined ? window._ascSigns[v] : 0); 
-    
-    return posSign; 
-}
-
-
-
-function calcVargaSAV(v) { const posSign = getVargaPosSign(v); const planets7 = ["Surya", "Chandra", "Mangala", "Budha", "Jupiter", "Venus", "Saturn"]; const SAV = Array(12).fill(0); if (Object.keys(posSign).length < 8) return SAV; planets7.forEach(targetPlanet => { const contributors = [...planets7, "Lagna"]; contributors.forEach(source => { const rules = BAV_RULES[targetPlanet][source]; const sourceSign = posSign[source]; if (rules && sourceSign !== undefined) { rules.forEach(houseOffset => { SAV[(sourceSign + (houseOffset - 1)) % 12]++; }); } }); }); return SAV; }
-
-
-function calcVargaSingleBAV(v, target) { const posSign = getVargaPosSign(v); const planets7 = ["Surya", "Chandra", "Mangala", "Budha", "Jupiter", "Venus", "Saturn"]; const row = Array(12).fill(0); if (Object.keys(posSign).length < 8) return row; if (target === "Lagna") { Object.entries(LAGNA_BAV_RULES_GLOBAL).forEach(([source, rules]) => { const sSign = posSign[source]; if (sSign !== undefined) { rules.forEach(offset => { row[(sSign + (offset - 1)) % 12]++; }); } }); return row; } if (target === "Rahu") { [...planets7, "Lagna"].forEach(source => { const rules = BAV_RULES["Rahu"][source]; const sSign = posSign[source]; if (rules && sSign !== undefined) { rules.forEach(offset => { row[(sSign + (offset - 1)) % 12]++; }); } }); return row; } [...planets7, "Lagna"].forEach(source => { const rules = BAV_RULES[target]?.[source]; const sSign = posSign[source]; if (rules && sSign !== undefined) { rules.forEach(offset => { row[(sSign + (offset - 1)) % 12]++; }); } }); return row; }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// --- SAV Transit Handler Helpers ---
-function toggleSavMode(mode) {
-    const nBox = document.getElementById("savShowNatal");
-    const tBox = document.getElementById("savShowTransit");
-    if (mode === 'natal') {
-        nBox.checked = true;
-        tBox.checked = false;
-    } else {
-        tBox.checked = true;
-        nBox.checked = false;
-        if (!window.transitRaw) {
-            setSavMixerToNow();
-        }
-    }
-    renderVargaAshtakavarga();
-}
-
-function handleSavMixerSpin(event, unit) {
-    if (event.key === "ArrowUp" || event.key === "ArrowDown") {
-        event.preventDefault();
-        let y = parseInt(document.getElementById("savMixY").value) || new Date().getFullYear();
-        let m = parseInt(document.getElementById("savMixM").value) || 1;
-        let d = parseInt(document.getElementById("savMixD").value) || 1;
-        let h = parseInt(document.getElementById("savMixH").value) || 12;
-        let min = parseInt(document.getElementById("savMixMin").value) || 0;
-        let s = parseInt(document.getElementById("savMixS").value) || 0;
-        
-        let dateObj = new Date(y, m - 1, d, h, min, s);
-        let dir = (event.key === "ArrowUp") ? 1 : -1;
-        
-        if (unit === 'Y') dateObj.setFullYear(dateObj.getFullYear() + dir);
-        if (unit === 'M') dateObj.setMonth(dateObj.getMonth() + dir);
-        if (unit === 'D') dateObj.setDate(dateObj.getDate() + dir);
-        if (unit === 'h') dateObj.setHours(dateObj.getHours() + dir);
-        if (unit === 'm') dateObj.setMinutes(dateObj.getMinutes() + dir);
-        if (unit === 's') dateObj.setSeconds(dateObj.getSeconds() + dir);
-        
-        document.getElementById("savMixY").value = dateObj.getFullYear();
-        document.getElementById("savMixM").value = String(dateObj.getMonth() + 1).padStart(2, '0');
-        document.getElementById("savMixD").value = String(dateObj.getDate()).padStart(2, '0');
-        document.getElementById("savMixH").value = String(dateObj.getHours()).padStart(2, '0');
-        document.getElementById("savMixMin").value = String(dateObj.getMinutes()).padStart(2, '0');
-        document.getElementById("savMixS").value = String(dateObj.getSeconds()).padStart(2, '0');
-        
-        syncSavToolbar();
-    }
-}
-
-function syncSavToolbar() {
-    let y = (document.getElementById("savMixY").value || new Date().getFullYear()).toString().padStart(4, '0');
-    let m = (document.getElementById("savMixM").value || 1).toString().padStart(2, '0');
-    let d = (document.getElementById("savMixD").value || 1).toString().padStart(2, '0');
-    let h = (document.getElementById("savMixH").value || 0).toString().padStart(2, '0');
-    let min = (document.getElementById("savMixMin").value || 0).toString().padStart(2, '0');
-    let s = (document.getElementById("savMixS").value || 0).toString().padStart(2, '0');
-    
-    if (document.getElementById("mixY")) {
-        // Echo values down to the primary transit engine
-        document.getElementById("mixY").value = y;
-        document.getElementById("mixM").value = m;
-        document.getElementById("mixD").value = d;
-        document.getElementById("mixH").value = h;
-        document.getElementById("mixMin").value = min;
-        document.getElementById("mixS").value = s;
-        if(typeof syncMixerHidden === 'function') syncMixerHidden(true);
-    }
-    
-    const stat = document.getElementById("savTransitStatus");
-    if(stat) stat.innerHTML = "<span style='color:#10b981;'>Syncing...</span>";
-    setTimeout(() => { 
-        if(stat) stat.innerHTML = ""; 
-        renderVargaAshtakavarga(); 
-    }, 1500);
-}
-
-function setSavMixerToNow() {
-    const now = new Date();
-    document.getElementById('savMixY').value = now.getFullYear();
-    document.getElementById('savMixM').value = String(now.getMonth() + 1).padStart(2, "0");
-    document.getElementById('savMixD').value = String(now.getDate()).padStart(2, "0");
-    document.getElementById('savMixH').value = String(now.getHours()).padStart(2, "0");
-    document.getElementById('savMixMin').value = String(now.getMinutes()).padStart(2, "0");
-    document.getElementById('savMixS').value = String(now.getSeconds()).padStart(2, "0");
-    syncSavToolbar();
-}
-
-function getTransitVargaPosSign(v) {
-    const posSign = {};
-    if (!window.transitRaw) return posSign;
-    const aya = document.getElementById('aya')?.value || 'Lahiri';
-    if (!window.transitRaw.ayanamshas || !window.transitRaw.ayanamshas[aya]) return posSign;
-    
-    const tPlanets = window.transitRaw.ayanamshas[aya].planets;
-    const pMap = {Surya: "Surya", Chandra: "Chandra", Mangala: "Mangala", Budha: "Budha", Jupiter: "Jupiter", Venus: "Venus", Saturn: "Saturn", Rahu: "Rahu", Ketu: "Ketu"}; 
-    const useTrueNode = document.getElementById("useTrueNode")?.checked;
-    
-    Object.keys(pMap).forEach(target => {
-        let pKey = pMap[target];
-        if (useTrueNode && (pKey === "Rahu" || pKey === "Ketu")) pKey += "_true";
-        
-        let rawDeg = tPlanets[pKey];
-        if (rawDeg !== undefined) {
-            let vSign = 0;
-            if (v === 30) {
-                 const sign = Math.floor(rawDeg / 30);
-                 const deg = rawDeg % 30;
-                 const isOdd = (sign % 2 === 0);
-                 let start, length, targetSign;
-                 if (isOdd) {
-                     if (deg < 5) { start = 0; length = 5; targetSign = 0; }
-                     else if (deg < 10) { start = 5; length = 5; targetSign = 10; }
-                     else if (deg < 18) { start = 10; length = 8; targetSign = 8; }
-                     else if (deg < 25) { start = 18; length = 7; targetSign = 2; }
-                     else { start = 25; length = 5; targetSign = 6; }
-                 } else {
-                     if (deg < 5) { start = 0; length = 5; targetSign = 1; }
-                     else if (deg < 12) { start = 5; length = 7; targetSign = 5; }
-                     else if (deg < 20) { start = 12; length = 8; targetSign = 11; }
-                     else if (deg < 25) { start = 20; length = 5; targetSign = 9; }
-                     else { start = 25; length = 5; targetSign = 7; }
-                 }
-                 vSign = targetSign;
-            } else if (v === 5) {
-                const sign = Math.floor(rawDeg / 30);
-                const deg = rawDeg % 30;
-                const part = Math.floor(deg / 6);
-                const isOdd = (sign % 2 === 0);
-                const oddCycle = [0, 10, 8, 2, 6];
-                const evenCycle = [1, 5, 11, 9, 7];
-                vSign = isOdd ? oddCycle[part] : evenCycle[part];
-            } else {
-                vSign = getVSign(rawDeg, v);
-            }
-            posSign[target] = vSign;
-        }
-    });
-    
-    let tLagna = window.transitRaw.ayanamshas[aya].lagna;
-    if (tLagna !== undefined) {
-        posSign["Lagna"] = getVSign(parseFloat(tLagna), v);
-    }
-    return posSign;
-}
-// ------------------------------------
-
-function renderVargaAshtakavarga() { 
-    const container = document.getElementById("ashtakavargaContainer"); 
-    const sel = document.getElementById("savVargaSelect"); 
-    
-    if (!container || !sel) return; 
-    container.innerHTML = ""; 
-    
-    const v = parseInt(sel.value); 
-    if (!window._shodaRashi || !window._shodaRashi[v]) return; 
-    
-    function makeKundali(values, title, highlightSign=null) { 
-        const k = document.createElement("div"); 
-        k.className = "ashta-kundali"; 
-
-        const map = [11, 0, 1, 2, 10, -1, -1, 3, 9, -1, -1, 4, 8, 7, 6, 5]; 
-
-        map.forEach(idx => { 
-            if (idx === -1) { 
-                const c = document.createElement("div"); 
-                c.className = "ashta-center"; 
-                c.innerText = title; 
-                k.appendChild(c); 
-            } 
-            else { 
-                const c = document.createElement("div"); 
-                c.className = "ashta-cell"; 
-                c.innerText = values[idx] ?? ""; 
-
-                /* highlight sign */
-                if(highlightSign !== null && idx === highlightSign){
-                    c.classList.add("ashta-highlight");
-                }
-
-                k.appendChild(c); 
-            } 
-        }); 
-
-        return k; 
-    }
-    
-    let shiftAmount = 0;
-    const modeKP = document.getElementById('modeKP')?.checked;
-    if (modeKP) {
-        shiftAmount = window._kpSignShift?.[v] || 0;
-    } else {
-        shiftAmount = window._signShiftVarga?.[v] || 0;
-    }
-
-    // Helper function to shift the numbers in the array to the next sign
-    function rotateArrayRight(arr, shift) {
-        if (!shift) return arr;
-        const len = arr.length;
-        shift = ((shift % len) + len) % len;
-        return [...arr.slice(-shift), ...arr.slice(0, len - shift)];
-    }
-
-    // Capture transit settings
-    const showTransit = document.getElementById("savShowTransit")?.checked;
-    let posSign;
-    if (showTransit) {
-        if (!window.transitRaw) {
-            const stat = document.getElementById("savTransitStatus");
-            if(stat) stat.innerHTML = "<span style='color:#ff4444;'>Fetch Transit First</span>";
-            posSign = getVargaPosSign(v); // fallback to natal
-        } else {
-            posSign = getTransitVargaPosSign(v);
-        }
-    } else {
-        posSign = getVargaPosSign(v);
-    }
-
-    // Row-by-row layout as requested
-    const layoutRows = [
-        ["SAV", "Lagna"],
-        ["Jupiter", "Saturn", "Budha"],
-        ["Ketu", "Venus", "Surya"],
-        ["Chandra", "Mangala", "Rahu"]
-    ];
-
-    layoutRows.forEach(rowPlanets => {
-        // Create a separate flex container for each row to distribute spacing equally
-        const grid = document.createElement("div"); 
-        grid.className = "ashta-grid"; 
-        grid.style.display = "flex";
-        grid.style.justifyContent = "space-evenly"; // Splits gaps equally across the width
-        grid.style.alignItems = "center";
-        grid.style.width = "100%";
-        grid.style.maxWidth = "100%"; // Allow full stretch
-        grid.style.flexWrap = "wrap";
-        grid.style.gap = "20px";
-        grid.style.marginBottom = "15px";
-
-        rowPlanets.forEach(p => {
-            if (p === "SAV") {
-                let SAV = calcVargaSAV(v); 
-                SAV = rotateArrayRight(SAV, shiftAmount); 
-                const ascSign = posSign["Lagna"] !== undefined ? posSign["Lagna"] : (window._ascSigns?.[v] ?? 0);
-                const showIndicator = document.getElementById("savShowIndicator")?.checked;
-                grid.appendChild(makeKundali(SAV, "D" + v + "\nSAV", showIndicator ? ascSign : null));
-            } 
-            else if (p === "Ketu") {
-                // Generate an empty dummy Kundali for Ketu, but show the location marker
-                const emptyArr = Array(12).fill("");
-                const planetSign = posSign["Ketu"];
-                grid.appendChild(makeKundali(emptyArr, "BAV\nKetu", planetSign));
-            }
-            else {
-                let row = calcVargaSingleBAV(v, p); 
-                row = rotateArrayRight(row, shiftAmount);
-                const planetSign = posSign[p];
-                grid.appendChild(makeKundali(row, "BAV\n" + p, planetSign));
-            }
-        });
-
-        container.appendChild(grid);
-    });
-}
+	
 
 
 
