@@ -11997,7 +11997,7 @@ function autoFetchTransit(force = false) {
         mixerDebounceTimer = setTimeout(() => {
             if (status) status.innerHTML = "<span style='color:#10b981;'>Fetching Now... &#x23F3;</span>";
             fetchTransitFromCloud();
-        }, 2000);
+        }, 1000);
     }
 }
 
