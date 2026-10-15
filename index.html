@@ -530,10 +530,13 @@
 		color: var(--text-white); 
 		}
 
-		/* SAV / BAV highlight */
+		/* SAV / BAV highlight (Radiating Glowing #660066 Stripe Gradient) */
 		.ashta-highlight{
-		background:#5a0008;   /* dark red */
-		border:2px solid #ff4444;
+		background: repeating-linear-gradient(45deg, #660066, #660066 12px, #4d004d 12px, #4d004d 24px), radial-gradient(circle at center, #880088 0%, #660066 70%, #330033 100%);
+		background-blend-mode: overlay;
+		border: 2px solid #da70d6;
+		color: #ffffff;
+		box-shadow: 0 0 14px rgba(218, 112, 214, 0.85), inset 0 0 10px rgba(255, 182, 255, 0.6);
 		}
 
 
@@ -3635,6 +3638,10 @@ function attachVedicInteractions(tableId) {
 
 <!-- Sarvashtaka Varga Calculator -->
 
+
+
+
+
 <!-- ========================================================= -->
 <!-- UNIFIED SARVASHTAKA & PRASHTHARA ASHTAKAVARGA MODULE      -->
 <!-- ========================================================= -->
@@ -3678,6 +3685,87 @@ function attachVedicInteractions(tableId) {
         border: 1px solid #555;
         line-height: 1.4;
     }
+    .ashta-num-box {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 32px;
+        padding: 3px 7px;
+        border-radius: 4px;
+        font-weight: 900;
+        font-size: 16px;
+        line-height: 1.2;
+        box-sizing: border-box;
+    }
+    /* Bad: white text, dark red background, white outline */
+    .ashta-box-red {
+        background: #8b0000;
+        border: 2px solid #ffffff;
+        color: #ffffff;
+    }
+    /* Good: white text, deep royal blue background, yellow/gold outline */
+    .ashta-box-blue {
+        background: #003380;
+        border: 2px solid #ffcc00;
+        color: #ffffff;
+    }
+    /* Excellent: black text, parrot green background, deep green outline */
+    .ashta-box-green {
+        background: #39ff14;
+        border: 2px solid #004d00;
+        color: #000000;
+        box-shadow: 0 0 6px rgba(57, 255, 20, 0.35);
+        text-shadow: none;
+    }
+    .ashta-short-note {
+        margin-top: 8px;
+        background: #0a0a0a;
+        border: 1px solid var(--grid-line);
+        border-radius: 4px;
+        padding: 5px 8px;
+        font-size: 13px;
+        color: #fff;
+        width: 260px;
+        box-sizing: border-box;
+        text-align: center;
+        font-weight: bold;
+    }
+    .sav-result-table {
+        border-collapse: collapse;
+        background: #0a0a0a;
+        border: 2px solid var(--grid-line);
+        font-size: 12px;
+        width: 220px;
+    }
+    .sav-result-table th, .sav-result-table td {
+        border: 1px solid #444;
+        padding: 3px 6px;
+        text-align: center;
+        font-weight: bold;
+    }
+    .sav-result-table th {
+        background: #1a1a1a;
+        color: var(--asc-yellow);
+        border-bottom: 1px solid var(--grid-line);
+    }
+    .sav-rules-table {
+        border-collapse: collapse;
+        background: #0a0a0a;
+        border: 2px solid var(--grid-line);
+        font-size: 12px;
+        width: 270px;
+    }
+    .sav-rules-table th, .sav-rules-table td {
+        border: 1px solid #444;
+        padding: 6px 8px;
+        text-align: center;
+        font-weight: bold;
+    }
+    .sav-rules-table th {
+        background: #1a1a1a;
+        color: var(--asc-yellow);
+        border-bottom: 1px solid var(--grid-line);
+    }
 </style>
 
 <div class="division-title" onclick="toggleAshtakavarga()">
@@ -3696,10 +3784,13 @@ function attachVedicInteractions(tableId) {
                         <input type="checkbox" id="savShowNatal" checked onchange="toggleSavMode('natal')"> SHOW NATAL
                     </label>
                     <label style="color:#ff8800; font-weight:bold; font-size:16px; cursor:pointer; display:flex; align-items:center; gap:6px;">
-                        <input type="checkbox" id="savShowTransit" onchange="toggleSavMode('transit')"> SHOW TRANSIT
+                        <input type="checkbox" id="savShowTransit" checked onchange="toggleSavMode('transit')"> SHOW TRANSIT
                     </label>
                     <label style="color:#f43f5e; font-weight:bold; font-size:16px; cursor:pointer; display:flex; align-items:center; gap:6px;">
-                        <input type="checkbox" id="savShowIndicator" onchange="renderVargaAshtakavarga()"> Show SAV
+                        <input type="checkbox" id="savShowIndicator" checked onchange="renderVargaAshtakavarga()"> Show SAV
+                    </label>
+                    <label style="color:#38bdf8; font-weight:bold; font-size:16px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                        <input type="checkbox" id="savColorNotesToggle" checked onchange="renderVargaAshtakavarga()"> Col
                     </label>
                 </div>
 
@@ -3718,7 +3809,7 @@ function attachVedicInteractions(tableId) {
                 <button onclick="setSavMixerToNow()" style="padding:6px 12px; font-size:15px; background:var(--grid-line); color:#000; font-weight:bold; cursor:pointer; border:none; border-radius:4px;">Set to Now</button>
 
                 <div style="display:flex; align-items:center; gap:10px; margin-left:10px;">
-                    <span style="color:var(--grid-line); font-weight:bold; font-size:16px;">SELECT KUNDALI:</span>
+                    <span style="color:var(--grid-line); font-weight:bold; font-size:16px;">Kundali:</span>
                     <select id="savVargaSelect" onchange="renderVargaAshtakavarga()" style="background:#000; color:#fff; border:1px solid var(--grid-line); padding:6px 10px; font-size:16px; font-weight:bold; cursor:pointer;">
                     </select>
                 </div>
@@ -4141,6 +4232,133 @@ function getTransitVargaPosSign(v) {
     return posSign;
 }
 
+function getSAVHouseEvaluation(houseNum, score) {
+    const dusthana = [6, 8, 12];
+    const isDusthana = dusthana.includes(houseNum);
+    let result = "";
+    let colorClass = "";
+
+    if (!isDusthana) {
+        // Houses 1, 2, 3, 4, 5, 7, 9, 10, 11
+        if (score <= 21) { result = "VERY BAD"; colorClass = "ashta-box-red"; }
+        else if (score >= 22 && score <= 25) { result = "BAD"; colorClass = "ashta-box-red"; }
+        else if (score >= 26 && score <= 29) { result = "Good"; colorClass = "ashta-box-blue"; }
+        else if (score >= 30 && score <= 35) { result = "Very Good"; colorClass = "ashta-box-green"; }
+        else { result = "Excellent"; colorClass = "ashta-box-green"; }
+    } else {
+        // Houses 6, 8, 12
+        if (score <= 21) { result = "Excellent"; colorClass = "ashta-box-green"; }
+        else if (score >= 22 && score <= 25) { result = "Very Good"; colorClass = "ashta-box-green"; }
+        else if (score >= 26 && score <= 29) { result = "Good"; colorClass = "ashta-box-blue"; }
+        else if (score >= 30 && score <= 35) { result = "BAD"; colorClass = "ashta-box-red"; }
+        else { result = "VERY BAD"; colorClass = "ashta-box-red"; }
+    }
+    return { result, colorClass };
+}
+
+function getBAVPlanetEvaluation(planet, score) {
+    const key = String(planet || "").trim();
+    const rules = {
+        Saturn:    { bad: 3, good: 4, exc: 5 },
+        Mangala:   { bad: 3, good: 4, exc: 5 },
+        Surya:     { bad: 3, good: 4, exc: 5 },
+        Chandra:   { bad: 3, good: 4, exc: 5 },
+        Lagna:     { bad: 3, good: 4, exc: 5 },
+        Ascendant: { bad: 3, good: 4, exc: 5 },
+        Rahu:      { bad: 3, good: 4, exc: 5 },
+        Budha:     { bad: 4, good: 5, exc: 6 },
+        Venus:     { bad: 4, good: 5, exc: 6 },
+        Jupiter:   { bad: 4, good: 5, exc: 6 }
+    };
+    const r = rules[key];
+    if (!r || score === "" || score === null || score === undefined || isNaN(Number(score))) return null;
+    const num = Number(score);
+    if (num <= r.bad) return { result: "Bad", colorClass: "ashta-box-red", rule: r };
+    if (num === r.good) return { result: "Good", colorClass: "ashta-box-blue", rule: r };
+    return { result: "Excellent", colorClass: "ashta-box-green", rule: r };
+}
+
+function getShortNoteHTML(type) {
+    const key = String(type || "").trim();
+    const bavNotes = {
+        Saturn:    { bad: "3", good: "4", exc: "5" },
+        Mangala:   { bad: "3", good: "4", exc: "5" },
+        Budha:     { bad: "4", good: "5", exc: "6" },
+        Venus:     { bad: "4", good: "5", exc: "6" },
+        Jupiter:   { bad: "4", good: "5", exc: "6" },
+        Surya:     { bad: "3", good: "4", exc: "5" },
+        Chandra:   { bad: "3", good: "4", exc: "5" },
+        Lagna:     { bad: "3", good: "4", exc: "5" },
+        Ascendant: { bad: "3", good: "4", exc: "5" },
+        Rahu:      { bad: "3", good: "4", exc: "5" }
+    };
+    const n = bavNotes[key];
+    if (!n) return "";
+    return `<div class="ashta-short-note">
+        <span style="color:#ff4444;">Bad: ${n.bad}</span> &nbsp;|&nbsp;
+        <span style="color:#38bdf8;">Good: ${n.good}</span> &nbsp;|&nbsp;
+        <span style="color:#22c55e;">Exc: ${n.exc}</span>
+    </div>`;
+}
+
+function buildSAVResultTableElement(values, ascSignForSAV) {
+    const tbl = document.createElement("table");
+    tbl.className = "sav-result-table";
+    let tHtml = `<thead><tr><th>House</th><th>SAV</th><th>Result</th></tr></thead><tbody>`;
+    for (let h = 1; h <= 12; h++) {
+        const signIdx = (ascSignForSAV + h - 1) % 12;
+        const score = Number(values[signIdx] ?? 0);
+        const ev = getSAVHouseEvaluation(h, score);
+        let textColor = "#22c55e";
+        if (ev.colorClass === "ashta-box-red") textColor = "#ff4444";
+        else if (ev.colorClass === "ashta-box-blue") textColor = "#38bdf8";
+        tHtml += `<tr><td>${h}</td><td>${score}</td><td style="color:${textColor};">${ev.result}</td></tr>`;
+    }
+    tHtml += `</tbody>`;
+    tbl.innerHTML = tHtml;
+    return tbl;
+}
+
+function buildSAVRulesTableElement() {
+    const tbl = document.createElement("table");
+    tbl.className = "sav-rules-table";
+    tbl.style.width = "310px";
+    tbl.innerHTML = `
+        <thead>
+            <tr><th colspan="3" style="font-size:13px;">SAV Score Rules</th></tr>
+            <tr><th>Score</th><th>H 1, 2, 3, 4, 5, 7, 9, 10, 11</th><th>H 6, 8, 12</th></tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>&le; 21</td>
+                <td style="color:#ff4444;">VERY BAD</td>
+                <td style="color:#4ade80;">Excellent</td>
+            </tr>
+            <tr>
+                <td>22 - 25</td>
+                <td style="color:#ff4444;">BAD</td>
+                <td style="color:#4ade80;">Very Good</td>
+            </tr>
+            <tr>
+                <td>26 - 29</td>
+                <td style="color:#38bdf8;">Good</td>
+                <td style="color:#38bdf8;">Good</td>
+            </tr>
+            <tr>
+                <td>30 - 35</td>
+                <td style="color:#4ade80;">Very Good</td>
+                <td style="color:#ff4444;">BAD</td>
+            </tr>
+            <tr>
+                <td>&ge; 36</td>
+                <td style="color:#4ade80;">Excellent</td>
+                <td style="color:#ff4444;">VERY BAD</td>
+            </tr>
+        </tbody>
+    `;
+    return tbl;
+}
+
 function renderVargaAshtakavarga() { 
     const container = document.getElementById("ashtakavargaContainer"); 
     const prashContainer = document.getElementById("prashtharaContainer");
@@ -4152,37 +4370,10 @@ function renderVargaAshtakavarga() {
     
     const v = parseInt(sel.value); 
     if (!window._shodaRashi || !window._shodaRashi[v]) return; 
-    
-    function makeKundali(values, title, highlightSign=null) { 
-        const k = document.createElement("div"); 
-        k.className = "ashta-kundali"; 
 
-        const map = [11, 0, 1, 2, 10, -1, -1, 3, 9, -1, -1, 4, 8, 7, 6, 5]; 
+    const enableColorNotes = document.getElementById("savColorNotesToggle")?.checked;
 
-        map.forEach(idx => { 
-            if (idx === -1) { 
-                const c = document.createElement("div"); 
-                c.className = "ashta-center"; 
-                c.innerText = title; 
-                k.appendChild(c); 
-            } 
-            else { 
-                const c = document.createElement("div"); 
-                c.className = "ashta-cell"; 
-                c.innerText = values[idx] ?? ""; 
-
-                if(highlightSign !== null && idx === highlightSign){
-                    c.classList.add("ashta-highlight");
-                }
-
-                k.appendChild(c); 
-            } 
-        }); 
-
-        return k; 
-    }
-    
-    // RESTORED: Shift SAV/BAV/Prashthara arrays by KP/Sign shiftAmount
+    // Shift SAV/BAV/Prashthara arrays by KP/Sign shiftAmount
     let shiftAmount = 0;
     const modeKP = document.getElementById('modeKP')?.checked;
     if (modeKP) {
@@ -4198,7 +4389,7 @@ function renderVargaAshtakavarga() {
         return [...arr.slice(-shift), ...arr.slice(0, len - shift)];
     }
 
-    // Use mode-aware visual positions for both Natal and Transit!
+    // Use mode-aware visual positions for both Natal and Transit
     const showTransit = document.getElementById("savShowTransit")?.checked;
     let posSign;
     if (showTransit) {
@@ -4213,6 +4404,75 @@ function renderVargaAshtakavarga() {
         posSign = getNatalVisualPosSign(v);
     }
 
+    const ascSignForSAV = posSign["Lagna"] !== undefined ? posSign["Lagna"] : (window._ascSigns?.[v] ?? 0);
+
+    function makeKundali(values, title, highlightSign = null, evalType = null) { 
+        const wrapper = document.createElement("div");
+        wrapper.style.display = "flex";
+        wrapper.style.flexDirection = "column";
+        wrapper.style.alignItems = "center";
+
+        const k = document.createElement("div"); 
+        k.className = "ashta-kundali"; 
+
+        const map = [11, 0, 1, 2, 10, -1, -1, 3, 9, -1, -1, 4, 8, 7, 6, 5]; 
+        let centerAdded = false;
+
+        map.forEach(idx => { 
+            if (idx === -1) { 
+                if (!centerAdded) {
+                    const c = document.createElement("div"); 
+                    c.className = "ashta-center"; 
+                    c.innerText = title; 
+                    k.appendChild(c);
+                    centerAdded = true;
+                }
+            } 
+            else { 
+                const c = document.createElement("div"); 
+                c.className = "ashta-cell"; 
+                const val = (values[idx] !== undefined && values[idx] !== null) ? values[idx] : "";
+
+                if (enableColorNotes && val !== "" && evalType) {
+                    if (evalType === "SAV") {
+                        const houseNum = ((idx - ascSignForSAV + 12) % 12) + 1;
+                        const ev = getSAVHouseEvaluation(houseNum, Number(val));
+                        c.innerHTML = `<span class="ashta-num-box ${ev.colorClass}">${val}</span>`;
+                    } else {
+                        const ev = getBAVPlanetEvaluation(evalType, Number(val));
+                        if (ev) {
+                            c.innerHTML = `<span class="ashta-num-box ${ev.colorClass}">${val}</span>`;
+                        } else {
+                            c.innerText = val;
+                        }
+                    }
+                } else {
+                    c.innerText = val; 
+                }
+
+                if (highlightSign !== null && idx === highlightSign) {
+                    c.classList.add("ashta-highlight");
+                }
+
+                k.appendChild(c); 
+            } 
+        }); 
+
+        wrapper.appendChild(k);
+
+        // Add short note under each BAV kundali when checkbox is ON
+        if (enableColorNotes && evalType && evalType !== "SAV") {
+            const noteHTML = getShortNoteHTML(evalType);
+            if (noteHTML) {
+                const noteContainer = document.createElement("div");
+                noteContainer.innerHTML = noteHTML;
+                wrapper.appendChild(noteContainer.firstElementChild);
+            }
+        }
+
+        return wrapper; 
+    }
+
     // 1. RENDER MAIN SAV & BAV KUNDALIS
     const layoutRows = [
         ["SAV", "Lagna"],
@@ -4221,7 +4481,7 @@ function renderVargaAshtakavarga() {
         ["Mangala", "Venus", "Ketu"]
     ];
 
-    layoutRows.forEach(rowPlanets => {
+    layoutRows.forEach((rowPlanets, rIdx) => {
         const grid = document.createElement("div"); 
         grid.className = "ashta-grid"; 
         grid.style.display = "flex";
@@ -4229,28 +4489,35 @@ function renderVargaAshtakavarga() {
         grid.style.alignItems = "center";
         grid.style.width = "100%";
         grid.style.maxWidth = "100%";
-        grid.style.flexWrap = "wrap";
-        grid.style.gap = "20px";
+        grid.style.flexWrap = (rIdx === 0) ? "nowrap" : "wrap";
+        grid.style.gap = "16px";
         grid.style.marginBottom = "15px";
+        grid.style.overflowX = "auto";
 
         rowPlanets.forEach(p => {
             if (p === "SAV") {
                 let SAV = calcVargaSAV(v); 
                 SAV = rotateArrayRight(SAV, shiftAmount); 
-                const ascSign = posSign["Lagna"] !== undefined ? posSign["Lagna"] : (window._ascSigns?.[v] ?? 0);
                 const showIndicator = document.getElementById("savShowIndicator")?.checked;
-                grid.appendChild(makeKundali(SAV, "D" + v + "\nSAV", showIndicator ? ascSign : null));
+                // 1) D1 SAV Kundali
+                grid.appendChild(makeKundali(SAV, "D" + v + "\nSAV", showIndicator ? ascSignForSAV : null, "SAV"));
+
+                // 2) Table 1 (House | SAV | Result) & Table 2 (SAV Score Rules) in the middle
+                if (enableColorNotes) {
+                    grid.appendChild(buildSAVResultTableElement(SAV, ascSignForSAV));
+                    grid.appendChild(buildSAVRulesTableElement());
+                }
             } 
             else if (p === "Ketu") {
                 const emptyArr = Array(12).fill("");
                 const planetSign = posSign["Ketu"];
-                grid.appendChild(makeKundali(emptyArr, "BAV\nKetu", planetSign));
+                grid.appendChild(makeKundali(emptyArr, "BAV\nKetu", planetSign, null));
             }
             else {
                 let row = calcVargaSingleBAV(v, p); 
                 row = rotateArrayRight(row, shiftAmount);
                 const planetSign = posSign[p];
-                grid.appendChild(makeKundali(row, "BAV\n" + p, planetSign));
+                grid.appendChild(makeKundali(row, "BAV\n" + p, planetSign, p));
             }
         });
 
@@ -14048,10 +14315,10 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
 ========================================================= -->
 
 <div class="division-title" onclick="toggleDbaMixer()">
-    Nakshatra Nadi DBA Mixer &#9650;
+    Nakshatra Nadi DBA Mixer &#9654;
 </div>
 
-<div id="dbaMixerWrapper" class="shoda-wrapper" style="display:block; padding-bottom: 60px; max-width: 100%; padding-left: 20px; padding-right: 20px; width: 100%; box-sizing: border-box; --dba-font-base: 17px; --dba-font-large: 18px; --dba-font-bracket: 22px;">
+<div id="dbaMixerWrapper" class="shoda-wrapper" style="display:none; padding-bottom: 60px; max-width: 100%; padding-left: 20px; padding-right: 20px; width: 100%; box-sizing: border-box; --dba-font-base: 17px; --dba-font-large: 18px; --dba-font-bracket: 22px;">
     
     <!-- PATCH: Kundali Container placed exactly below the heading -->
     <div id="dbaMixerKundali" style="display:flex; justify-content:center; margin-top: 20px; margin-bottom: 35px; width:100%;"></div>
