@@ -4220,9 +4220,9 @@ function getTransitVargaPosSign(v) {
         }
     });
     
-    // Lagna highlight box
-    if (modeKP && hasNatal) {
-        posSign["Lagna"] = window._ascSigns?.[v] ?? 0;
+    // Lagna highlight box (Always sync with Natal / Mixer Kundali ASC across KP, Sign, and Vedic modes)
+    if (hasNatal && window._ascSigns && window._ascSigns[v] !== undefined) {
+        posSign["Lagna"] = window._ascSigns[v];
     } else {
         let tLagna = window.transitRaw.ayanamshas[aya].lagna;
         if (tLagna !== undefined) {
