@@ -3635,12 +3635,7 @@ function attachVedicInteractions(tableId) {
 
 
 
-
 <!-- Sarvashtaka Varga Calculator -->
-
-
-
-
 
 <!-- ========================================================= -->
 <!-- UNIFIED SARVASHTAKA & PRASHTHARA ASHTAKAVARGA MODULE      -->
@@ -3691,31 +3686,27 @@ function attachVedicInteractions(tableId) {
         justify-content: center;
         min-width: 32px;
         padding: 3px 7px;
-        border-radius: 4px;
+        border-radius: 5px;
         font-weight: 900;
         font-size: 16px;
         line-height: 1.2;
         box-sizing: border-box;
     }
-    /* Bad: white text, dark red background, white outline */
+    /* Opaque gradient fill to hide stripes underneath, bright neon border, colored text, NO glow */
     .ashta-box-red {
-        background: #8b0000;
-        border: 2px solid #ffffff;
-        color: #ffffff;
+        background: linear-gradient(135deg, #3d000a, #1a0003);
+        border: 2px solid #ff2a40;
+        color: #ff2a40;
     }
-    /* Good: white text, deep royal blue background, yellow/gold outline */
     .ashta-box-blue {
-        background: #003380;
-        border: 2px solid #ffcc00;
-        color: #ffffff;
+        background: linear-gradient(135deg, #002244, #000d1a);
+        border: 2px solid #00d9ff;
+        color: #00d9ff;
     }
-    /* Excellent: black text, parrot green background, deep green outline */
     .ashta-box-green {
-        background: #39ff14;
-        border: 2px solid #004d00;
-        color: #000000;
-        box-shadow: 0 0 6px rgba(57, 255, 20, 0.35);
-        text-shadow: none;
+        background: linear-gradient(135deg, #00330a, #001403);
+        border: 2px solid #16f529;
+        color: #16f529;
     }
     .ashta-short-note {
         margin-top: 8px;
@@ -3775,25 +3766,11 @@ function attachVedicInteractions(tableId) {
 <div id="ashtakavargaWrapper" class="shoda-wrapper" style="display:none; padding-bottom:40px;">
     
     <div style="margin-bottom:20px; width:100%;">
-        <div style="background:#0a0a0a; border:1px solid var(--grid-line); padding:18px 25px; margin-bottom:20px; border-radius:4px; width:100%; box-sizing:border-box;">
+        <div style="background:#0a0a0a; border:1px solid var(--grid-line); padding:15px 25px; margin-bottom:20px; border-radius:4px; width:100%; box-sizing:border-box; display:flex; flex-direction:column; gap:12px;">
             
+            <!-- ROW 1: Date, Time, Set to Now, Kundali Dropdown & Fetching Dialogue -->
             <div style="display:flex; gap:15px; justify-content:center; align-items:center; flex-wrap:wrap;">
                 
-                <div style="display:flex; align-items:center; gap:15px; border-right:1px solid #333; padding-right:15px;">
-                    <label style="color:#10b981; font-weight:bold; font-size:16px; cursor:pointer; display:flex; align-items:center; gap:6px;">
-                        <input type="checkbox" id="savShowNatal" onchange="toggleSavMode('natal')"> SHOW NATAL
-                    </label>
-                    <label style="color:#ff8800; font-weight:bold; font-size:16px; cursor:pointer; display:flex; align-items:center; gap:6px;">
-                        <input type="checkbox" id="savShowTransit" checked onchange="toggleSavMode('transit')"> SHOW TRANSIT
-                    </label>
-                    <label style="color:#f43f5e; font-weight:bold; font-size:16px; cursor:pointer; display:flex; align-items:center; gap:6px;">
-                        <input type="checkbox" id="savShowIndicator" checked onchange="renderVargaAshtakavarga()"> Show SAV
-                    </label>
-                    <label style="color:#38bdf8; font-weight:bold; font-size:16px; cursor:pointer; display:flex; align-items:center; gap:6px;">
-                        <input type="checkbox" id="savColorNotesToggle" checked onchange="renderVargaAshtakavarga()"> Col
-                    </label>
-                </div>
-
                 <div style="display:flex; gap:4px; align-items:center; background:#111; border:1px solid var(--grid-line); padding:6px 10px; border-radius:4px;">
                     <input type="text" id="savMixD" placeholder="DD" maxlength="2" style="width:28px; text-align:center; background:transparent; color:#fff; border:none; outline:none; font-size:15px; font-weight:bold;" onkeydown="handleSavMixerSpin(event, 'D')" oninput="mixerJump(this, 'savMixM', 2); syncSavToolbar()"> <span style="color:#555;">-</span>
                     <input type="text" id="savMixM" placeholder="MM" maxlength="2" style="width:28px; text-align:center; background:transparent; color:#fff; border:none; outline:none; font-size:15px; font-weight:bold;" onkeydown="handleSavMixerSpin(event, 'M')" oninput="mixerJump(this, 'savMixY', 2); syncSavToolbar()"> <span style="color:#555;">-</span>
@@ -3808,14 +3785,31 @@ function attachVedicInteractions(tableId) {
 
                 <button onclick="setSavMixerToNow()" style="padding:6px 12px; font-size:15px; background:var(--grid-line); color:#000; font-weight:bold; cursor:pointer; border:none; border-radius:4px;">Set to Now</button>
 
-                <div style="display:flex; align-items:center; gap:10px; margin-left:10px;">
+                <div style="display:flex; align-items:center; gap:10px; margin-left:6px;">
                     <span style="color:var(--grid-line); font-weight:bold; font-size:16px;">Kundali:</span>
                     <select id="savVargaSelect" onchange="renderVargaAshtakavarga()" style="background:#000; color:#fff; border:1px solid var(--grid-line); padding:6px 10px; font-size:16px; font-weight:bold; cursor:pointer;">
                     </select>
                 </div>
 
-                <span id="savTransitStatus" style="color:#10b981; font-weight:bold; font-size:14px; min-width:70px; text-align:right;"></span>
+                <span id="savTransitStatus" style="color:#10b981; font-weight:bold; font-size:14px; min-width:70px; text-align:left;"></span>
             </div>
+
+            <!-- ROW 2: Show Natal, Show Transit, Show SAV, Col Checkboxes -->
+            <div style="display:flex; gap:24px; justify-content:center; align-items:center; flex-wrap:wrap; border-top:1px solid #222; padding-top:12px;">
+                <label style="color:#10b981; font-weight:bold; font-size:16px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                    <input type="checkbox" id="savShowNatal" onchange="toggleSavMode('natal')"> SHOW NATAL
+                </label>
+                <label style="color:#ff8800; font-weight:bold; font-size:16px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                    <input type="checkbox" id="savShowTransit" checked onchange="toggleSavMode('transit')"> SHOW TRANSIT
+                </label>
+                <label style="color:#f43f5e; font-weight:bold; font-size:16px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                    <input type="checkbox" id="savShowIndicator" onchange="renderVargaAshtakavarga()"> Show SAV
+                </label>
+                <label style="color:#00d9ff; font-weight:bold; font-size:16px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                    <input type="checkbox" id="savColorNotesToggle" checked onchange="renderVargaAshtakavarga()"> Col
+                </label>
+            </div>
+
         </div>
     </div>
 
@@ -3832,10 +3826,6 @@ function attachVedicInteractions(tableId) {
         </div>
     </div>
 </div>
-
-
-
-
 
 <script>
 const BAV_RULES = {
@@ -4233,20 +4223,22 @@ function getTransitVargaPosSign(v) {
 }
 
 function getSAVHouseEvaluation(houseNum, score) {
+    const isTransit = document.getElementById("savShowTransit")?.checked;
     const dusthana = [6, 8, 12];
-    const isDusthana = dusthana.includes(houseNum);
+    // If Transit is ON, treat all houses as non-dusthana for universal scoring
+    const isDusthana = isTransit ? false : dusthana.includes(houseNum);
     let result = "";
     let colorClass = "";
 
     if (!isDusthana) {
-        // Houses 1, 2, 3, 4, 5, 7, 9, 10, 11
+        // Houses 1, 2, 3, 4, 5, 7, 9, 10, 11 (Applies to ALL 12 houses if Transit is ON)
         if (score <= 21) { result = "VERY BAD"; colorClass = "ashta-box-red"; }
         else if (score >= 22 && score <= 25) { result = "BAD"; colorClass = "ashta-box-red"; }
         else if (score >= 26 && score <= 29) { result = "Good"; colorClass = "ashta-box-blue"; }
         else if (score >= 30 && score <= 35) { result = "Very Good"; colorClass = "ashta-box-green"; }
         else { result = "Excellent"; colorClass = "ashta-box-green"; }
     } else {
-        // Houses 6, 8, 12
+        // Houses 6, 8, 12 (Only used when Natal is ON)
         if (score <= 21) { result = "Excellent"; colorClass = "ashta-box-green"; }
         else if (score >= 22 && score <= 25) { result = "Very Good"; colorClass = "ashta-box-green"; }
         else if (score >= 26 && score <= 29) { result = "Good"; colorClass = "ashta-box-blue"; }
@@ -4295,9 +4287,9 @@ function getShortNoteHTML(type) {
     const n = bavNotes[key];
     if (!n) return "";
     return `<div class="ashta-short-note">
-        <span style="color:#ff4444;">Bad: ${n.bad}</span> &nbsp;|&nbsp;
-        <span style="color:#38bdf8;">Good: ${n.good}</span> &nbsp;|&nbsp;
-        <span style="color:#22c55e;">Exc: ${n.exc}</span>
+        <span style="color:#ff2a40;">Bad: ${n.bad}</span> &nbsp;|&nbsp;
+        <span style="color:#00d9ff;">Good: ${n.good}</span> &nbsp;|&nbsp;
+        <span style="color:#16f529;">Exc: ${n.exc}</span>
     </div>`;
 }
 
@@ -4309,9 +4301,9 @@ function buildSAVResultTableElement(values, ascSignForSAV) {
         const signIdx = (ascSignForSAV + h - 1) % 12;
         const score = Number(values[signIdx] ?? 0);
         const ev = getSAVHouseEvaluation(h, score);
-        let textColor = "#22c55e";
-        if (ev.colorClass === "ashta-box-red") textColor = "#ff4444";
-        else if (ev.colorClass === "ashta-box-blue") textColor = "#38bdf8";
+        let textColor = "#16f529";
+        if (ev.colorClass === "ashta-box-red") textColor = "#ff2a40";
+        else if (ev.colorClass === "ashta-box-blue") textColor = "#00d9ff";
         tHtml += `<tr><td>${h}</td><td>${score}</td><td style="color:${textColor};">${ev.result}</td></tr>`;
     }
     tHtml += `</tbody>`;
@@ -4320,42 +4312,60 @@ function buildSAVResultTableElement(values, ascSignForSAV) {
 }
 
 function buildSAVRulesTableElement() {
+    const isTransit = document.getElementById("savShowTransit")?.checked;
     const tbl = document.createElement("table");
     tbl.className = "sav-rules-table";
     tbl.style.width = "310px";
-    tbl.innerHTML = `
-        <thead>
-            <tr><th colspan="3" style="font-size:13px;">SAV Score Rules</th></tr>
-            <tr><th>Score</th><th>H 1, 2, 3, 4, 5, 7, 9, 10, 11</th><th>H 6, 8, 12</th></tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>&le; 21</td>
-                <td style="color:#ff4444;">VERY BAD</td>
-                <td style="color:#4ade80;">Excellent</td>
-            </tr>
-            <tr>
-                <td>22 - 25</td>
-                <td style="color:#ff4444;">BAD</td>
-                <td style="color:#4ade80;">Very Good</td>
-            </tr>
-            <tr>
-                <td>26 - 29</td>
-                <td style="color:#38bdf8;">Good</td>
-                <td style="color:#38bdf8;">Good</td>
-            </tr>
-            <tr>
-                <td>30 - 35</td>
-                <td style="color:#4ade80;">Very Good</td>
-                <td style="color:#ff4444;">BAD</td>
-            </tr>
-            <tr>
-                <td>&ge; 36</td>
-                <td style="color:#4ade80;">Excellent</td>
-                <td style="color:#ff4444;">VERY BAD</td>
-            </tr>
-        </tbody>
-    `;
+    
+    if (isTransit) {
+        tbl.innerHTML = `
+            <thead>
+                <tr><th colspan="2" style="font-size:13px;">SAV Score Rules (Transit: All Houses)</th></tr>
+                <tr><th>Score</th><th>Result</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>&le; 21</td><td style="color:#ff2a40;">VERY BAD</td></tr>
+                <tr><td>22 - 25</td><td style="color:#ff2a40;">BAD</td></tr>
+                <tr><td>26 - 29</td><td style="color:#00d9ff;">Good</td></tr>
+                <tr><td>30 - 35</td><td style="color:#16f529;">Very Good</td></tr>
+                <tr><td>&ge; 36</td><td style="color:#16f529;">Excellent</td></tr>
+            </tbody>
+        `;
+    } else {
+        tbl.innerHTML = `
+            <thead>
+                <tr><th colspan="3" style="font-size:13px;">SAV Score Rules (Natal)</th></tr>
+                <tr><th>Score</th><th>H 1, 2, 3, 4, 5, 7, 9, 10, 11</th><th>H 6, 8, 12</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>&le; 21</td>
+                    <td style="color:#ff2a40;">VERY BAD</td>
+                    <td style="color:#16f529;">Excellent</td>
+                </tr>
+                <tr>
+                    <td>22 - 25</td>
+                    <td style="color:#ff2a40;">BAD</td>
+                    <td style="color:#16f529;">Very Good</td>
+                </tr>
+                <tr>
+                    <td>26 - 29</td>
+                    <td style="color:#00d9ff;">Good</td>
+                    <td style="color:#00d9ff;">Good</td>
+                </tr>
+                <tr>
+                    <td>30 - 35</td>
+                    <td style="color:#16f529;">Very Good</td>
+                    <td style="color:#ff2a40;">BAD</td>
+                </tr>
+                <tr>
+                    <td>&ge; 36</td>
+                    <td style="color:#16f529;">Excellent</td>
+                    <td style="color:#ff2a40;">VERY BAD</td>
+                </tr>
+            </tbody>
+        `;
+    }
     return tbl;
 }
 
@@ -4371,7 +4381,8 @@ function renderVargaAshtakavarga() {
     const v = parseInt(sel.value); 
     if (!window._shodaRashi || !window._shodaRashi[v]) return; 
 
-    const enableColorNotes = document.getElementById("savColorNotesToggle")?.checked;
+    // "Col" checkbox strictly controls color-coding boxes inside the kundalis
+    const enableColorCoding = document.getElementById("savColorNotesToggle")?.checked;
 
     // Shift SAV/BAV/Prashthara arrays by KP/Sign shiftAmount
     let shiftAmount = 0;
@@ -4395,7 +4406,7 @@ function renderVargaAshtakavarga() {
     if (showTransit) {
         if (!window.transitRaw) {
             const stat = document.getElementById("savTransitStatus");
-            if(stat) stat.innerHTML = "<span style='color:#ff4444;'>Fetch Transit First</span>";
+            if(stat) stat.innerHTML = "<span style='color:#ff2a40;'>Fetch Transit First</span>";
             posSign = getNatalVisualPosSign(v);
         } else {
             posSign = getTransitVargaPosSign(v);
@@ -4433,7 +4444,7 @@ function renderVargaAshtakavarga() {
                 c.className = "ashta-cell"; 
                 const val = (values[idx] !== undefined && values[idx] !== null) ? values[idx] : "";
 
-                if (enableColorNotes && val !== "" && evalType) {
+                if (enableColorCoding && val !== "" && evalType) {
                     if (evalType === "SAV") {
                         const houseNum = ((idx - ascSignForSAV + 12) % 12) + 1;
                         const ev = getSAVHouseEvaluation(houseNum, Number(val));
@@ -4460,8 +4471,8 @@ function renderVargaAshtakavarga() {
 
         wrapper.appendChild(k);
 
-        // Add short note under each BAV kundali when checkbox is ON
-        if (enableColorNotes && evalType && evalType !== "SAV") {
+        // Legends under each BAV kundali always remain visible
+        if (evalType && evalType !== "SAV") {
             const noteHTML = getShortNoteHTML(evalType);
             if (noteHTML) {
                 const noteContainer = document.createElement("div");
@@ -4502,11 +4513,9 @@ function renderVargaAshtakavarga() {
                 // 1) D1 SAV Kundali
                 grid.appendChild(makeKundali(SAV, "D" + v + "\nSAV", showIndicator ? ascSignForSAV : null, "SAV"));
 
-                // 2) Table 1 (House | SAV | Result) & Table 2 (SAV Score Rules) in the middle
-                if (enableColorNotes) {
-                    grid.appendChild(buildSAVResultTableElement(SAV, ascSignForSAV));
-                    grid.appendChild(buildSAVRulesTableElement());
-                }
+                // 2) Table 1 (House | SAV | Result) & Table 2 (SAV Score Rules) remain permanently intact
+                grid.appendChild(buildSAVResultTableElement(SAV, ascSignForSAV));
+                grid.appendChild(buildSAVRulesTableElement());
             } 
             else if (p === "Ketu") {
                 const emptyArr = Array(12).fill("");
@@ -4552,12 +4561,113 @@ function renderVargaAshtakavarga() {
             Ketu: "\u0C95\u0CC7\u0CA4\u0CC1"
         };
 
+        // Inject Prashthara Toolbar for highlighting
+        let prashToolbar = document.getElementById("prashToolbar");
+        if (!prashToolbar) {
+            prashToolbar = document.createElement("div");
+            prashToolbar.id = "prashToolbar";
+            prashToolbar.style = "display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-bottom:25px; width:100%;";
+            prashContainer.parentNode.insertBefore(prashToolbar, prashContainer);
+        }
+        prashToolbar.innerHTML = "";
+        
+        // Initialize multi-selection array if it doesn't exist
+        if (!window.activePrashHighlights) {
+            window.activePrashHighlights = [];
+        }
+
+        // Unique colors for each planet (Rahu & Ketu removed, Chandra/Jupiter/Venus updated)
+        const prashColors = {
+            Lagna: "#ffcc00",    // Yellow
+            Surya: "#ff7b00",    // Orange
+            Chandra: "#d8b4fe",  // Light Lilac/Lavender
+            Mangala: "#ff2a40",  // Red
+            Jupiter: "#a855f7",  // Purple
+            Saturn: "#00e5ff",   // Teal
+            Budha: "#16f529",    // Green
+            Venus: "#ec4899"     // Pink
+        };
+
+        // 8 buttons: Lagna + 7 valid contributors (No Rahu/Ketu)
+        const prashOrder = ["Lagna", "Surya", "Chandra", "Mangala", "Jupiter", "Saturn", "Budha", "Venus"];
+        prashOrder.forEach(p => {
+            const btn = document.createElement("button");
+            btn.innerText = useKN ? (prashDisplayNamesKN[p] || p) : (prashDisplayNamesEN[p] || p);
+            btn.style.padding = "5px 12px";
+            btn.style.cursor = "pointer";
+            btn.style.fontWeight = "bold";
+            btn.style.fontSize = "14px";
+            
+            const isSelected = window.activePrashHighlights.includes(p);
+            const pColor = prashColors[p];
+
+            // Active button turns opaque pitch black with unique color text and outline
+            btn.style.background = isSelected ? "#000000" : "#111";
+            btn.style.color = isSelected ? pColor : "#fff";
+            btn.style.border = isSelected ? `1px solid ${pColor}` : "1px solid #333";
+            btn.style.borderRadius = "4px";
+            
+            btn.onclick = () => {
+                // Toggle selection on or off
+                if (isSelected) {
+                    window.activePrashHighlights = window.activePrashHighlights.filter(item => item !== p);
+                } else {
+                    window.activePrashHighlights.push(p);
+                }
+                renderVargaAshtakavarga();
+            };
+            prashToolbar.appendChild(btn);
+        });
+
+        // Add "Clear All" Button
+        const clearBtn = document.createElement("button");
+        clearBtn.innerText = "Clear All";
+        clearBtn.style.padding = "5px 12px";
+        clearBtn.style.cursor = "pointer";
+        clearBtn.style.fontWeight = "bold";
+        clearBtn.style.fontSize = "14px";
+        clearBtn.style.background = "#222";
+        clearBtn.style.color = "#ff4444";
+        clearBtn.style.border = "1px solid #555";
+        clearBtn.style.borderRadius = "4px";
+        clearBtn.style.marginLeft = "10px";
+        clearBtn.onclick = () => {
+            window.activePrashHighlights = [];
+            renderVargaAshtakavarga();
+        };
+        prashToolbar.appendChild(clearBtn);
+
+        // Add "Hide Unselected" Checkbox
+        const hideLabel = document.createElement("label");
+        hideLabel.style.display = "flex";
+        hideLabel.style.alignItems = "center";
+        hideLabel.style.gap = "6px";
+        hideLabel.style.color = "#fff";
+        hideLabel.style.fontWeight = "bold";
+        hideLabel.style.fontSize = "14px";
+        hideLabel.style.cursor = "pointer";
+        hideLabel.style.marginLeft = "10px";
+
+        const hideCheck = document.createElement("input");
+        hideCheck.type = "checkbox";
+        hideCheck.id = "prashHideUnselected";
+        hideCheck.checked = window.prashHideUnselectedState || false;
+        hideCheck.onchange = (e) => {
+            window.prashHideUnselectedState = e.target.checked;
+            renderVargaAshtakavarga();
+        };
+
+        hideLabel.appendChild(hideCheck);
+        hideLabel.appendChild(document.createTextNode("Hide Unselected"));
+        prashToolbar.appendChild(hideLabel);
+
         function makePrashtharaKundali(cellsData, targetPlanet, highlightSign = null) {
             const k = document.createElement("div");
             k.className = "prash-kundali";
 
             const map = [11, 0, 1, 2, 10, -1, -1, 3, 9, -1, -1, 4, 8, 7, 6, 5];
             let centerAdded = false;
+            const hideUnselected = window.prashHideUnselectedState;
 
             const centerTitlePlanet = useKN
                 ? (prashDisplayNamesKN[targetPlanet] || targetPlanet)
@@ -4579,8 +4689,21 @@ function renderVargaAshtakavarga() {
                     const contributors = cellsData[idx] || [];
                     c.innerHTML = contributors.map(src => {
                         const label = useKN ? (prashDisplayNamesKN[src] || src) : (prashDisplayNamesEN[src] || src);
+                        const isHighlighted = window.activePrashHighlights.includes(src);
+                        
+                        // Highlight condition for multi-selection
+                        if (isHighlighted) {
+                            const pColor = prashColors[src] || "#ffcc00";
+                            return `<span style="color:${pColor}; border:1px solid ${pColor}; padding:1px 4px; border-radius:3px; background:#000000; display:inline-block;">${label}</span>`;
+                        }
+                        
+                        // If "Hide Unselected" is checked, render nothing for unselected planets
+                        if (hideUnselected) {
+                            return "";
+                        }
+                        
                         return `<span>${label}</span>`;
-                    }).join(" ");
+                    }).filter(Boolean).join(" ");
 
                     if (highlightSign !== null && idx === highlightSign) {
                         c.classList.add("ashta-highlight");
@@ -4621,16 +4744,7 @@ function renderVargaAshtakavarga() {
     }
 }
 </script>
-
-
-
-
-
-
-
-
 <!-- Sarvashtaka Varga Calculator -->
-
 
 
 
