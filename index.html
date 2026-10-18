@@ -13239,10 +13239,32 @@ const calcH = (base, p) => p >= 3 ? (p + 2) * 25 : base;
         }
     }
     
-    let autoRefPlanet = dashaLords[curIdx]; 
+    let rawAutoRefPlanet = dashaLords[curIdx]; 
+    let autoRefPlanet = rawAutoRefPlanet;
+    let useRaKeDisp = document.getElementById("taraRaKeDispToggle")?.checked || false;
+
+    if (useRaKeDisp && (rawAutoRefPlanet === "Rahu" || rawAutoRefPlanet === "Ketu")) {
+        let nodeKey = rawAutoRefPlanet;
+        let nNodeDeg = 0;
+        if (window._shiftedPlanetsGlobal && window._shiftedPlanetsGlobal[nodeKey] !== undefined) {
+            nNodeDeg = window._shiftedPlanetsGlobal[nodeKey];
+        } else {
+            let actualNodeName = useTrueNode ? (nodeKey + "_true") : nodeKey;
+            if (raw.ayanamshas && raw.ayanamshas[aya] && raw.ayanamshas[aya].planets[actualNodeName] !== undefined) {
+                nNodeDeg = parseFloat(raw.ayanamshas[aya].planets[actualNodeName]);
+            } else if (raw.planets && raw.planets[actualNodeName] !== undefined) {
+                nNodeDeg = parseFloat(raw.planets[actualNodeName]);
+            } else if (raw.planets && raw.planets[nodeKey] !== undefined) {
+                nNodeDeg = parseFloat(raw.planets[nodeKey]);
+            }
+        }
+        let nodeSign = getVargaPlacement(nNodeDeg, v).sign;
+        const signLords = ["Mangala", "Venus", "Budha", "Chandra", "Surya", "Budha", "Venus", "Mangala", "Jupiter", "Saturn", "Saturn", "Jupiter"];
+        autoRefPlanet = signLords[nodeSign];
+    }
     
-    // Auto-update to the Dasha running at the Transit Date if the date/time is changed
-    let currentTransitStr = mixDateVal + "_" + mixTimeVal;
+    // Auto-update to the Dasha running at the Transit Date if the date/time, checkbox, or varga is changed
+    let currentTransitStr = mixDateVal + "_" + mixTimeVal + "_" + useRaKeDisp + "_" + v;
     if (window._lastTaraTransitStr !== currentTransitStr) {
         window.userTaraRefPlanet = autoRefPlanet;
         window._lastTaraTransitStr = currentTransitStr;
@@ -13314,7 +13336,10 @@ const calcH = (base, p) => p >= 3 ? (p + 2) * 25 : base;
                     ${sysTodayStr}
                 </div>
             </div>
-            <div style="display:flex; align-items:center; gap:10px;">
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                <label style="color:#ff8800; font-weight:bold; cursor:pointer; display:flex; align-items:center; gap:5px; font-size:16px; margin-right:4px;" title="Use Natal Dispositor as Janma Tara during Rahu/Ketu Dasha">
+                    <input type="checkbox" id="taraRaKeDispToggle" onchange="renderMixer()" ${useRaKeDisp ? 'checked' : ''} style="transform: scale(1.15);"> RaKe
+                </label>
                 <span style="color:#0bf4e6; font-weight:bold; font-size:16px;">TARA REFERENCE (DASHA):</span>
                 <select id="taraRefPlanetSelect" onchange="window.userTaraRefPlanet=this.value; renderMixer();" style="background:#000; color:#fff; border:1px solid #0bf4e6; padding:6px 12px; font-weight:bold; font-size:15px; cursor:pointer; border-radius:4px;">
                     ${dashaLords.map(lord => `<option value="${lord}" ${window.userTaraRefPlanet === lord ? "selected" : ""}>${lord.toUpperCase()}</option>`).join("")}
