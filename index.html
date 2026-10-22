@@ -2788,14 +2788,507 @@ function buildSimpleKundaliHTML(chartData, title, pivotVal, vNum, isKP) {
     };
 })();
 
-
-
-
-
 </script>
 
 
+<!-- ========================================================= -->
+<!-- FIVE FOLD PLANETS RELATIONSHIP (PANCHADHA MAITRI) SECTION -->
+<!-- ========================================================= -->
+<div class="division-title" onclick="toggleFiveFoldRelationship()">
+    Five Fold Planets Relationship &#9660;
+</div>
 
+<div id="fiveFoldWrapper" class="shoda-wrapper" style="display:none; padding-bottom: 40px;">
+    
+    <!-- CONTROL BAR -->
+    <div style="background:#0a0a0a; border:1px solid var(--grid-line); padding:12px 20px; margin-bottom:20px; display:flex; justify-content:center; align-items:center; gap:25px; flex-wrap:wrap; border-radius:4px;">
+        
+        <div style="display:flex; align-items:center; gap:10px;">
+            <label style="color:var(--grid-line); font-weight:bold; font-size:15px;">
+                SELECT DIVISIONAL CHART:
+            </label>
+            <select id="fiveFoldVargaSelect" onchange="renderFiveFoldTables()" style="background:#000; color:#fff; border:1px solid var(--grid-line); padding:6px 12px; font-size:15px; font-weight:bold; cursor:pointer;">
+            </select>
+        </div>
+
+        <span style="color:#444;">|</span>
+
+        <div style="display:flex; align-items:center; gap:10px;">
+            <label style="color:var(--grid-line); font-weight:bold; font-size:15px;">
+                START PLANET:
+            </label>
+            <select id="fiveFoldStartPlanet" onchange="renderFiveFoldTables()" style="background:#000; color:#facc15; border:1px solid var(--grid-line); padding:6px 12px; font-size:15px; font-weight:bold; cursor:pointer;">
+                <option value="Sy" selected>Sun (Surya)</option>
+                <option value="Ch">Moon (Chandra)</option>
+                <option value="Ma">Mars (Mangala)</option>
+                <option value="Ra">Rahu</option>
+                <option value="Ju">Jupiter (Guru)</option>
+                <option value="Sa">Saturn (Shani)</option>
+                <option value="Bu">Mercury (Budha)</option>
+                <option value="Ke">Ketu</option>
+                <option value="Ve">Venus (Shukra)</option>
+            </select>
+        </div>
+
+        <span style="color:#444;">|</span>
+
+        <!-- Placement Basis Toggle -->
+        <div style="display:flex; align-items:center; gap:14px;">
+            <span style="color:#aaa; font-size:13px; font-weight:bold;">PLACEMENT BASIS:</span>
+            <label style="color:#10b981; font-weight:bold; font-size:14px; cursor:pointer; display:flex; align-items:center; gap:6px;" title="Uses pure unshifted zodiac signs (Standard Parashari Rashi-to-Rashi count)">
+                <input type="checkbox" id="ffBasisRashi" checked onchange="toggleFfBasis('rashi')">
+                Pure Rashi (Sign)
+            </label>
+            <label style="color:#ff8800; font-weight:bold; font-size:14px; cursor:pointer; display:flex; align-items:center; gap:6px;" title="Syncs with your active KP / Vedic / Shifted visual chart house placements">
+                <input type="checkbox" id="ffBasisVisual" onchange="toggleFfBasis('visual')">
+                Active Chart (KP/Shift)
+            </label>
+        </div>
+
+        <span style="color:#444;">|</span>
+
+        <!-- View Format Toggle: 9x9 Matrix vs Grouped Category Columns -->
+        <div style="display:flex; align-items:center; gap:14px;">
+            <span style="color:#aaa; font-size:13px; font-weight:bold;">VIEW:</span>
+            <label style="color:#facc15; font-weight:bold; font-size:14px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                <input type="checkbox" id="ffViewMatrix" checked onchange="toggleFfView('matrix')">
+                Planet-to-Planet Matrix
+            </label>
+            <label style="color:#0bf4e6; font-weight:bold; font-size:14px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                <input type="checkbox" id="ffViewGrouped" onchange="toggleFfView('grouped')">
+                Grouped Summary
+            </label>
+        </div>
+
+    </div>
+
+    <div id="ffOrderIndicator" style="text-align:center; color:#10b981; font-weight:bold; font-size:13px; margin-bottom:20px;">
+        DBA / Vimshottari Order: &nbsp;<span style="color:#facc15;">Sun &rarr; Moon &rarr; Mars &rarr; Rahu &rarr; Jupiter &rarr; Saturn &rarr; Mercury &rarr; Ketu &rarr; Venus</span>
+    </div>
+
+    <!-- FIVE-FOLD RELATIONSHIP TABLE -->
+    <div class="shoda-title" id="ffTitleFiveFold">FIVE-FOLD PLANETS RELATIONSHIP (PANCHADHA MAITRI)</div>
+    <div style="text-align:center; color:#ccc; font-size:13px; margin-top:-5px; margin-bottom:12px;">
+        <span style="color:#16f529; font-weight:bold;">Best Friend</span> (Friend + Friend) &nbsp;|&nbsp;
+        <span style="color:#00d9ff; font-weight:bold;">Friend</span> (Neutral + Friend) &nbsp;|&nbsp;
+        <span style="color:#facc15; font-weight:bold;">Neutral</span> (Friend + Enemy) &nbsp;|&nbsp;
+        <span style="color:#ff8800; font-weight:bold;">Enemy</span> (Neutral + Enemy) &nbsp;|&nbsp;
+        <span style="color:#ff2a40; font-weight:bold;">Bitter Enemy</span> (Enemy + Enemy)
+    </div>
+    <div style="display:flex; justify-content:center; overflow-x:auto; margin-bottom: 40px; width: 100%;">
+        <table id="ffCompositeTable" class="shoda-table" style="max-width:1300px; margin-bottom:0; width:100%;"></table>
+    </div>
+
+    <!-- TEMPORARY RELATIONSHIP TABLE -->
+    <div class="shoda-title" id="ffTitleTemp">TEMPORARY RELATIONSHIP TABLE (TATKALIKA MAITRI)</div>
+    <div style="text-align:center; color:#ccc; font-size:13px; margin-top:-5px; margin-bottom:12px;">
+        Rule: Planets in <b>2, 3, 4, 10, 11, 12</b> from a planet = <span style="color:#10b981; font-weight:bold;">Friend</span> &nbsp;|&nbsp; Planets in <b>1, 5, 6, 7, 8, 9</b> = <span style="color:#ff4444; font-weight:bold;">Enemy</span>
+    </div>
+    <div style="display:flex; justify-content:center; overflow-x:auto; margin-bottom: 40px; width: 100%;">
+        <table id="ffTemporaryTable" class="shoda-table" style="max-width:1300px; margin-bottom:0; width:100%;"></table>
+    </div>
+
+    <!-- PERMANENT RELATIONSHIP TABLE -->
+    <div class="shoda-title" id="ffTitlePerm">PERMANENT RELATIONSHIP TABLE (NAISARGIKA MAITRI)</div>
+    <div style="display:flex; justify-content:center; overflow-x:auto; width: 100%;">
+        <table id="ffPermanentTable" class="shoda-table" style="max-width:1300px; margin-bottom:0; width:100%;"></table>
+    </div>
+
+</div>
+
+<script>
+// Base Vimshottari (DBA) Order starting from Sun
+const FF_DBA_ORDER = ["Sy", "Ch", "Ma", "Ra", "Ju", "Sa", "Bu", "Ke", "Ve"];
+
+// Helper to cyclically rotate the DBA array based on the selected starting planet
+function getRotatedFfOrder() {
+    const startP = document.getElementById("fiveFoldStartPlanet")?.value || "Sy";
+    const idx = FF_DBA_ORDER.indexOf(startP);
+    if (idx === -1) return [...FF_DBA_ORDER];
+    return [...FF_DBA_ORDER.slice(idx), ...FF_DBA_ORDER.slice(0, idx)];
+}
+
+// Permanent (Naisargika) Relationships Map
+// Values: "Friend", "Neutral", "Enemy"
+const NAISARGIKA_MAITRI = {
+    Sy: {
+        friends:  ["Ch", "Ma", "Ju"],
+        neutrals: ["Bu"],
+        enemies:  ["Ve", "Sa", "Ra", "Ke"]
+    },
+    Ch: {
+        friends:  ["Sy", "Bu"],
+        neutrals: ["Ma", "Ju", "Ve", "Sa"],
+        enemies:  ["Ra", "Ke"]
+    },
+    Ma: {
+        friends:  ["Sy", "Ch", "Ju", "Ke"],
+        neutrals: ["Ve", "Sa"],
+        enemies:  ["Bu", "Ra"]
+    },
+    Ra: {
+        friends:  ["Ju", "Ve", "Sa"],
+        neutrals: ["Bu"],
+        enemies:  ["Sy", "Ch", "Ma", "Ke"]
+    },
+    Ju: {
+        friends:  ["Sy", "Ch", "Ma"],
+        neutrals: ["Sa", "Ra", "Ke"],
+        enemies:  ["Bu", "Ve"]
+    },
+    Sa: {
+        friends:  ["Bu", "Ve", "Ra"],
+        neutrals: ["Ju"],
+        enemies:  ["Sy", "Ch", "Ma", "Ke"]
+    },
+    Bu: {
+        friends:  ["Sy", "Ve"],
+        neutrals: ["Ma", "Ju", "Sa", "Ra", "Ke"],
+        enemies:  ["Ch"]
+    },
+    Ke: {
+        friends:  ["Ma", "Ve"],
+        neutrals: ["Ju", "Bu"],
+        enemies:  ["Sy", "Ch", "Sa", "Ra"]
+    },
+    Ve: {
+        friends:  ["Bu", "Sa", "Ra", "Ke"],
+        neutrals: ["Ma", "Ju"],
+        enemies:  ["Sy", "Ch"]
+    }
+};
+
+function toggleFiveFoldRelationship() {
+    const box = document.getElementById("fiveFoldWrapper");
+    if (!box) return;
+    const isOpening = (box.style.display === "none");
+    box.style.display = isOpening ? "block" : "none";
+
+    if (isOpening) {
+        initFiveFoldDropdown();
+        renderFiveFoldTables();
+    }
+}
+
+function initFiveFoldDropdown() {
+    const sel = document.getElementById("fiveFoldVargaSelect");
+    if (sel && sel.options.length === 0) {
+        const vKeys = [1, 10, 9, 7, 2, 4, 8, 60, 11, 30, 21, 16, 6, 12, 3, 24, 27, 20, 40, 45, 5];
+        vKeys.forEach(v => {
+            const op = document.createElement("option");
+            op.value = v;
+            op.textContent = "D" + v;
+            sel.appendChild(op);
+        });
+        sel.value = 1;
+        if (typeof attachInfiniteScroll === "function") {
+            attachInfiniteScroll("fiveFoldVargaSelect", renderFiveFoldTables);
+            attachInfiniteScroll("fiveFoldStartPlanet", renderFiveFoldTables);
+        }
+    }
+}
+
+function toggleFfBasis(mode) {
+    const rBox = document.getElementById("ffBasisRashi");
+    const vBox = document.getElementById("ffBasisVisual");
+    if (mode === "rashi") {
+        if (rBox) rBox.checked = true;
+        if (vBox) vBox.checked = false;
+    } else {
+        if (vBox) vBox.checked = true;
+        if (rBox) rBox.checked = false;
+    }
+    renderFiveFoldTables();
+}
+
+function toggleFfView(view) {
+    const mBox = document.getElementById("ffViewMatrix");
+    const gBox = document.getElementById("ffViewGrouped");
+    if (view === "matrix") {
+        if (mBox) mBox.checked = true;
+        if (gBox) gBox.checked = false;
+    } else {
+        if (gBox) gBox.checked = true;
+        if (mBox) mBox.checked = false;
+    }
+    renderFiveFoldTables();
+}
+
+function getPermanentRelation(pFrom, pTo) {
+    if (pFrom === pTo) return "-";
+    const rules = NAISARGIKA_MAITRI[pFrom];
+    if (!rules) return "-";
+    if (rules.friends.includes(pTo)) return "Friend";
+    if (rules.neutrals.includes(pTo)) return "Neutral";
+    if (rules.enemies.includes(pTo)) return "Enemy";
+    return "-";
+}
+
+function combineFiveFold(permRel, tempRel) {
+    if (permRel === "-" || tempRel === "-") return "-";
+    if (permRel === "Friend" && tempRel === "Friend") return "Best Friend";
+    if (permRel === "Neutral" && tempRel === "Friend") return "Friend";
+    if ((permRel === "Friend" && tempRel === "Enemy") || (permRel === "Enemy" && tempRel === "Friend")) return "Neutral";
+    if (permRel === "Neutral" && tempRel === "Enemy") return "Enemy";
+    if (permRel === "Enemy" && tempRel === "Enemy") return "Bitter Enemy";
+    return "-";
+}
+
+function styleRelationCell(rel, isFiveFold = false) {
+    switch (rel) {
+        case "Best Friend":
+            return `<span style="color:#16f529; font-weight:900; background:rgba(22,245,41,0.12); padding:2px 7px; border-radius:4px; border:1px solid rgba(22,245,41,0.4);">Best Friend</span>`;
+        case "Friend":
+            return `<span style="color:#00d9ff; font-weight:bold;">Friend</span>`;
+        case "Neutral":
+            return `<span style="color:#facc15; font-weight:bold;">Neutral</span>`;
+        case "Enemy":
+            return isFiveFold
+                ? `<span style="color:#ff8800; font-weight:bold;">Enemy</span>`
+                : `<span style="color:#ff4444; font-weight:bold;">Enemy</span>`;
+        case "Bitter Enemy":
+            return `<span style="color:#ff2a40; font-weight:900; background:rgba(255,42,64,0.15); padding:2px 7px; border-radius:4px; border:1px solid rgba(255,42,64,0.4);">Bitter Enemy</span>`;
+        default:
+            return `<span style="color:#555;">---</span>`;
+    }
+}
+
+function renderFiveFoldTables() {
+    const permTbl = document.getElementById("ffPermanentTable");
+    const tempTbl = document.getElementById("ffTemporaryTable");
+    const compTbl = document.getElementById("ffCompositeTable");
+    if (!permTbl || !tempTbl || !compTbl) return;
+
+    if (!raw || !window._shodaRashi) {
+        permTbl.innerHTML = "<tr><td style='color:#ff4444; padding:20px; text-align:center; font-weight:bold;'>Please load Natal Profile data first...</td></tr>";
+        tempTbl.innerHTML = "";
+        compTbl.innerHTML = "";
+        return;
+    }
+
+    const v = parseInt(document.getElementById("fiveFoldVargaSelect")?.value || "1");
+    const useVisual = document.getElementById("ffBasisVisual")?.checked;
+    const isMatrixView = document.getElementById("ffViewMatrix")?.checked;
+    const modeKN = document.getElementById("modeKN")?.checked;
+    const activeOrder = getRotatedFfOrder();
+
+    document.getElementById("ffTitleFiveFold").innerHTML = `D-${v} FIVE-FOLD PLANETS RELATIONSHIP (PANCHADHA MAITRI)`;
+    document.getElementById("ffTitleTemp").innerHTML = `D-${v} TEMPORARY RELATIONSHIP TABLE (TATKALIKA MAITRI)`;
+    document.getElementById("ffTitlePerm").innerHTML = `D-${v} PERMANENT RELATIONSHIP TABLE (NAISARGIKA MAITRI)`;
+
+    const namesEN = {
+        Sy: "Sun", Ch: "Moon", Ma: "Mars", Ra: "Rahu",
+        Ju: "Jupiter", Sa: "Saturn", Bu: "Mercury", Ke: "Ketu", Ve: "Venus"
+    };
+    const namesKN = {
+        Sy: "\u0CB0\u0CB5\u0CBF (Sun)", Ch: "\u0C9A\u0C82\u0CA6\u0CCD\u0CB0 (Moon)", Ma: "\u0C95\u0CC1\u0C9C (Mars)",
+        Ra: "\u0CB0\u0CBE\u0CB9\u0CC1 (Rahu)", Ju: "\u0C97\u0CC1\u0CB0\u0CC1 (Jup)", Sa: "\u0CB6\u0CA8\u0CBF (Sat)",
+        Bu: "\u0CAC\u0CC1\u0CA7 (Mer)", Ke: "\u0C95\u0CC7\u0CA4\u0CC1 (Ketu)", Ve: "\u0CB6\u0CC1\u0C95\u0CCD\u0CB0 (Ven)"
+    };
+    const shortNamesKN = {
+        Sy: "\u0CB0\u0CB5\u0CBF", Ch: "\u0C9A\u0C82\u0CA6\u0CCD\u0CB0", Ma: "\u0C95\u0CC1\u0C9C",
+        Ra: "\u0CB0\u0CBE\u0CB9\u0CC1", Ju: "\u0C97\u0CC1\u0CB0\u0CC1", Sa: "\u0CB6\u0CA8\u0CBF",
+        Bu: "\u0CAC\u0CC1\u0CA7", Ke: "\u0C95\u0CC7\u0CA4\u0CC1", Ve: "\u0CB6\u0CC1\u0C95\u0CCD\u0CB0"
+    };
+
+    const getLabel = (code, isHeader = false) => {
+        if (modeKN) return isHeader ? shortNamesKN[code] : namesKN[code];
+        return namesEN[code];
+    };
+
+    // Update the dynamic DBA / Vimshottari Order indicator text
+    const orderIndicator = document.getElementById("ffOrderIndicator");
+    if (orderIndicator) {
+        const orderStr = activeOrder.map(code => getLabel(code, true)).join(" &rarr; ");
+        orderIndicator.innerHTML = `DBA / Vimshottari Order: &nbsp;<span style="color:#facc15;">${orderStr}</span>`;
+    }
+
+    // Determine 1-12 sign/box index for each planet in D-v
+    const pPos = {};
+    const chartData = window._vargaChartStore ? window._vargaChartStore[v] : null;
+    const rashiData = window._shodaRashi ? window._shodaRashi[v] : null;
+
+    activeOrder.forEach(p => {
+        if (useVisual && chartData) {
+            for (let s = 0; s < 12; s++) {
+                if (chartData[s].some(x => x.n === p)) {
+                    pPos[p] = s + 1;
+                    break;
+                }
+            }
+        }
+        if (!pPos[p] && rashiData && rashiData[p] && rashiData[p] !== "-") {
+            pPos[p] = parseInt(rashiData[p]);
+        }
+    });
+
+    // Helper: Calculate Temporary Relation (2,3,4,10,11,12 = Friend; 1,5,6,7,8,9 = Enemy)
+    function getTempRelation(pFrom, pTo) {
+        if (pFrom === pTo) return "-";
+        const posA = pPos[pFrom];
+        const posB = pPos[pTo];
+        if (!posA || !posB) return "-";
+        const houseDist = ((posB - posA + 12) % 12) + 1;
+        const tempFriendHouses = [2, 3, 4, 10, 11, 12];
+        return tempFriendHouses.includes(houseDist) ? "Friend" : "Enemy";
+    }
+
+    if (isMatrixView) {
+        // ==========================================
+        // VIEW 1: 9x9 PLANET-TO-PLANET MATRIX VIEW
+        // ==========================================
+        let headerRow = `<tr><th style="background:#2d0066; color:#facc15;">Planet</th>`;
+        activeOrder.forEach(p => {
+            headerRow += `<th style="background:#660033; color:#facc15;">${getLabel(p, true)}</th>`;
+        });
+        headerRow += `</tr>`;
+
+        let permHtml = headerRow;
+        let tempHtml = headerRow;
+        let compHtml = headerRow;
+
+        activeOrder.forEach(pFrom => {
+            let pRowPerm = `<tr><td style="background:#2d0066; color:#facc15; font-weight:900;">${getLabel(pFrom)}</td>`;
+            let pRowTemp = `<tr><td style="background:#2d0066; color:#facc15; font-weight:900;">${getLabel(pFrom)}</td>`;
+            let pRowComp = `<tr><td style="background:#2d0066; color:#facc15; font-weight:900;">${getLabel(pFrom)}</td>`;
+
+            activeOrder.forEach(pTo => {
+                const permRel = getPermanentRelation(pFrom, pTo);
+                const tempRel = getTempRelation(pFrom, pTo);
+                const compRel = combineFiveFold(permRel, tempRel);
+
+                pRowPerm += `<td>${styleRelationCell(permRel, false)}</td>`;
+                pRowTemp += `<td>${styleRelationCell(tempRel, false)}</td>`;
+                pRowComp += `<td>${styleRelationCell(compRel, true)}</td>`;
+            });
+
+            permHtml += pRowPerm + `</tr>`;
+            tempHtml += pRowTemp + `</tr>`;
+            compHtml += pRowComp + `</tr>`;
+        });
+
+        permTbl.innerHTML = permHtml;
+        tempTbl.innerHTML = tempHtml;
+        compTbl.innerHTML = compHtml;
+
+    } else {
+        // ==========================================
+        // VIEW 2: GROUPED SUMMARY TABLE VIEW
+        // ==========================================
+        // 1. Permanent Grouped
+        let permHtml = `<tr>
+            <th style="background:#2d0066; color:#facc15; width:16%;">Planet</th>
+            <th style="background:#660033; color:#00d9ff; width:28%;">Permanent Friends</th>
+            <th style="background:#660033; color:#facc15; width:28%;">Permanent Neutrals</th>
+            <th style="background:#660033; color:#ff4444; width:28%;">Permanent Enemies</th>
+        </tr>`;
+
+        // 2. Temporary Grouped
+        let tempHtml = `<tr>
+            <th style="background:#2d0066; color:#facc15; width:16%;">Planet</th>
+            <th style="background:#660033; color:#00d9ff; width:42%;">Temporary Friends (2, 3, 4, 10, 11, 12)</th>
+            <th style="background:#660033; color:#ff4444; width:42%;">Temporary Enemies (1, 5, 6, 7, 8, 9)</th>
+        </tr>`;
+
+        // 3. Five-Fold Grouped
+        let compHtml = `<tr>
+            <th style="background:#2d0066; color:#facc15; width:14%;">Planet</th>
+            <th style="background:#660033; color:#16f529; width:17%;">Best Friend (Adhi Mitra)</th>
+            <th style="background:#660033; color:#00d9ff; width:17%;">Friend (Mitra)</th>
+            <th style="background:#660033; color:#facc15; width:18%;">Neutral (Sama)</th>
+            <th style="background:#660033; color:#ff8800; width:17%;">Enemy (Shatru)</th>
+            <th style="background:#660033; color:#ff2a40; width:17%;">Bitter Enemy (Adhi Shatru)</th>
+        </tr>`;
+
+        activeOrder.forEach(pFrom => {
+            let pFriends = [], pNeutrals = [], pEnemies = [];
+            let tFriends = [], tEnemies = [];
+            let ffBest = [], ffFriend = [], ffNeutral = [], ffEnemy = [], ffBitter = [];
+
+            // Iterate in rotated DBA order so planets inside every cell also appear in the rotated DBA order
+            activeOrder.forEach(pTo => {
+                if (pFrom === pTo) return;
+                const pName = getLabel(pTo, true);
+
+                const permRel = getPermanentRelation(pFrom, pTo);
+                if (permRel === "Friend") pFriends.push(pName);
+                else if (permRel === "Neutral") pNeutrals.push(pName);
+                else if (permRel === "Enemy") pEnemies.push(pName);
+
+                const tempRel = getTempRelation(pFrom, pTo);
+                if (tempRel === "Friend") tFriends.push(pName);
+                else if (tempRel === "Enemy") tEnemies.push(pName);
+
+                const compRel = combineFiveFold(permRel, tempRel);
+                if (compRel === "Best Friend") ffBest.push(pName);
+                else if (compRel === "Friend") ffFriend.push(pName);
+                else if (compRel === "Neutral") ffNeutral.push(pName);
+                else if (compRel === "Enemy") ffEnemy.push(pName);
+                else if (compRel === "Bitter Enemy") ffBitter.push(pName);
+            });
+
+            permHtml += `<tr>
+                <td style="background:#2d0066; color:#facc15; font-weight:900;">${getLabel(pFrom)}</td>
+                <td style="color:#00d9ff; font-weight:bold;">${pFriends.join(", ") || "-"}</td>
+                <td style="color:#facc15; font-weight:bold;">${pNeutrals.join(", ") || "-"}</td>
+                <td style="color:#ff4444; font-weight:bold;">${pEnemies.join(", ") || "-"}</td>
+            </tr>`;
+
+            tempHtml += `<tr>
+                <td style="background:#2d0066; color:#facc15; font-weight:900;">${getLabel(pFrom)}</td>
+                <td style="color:#00d9ff; font-weight:bold;">${tFriends.join(", ") || "-"}</td>
+                <td style="color:#ff4444; font-weight:bold;">${tEnemies.join(", ") || "-"}</td>
+            </tr>`;
+
+            compHtml += `<tr>
+                <td style="background:#2d0066; color:#facc15; font-weight:900;">${getLabel(pFrom)}</td>
+                <td style="color:#16f529; font-weight:bold;">${ffBest.join(", ") || "-"}</td>
+                <td style="color:#00d9ff; font-weight:bold;">${ffFriend.join(", ") || "-"}</td>
+                <td style="color:#facc15; font-weight:bold;">${ffNeutral.join(", ") || "-"}</td>
+                <td style="color:#ff8800; font-weight:bold;">${ffEnemy.join(", ") || "-"}</td>
+                <td style="color:#ff2a40; font-weight:bold;">${ffBitter.join(", ") || "-"}</td>
+            </tr>`;
+        });
+
+        permTbl.innerHTML = permHtml;
+        tempTbl.innerHTML = tempHtml;
+        compTbl.innerHTML = compHtml;
+    }
+
+    // Attach interactive crosshair hover & click highlights
+    if (typeof attachMemoryEvents === "function") {
+        setTimeout(() => {
+            attachMemoryEvents(permTbl);
+            attachMemoryEvents(tempTbl);
+            attachMemoryEvents(compTbl);
+        }, 50);
+    }
+}
+
+// Automatically update Five-Fold tables when profile, time, or chart modes change
+window.addEventListener("DOMContentLoaded", () => {
+    initFiveFoldDropdown();
+
+    const origCalcFF = window.calc;
+    window.calc = function() {
+        if (typeof origCalcFF === "function") origCalcFF();
+        try {
+            const box = document.getElementById("fiveFoldWrapper");
+            if (box && box.style.display !== "none") {
+                renderFiveFoldTables();
+            }
+        } catch(e) {}
+    };
+
+    const watchIdsFF = ["dobField", "tobField", "aya", "useTrueNode", "topNode", "modeKN", "modeKP", "modeSign2Sign", "modeVedic", "topKP", "topSign", "topVedic", "pivot", "topBarPivot", "shiftedLagnaToggle", "topShift"];
+    watchIdsFF.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener("change", () => setTimeout(renderFiveFoldTables, 40));
+        }
+    });
+});
+</script>
 
 
 
@@ -3497,6 +3990,510 @@ function attachVedicInteractions(tableId) {
 
 
 
+
+
+<!-- Mrithyu Bhaga Code  -->
+
+
+<!-- ======================================== -->
+<!-- MRITHYU BHAGA TABLE SECTION (UPGRADED)   -->
+<!-- ======================================== -->
+<div class="division-title" onclick="toggleMrithyuBhaga()">
+    Mrithyu Bhaga Table &#9660;
+</div>
+
+<div id="mrithyuBhagaWrapper" class="shoda-wrapper" style="display:none; padding-bottom: 40px;">
+    
+    <!-- TOP CONTROL BAR -->
+    <div style="background:#0a0a0a; border:1px solid var(--grid-line); padding:12px 18px; margin-bottom:16px; display:flex; justify-content:center; align-items:center; gap:24px; flex-wrap:wrap; border-radius:4px;">
+        
+        <!-- Divisional Chart Dropdown -->
+        <div style="display:flex; align-items:center; gap:8px;">
+            <label style="color:var(--grid-line); font-weight:bold; font-size:15px;">
+                CHART:
+            </label>
+            <select id="mbVargaSelect" onchange="renderMrithyuBhagaTable()" style="background:#000;color:#fff;border:1px solid var(--grid-line); padding:5px 10px;font-size:15px;font-weight:bold;cursor:pointer;">
+            </select>
+        </div>
+
+        <span style="color:#444;">|</span>
+
+        <!-- Version Checkboxes: Phala Deepika vs Jataka Parijata -->
+        <div style="display:flex; align-items:center; gap:14px;">
+            <span style="color:#aaa; font-size:13px; font-weight:bold;">TEXT:</span>
+            <label style="color:#10b981; font-weight:bold; font-size:14px; cursor:pointer; display:flex; align-items:center; gap:5px;">
+                <input type="checkbox" id="mbVerPhala" checked onchange="toggleMbVersion('phala')">
+                Phala Deepika
+            </label>
+            <label style="color:#0bf4e6; font-weight:bold; font-size:14px; cursor:pointer; display:flex; align-items:center; gap:5px;">
+                <input type="checkbox" id="mbVerJataka" onchange="toggleMbVersion('jataka')">
+                Jataka Parijata
+            </label>
+        </div>
+
+        <span style="color:#444;">|</span>
+
+        <!-- Degree Calculation Mode: Pure Sidereal vs Live KP/Vedic Shift -->
+        <div style="display:flex; align-items:center; gap:14px;">
+            <span style="color:#aaa; font-size:13px; font-weight:bold;">DEGREE:</span>
+            <label style="color:#facc15; font-weight:bold; font-size:14px; cursor:pointer; display:flex; align-items:center; gap:5px;" title="Standard astronomical longitude (Lagna moves fast with time, planets move at true daily speed)">
+                <input type="checkbox" id="mbDegPure" checked onchange="toggleMbDegMode('pure')">
+                Pure Sidereal
+            </label>
+            <label style="color:#ff8800; font-weight:bold; font-size:14px; cursor:pointer; display:flex; align-items:center; gap:5px;" title="Syncs with your active KP / Vedic / Pivot visual chart degrees so all planets shift immediately when you adjust time">
+                <input type="checkbox" id="mbDegVisual" onchange="toggleMbDegMode('visual')">
+                Sync KP/Vedic Shift
+            </label>
+        </div>
+
+        <span style="color:#444;">|</span>
+
+        <!-- Orb Mode: Standard 1.5° vs Lunar Astro Tight Orb -->
+        <div style="display:flex; align-items:center; gap:14px;">
+            <span style="color:#aaa; font-size:13px; font-weight:bold;">ORB:</span>
+            <label style="color:#c084fc; font-weight:bold; font-size:14px; cursor:pointer; display:flex; align-items:center; gap:5px;" title="High <= 0°30', Medium <= 1°00', Low <= 1°30'">
+                <input type="checkbox" id="mbOrbWide" checked onchange="toggleMbOrbMode('wide')">
+                1&deg;30' Standard
+            </label>
+            <label style="color:#f43f5e; font-weight:bold; font-size:14px; cursor:pointer; display:flex; align-items:center; gap:5px;" title="Lunar Astro Rules: Lagna/Moon/Mercury ±40', Sun ±20', Others ±15'">
+                <input type="checkbox" id="mbOrbLunar" onchange="toggleMbOrbMode('lunar')">
+                Lunar Astro Orb
+            </label>
+        </div>
+
+    </div>
+
+    <div class="shoda-title" id="mbMainHeading">MRITHYU BHAGA ANALYSIS (PHALA DEEPIKA)</div>
+    <div id="mbOrbLegend" style="text-align:center; color:#ccc; font-size:13px; margin-top:-5px; margin-bottom:15px;">
+    </div>
+
+    <div style="display:flex; justify-content:center; overflow-x:auto; width: 100%;">
+        <table id="mrithyuBhagaTableMain" class="shoda-table" style="max-width:1150px; margin-bottom:0; width:100%;"></table>
+    </div>
+
+</div>
+
+<script>
+// 1. PHALA DEEPIKA & BRIHAT PRAJAPATYAM TABLE (Default)
+const MB_TABLE_PHALA_DEEPIKA = {
+    "Lagna":   [1, 9, 22, 22, 25, 2, 4, 23, 18, 20, 24, 10],
+    "Surya":   [20, 9, 12, 6, 8, 24, 16, 17, 22, 2, 3, 23],
+    "Chandra": [26, 12, 13, 25, 24, 11, 26, 14, 13, 25, 5, 12],
+    "Mangala": [19, 28, 25, 23, 29, 28, 14, 21, 2, 15, 11, 6],
+    "Budha":   [15, 14, 13, 12, 8, 18, 20, 10, 21, 22, 7, 5],
+    "Jupiter": [19, 29, 12, 27, 6, 4, 13, 10, 17, 11, 15, 28],
+    "Venus":   [28, 15, 11, 17, 10, 13, 4, 6, 27, 12, 29, 19],
+    "Saturn":  [10, 4, 7, 9, 12, 16, 3, 18, 28, 14, 13, 15],
+    "Rahu":    [14, 13, 12, 11, 24, 23, 22, 21, 10, 20, 18, 8],
+    "Ketu":    [8, 18, 20, 10, 21, 22, 23, 24, 11, 12, 13, 14],
+    "Mandi":   [23, 24, 11, 12, 13, 14, 8, 18, 20, 10, 21, 22]
+};
+
+// 2. JATAKA PARIJATA & SARVARTHA CHINTAMANI TABLE
+const MB_TABLE_JATAKA_PARIJATA = {
+    "Lagna":   [1, 9, 22, 22, 25, 2, 4, 23, 18, 20, 24, 10],
+    "Surya":   [20, 9, 12, 6, 8, 24, 16, 17, 22, 2, 3, 23],
+    "Chandra": [8, 25, 22, 22, 21, 1, 4, 23, 18, 20, 20, 10],
+    "Mangala": [19, 28, 25, 23, 29, 28, 14, 21, 2, 15, 11, 6],
+    "Budha":   [15, 14, 13, 12, 8, 18, 20, 10, 21, 22, 7, 5],
+    "Jupiter": [19, 29, 12, 27, 6, 4, 13, 10, 17, 11, 15, 28],
+    "Venus":   [28, 15, 11, 17, 10, 13, 4, 6, 27, 12, 29, 19],
+    "Saturn":  [10, 4, 7, 9, 12, 16, 3, 18, 28, 14, 13, 15],
+    "Rahu":    [14, 13, 12, 11, 24, 23, 22, 21, 10, 20, 18, 8],
+    "Ketu":    [8, 18, 20, 10, 21, 22, 23, 24, 11, 12, 13, 14],
+    "Mandi":   [23, 24, 11, 12, 13, 14, 8, 18, 20, 10, 21, 22]
+};
+
+function toggleMbVersion(ver) {
+    const pBox = document.getElementById("mbVerPhala");
+    const jBox = document.getElementById("mbVerJataka");
+    if (ver === "phala") {
+        if (pBox) pBox.checked = true;
+        if (jBox) jBox.checked = false;
+    } else {
+        if (jBox) jBox.checked = true;
+        if (pBox) pBox.checked = false;
+    }
+    renderMrithyuBhagaTable();
+}
+
+function toggleMbDegMode(mode) {
+    const pureBox = document.getElementById("mbDegPure");
+    const visBox = document.getElementById("mbDegVisual");
+    if (mode === "pure") {
+        if (pureBox) pureBox.checked = true;
+        if (visBox) visBox.checked = false;
+    } else {
+        if (visBox) visBox.checked = true;
+        if (pureBox) pureBox.checked = false;
+    }
+    renderMrithyuBhagaTable();
+}
+
+function toggleMbOrbMode(mode) {
+    const wideBox = document.getElementById("mbOrbWide");
+    const lunarBox = document.getElementById("mbOrbLunar");
+    if (mode === "wide") {
+        if (wideBox) wideBox.checked = true;
+        if (lunarBox) lunarBox.checked = false;
+    } else {
+        if (lunarBox) lunarBox.checked = true;
+        if (wideBox) wideBox.checked = false;
+    }
+    renderMrithyuBhagaTable();
+}
+
+function toggleMrithyuBhaga() {
+    const box = document.getElementById("mrithyuBhagaWrapper");
+    if (!box) return;
+    const isOpening = (box.style.display === "none");
+    box.style.display = isOpening ? "block" : "none";
+    
+    if (isOpening) {
+        initMbDropdown();
+        renderMrithyuBhagaTable();
+    }
+}
+
+function initMbDropdown() {
+    const sel = document.getElementById("mbVargaSelect");
+    if (sel && sel.options.length === 0) {
+        const vKeys = [1, 10, 9, 7, 2, 4, 8, 60, 11, 30, 21, 16, 6, 12, 3, 24, 27, 20, 40, 45, 5];
+        vKeys.forEach(v => {
+            const op = document.createElement("option");
+            op.value = v;
+            op.textContent = "D" + v;
+            sel.appendChild(op);
+        });
+        sel.value = 1;
+        if (typeof attachInfiniteScroll === "function") {
+            attachInfiniteScroll('mbVargaSelect', renderMrithyuBhagaTable);
+        }
+    }
+}
+
+function getPureVargaSignAndDegForMB(rawDeg, v) {
+    if (rawDeg === undefined || rawDeg === null || isNaN(rawDeg)) return { sign: 0, deg: 0 };
+    rawDeg = ((rawDeg % 360) + 360) % 360;
+    
+    if (v === 1) {
+        return { sign: Math.floor(rawDeg / 30), deg: rawDeg % 30 };
+    }
+    if (v === 30) {
+        const sign = Math.floor(rawDeg / 30);
+        const deg = rawDeg % 30;
+        const isOdd = (sign % 2 === 0);
+        let start, length, targetSign;
+        if (isOdd) {
+            if (deg < 5) { start = 0; length = 5; targetSign = 0; }
+            else if (deg < 10) { start = 5; length = 5; targetSign = 10; }
+            else if (deg < 18) { start = 10; length = 8; targetSign = 8; }
+            else if (deg < 25) { start = 18; length = 7; targetSign = 2; }
+            else { start = 25; length = 5; targetSign = 6; }
+        } else {
+            if (deg < 5) { start = 0; length = 5; targetSign = 1; }
+            else if (deg < 12) { start = 5; length = 7; targetSign = 5; }
+            else if (deg < 20) { start = 12; length = 8; targetSign = 11; }
+            else if (deg < 25) { start = 20; length = 5; targetSign = 9; }
+            else { start = 25; length = 5; targetSign = 7; }
+        }
+        return { sign: targetSign, deg: ((deg - start) / length) * 30 };
+    }
+    if (v === 5) {
+        const sign = Math.floor(rawDeg / 30);
+        const deg = rawDeg % 30;
+        const part = Math.floor(deg / 6);
+        const isOdd = (sign % 2 === 0);
+        const oddCycle = [0, 10, 8, 2, 6];
+        const evenCycle = [1, 5, 11, 9, 7];
+        const targetSign = isOdd ? oddCycle[part] : evenCycle[part];
+        return { sign: targetSign, deg: ((deg % 6) / 6) * 30 };
+    }
+    const targetSign = typeof getVSign === "function" ? getVSign(rawDeg, v) : Math.floor(rawDeg / 30);
+    const vDeg = (rawDeg * v) % 30;
+    return { sign: targetSign, deg: vDeg };
+}
+
+function formatDMS_MB(deg) {
+    let d = Math.floor(deg);
+    let rem = (deg - d) * 60;
+    let m = Math.floor(rem);
+    let s = Math.round((rem - m) * 60);
+    if (s === 60) { s = 0; m++; }
+    if (m === 60) { m = 0; d++; }
+    return `${String(d).padStart(2, '0')}&deg; ${String(m).padStart(2, '0')}' ${String(s).padStart(2, '0')}"`;
+}
+
+function renderMrithyuBhagaTable() {
+    const tbl = document.getElementById("mrithyuBhagaTableMain");
+    if (!tbl) return;
+
+    if (!raw) {
+        tbl.innerHTML = "<tr><td style='color:#ff4444; padding:20px; text-align:center; font-weight:bold;'>Please load Natal Profile data first...</td></tr>";
+        return;
+    }
+
+    const v = parseInt(document.getElementById("mbVargaSelect")?.value || "1");
+    const aya = document.getElementById("aya")?.value || "Lahiri";
+    const d_raw = raw.ayanamshas ? raw.ayanamshas[aya] : raw;
+    if (!d_raw) return;
+
+    const isJataka = document.getElementById("mbVerJataka")?.checked;
+    const isVisualMode = document.getElementById("mbDegVisual")?.checked;
+    const isLunarOrb = document.getElementById("mbOrbLunar")?.checked;
+    const activeMBTable = isJataka ? MB_TABLE_JATAKA_PARIJATA : MB_TABLE_PHALA_DEEPIKA;
+
+    // Update Heading & Legend
+    const headingEl = document.getElementById("mbMainHeading");
+    if (headingEl) {
+        headingEl.innerHTML = `D-${v} MRITHYU BHAGA ANALYSIS (${isJataka ? "JATAKA PARIJATA" : "PHALA DEEPIKA"})`;
+    }
+
+    const legendEl = document.getElementById("mbOrbLegend");
+    if (legendEl) {
+        if (isLunarOrb) {
+            legendEl.innerHTML = `Lunar Astro Orbs (Max Trigger Range: <b>Lagna/Moon/Mer &le; 40'</b>, <b>Sun &le; 20'</b>, <b>Others &le; 15'</b>): &nbsp;<span style="color:#ff2a40; font-weight:bold;">High (Inner 33%)</span> &nbsp;|&nbsp; <span style="color:#ff8800; font-weight:bold;">Medium (Mid 66%)</span> &nbsp;|&nbsp; <span style="color:#facc15; font-weight:bold;">Low (100% Max Orb)</span>`;
+        } else {
+            legendEl.innerHTML = `Standard Range Triggers (Distance from MB Degree): &nbsp;<span style="color:#ff2a40; font-weight:bold;">High (&le; 0&deg;30')</span> &nbsp;|&nbsp; <span style="color:#ff8800; font-weight:bold;">Medium (&le; 1&deg;00')</span> &nbsp;|&nbsp; <span style="color:#facc15; font-weight:bold;">Low (&le; 1&deg;30')</span>`;
+        }
+    }
+
+    const signNames = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
+    const modeKN = document.getElementById("modeKN")?.checked;
+
+    const dispNamesEN = {
+        "Lagna": "Lagna (ASC)",
+        "Surya": "Sun (Surya)",
+        "Chandra": "Moon (Chandra)",
+        "Mangala": "Mars (Mangala)",
+        "Budha": "Mercury (Budha)",
+        "Jupiter": "Jupiter (Guru)",
+        "Venus": "Venus (Shukra)",
+        "Saturn": "Saturn (Shani)",
+        "Rahu": "Rahu",
+        "Ketu": "Ketu",
+        "Mandi": "Mandi"
+    };
+
+    const dispNamesKN = {
+        "Lagna": "\u0CB2\u0C97\u0CCD\u0CA8 (Lagna)",
+        "Surya": "\u0CB0\u0CB5\u0CBF (Sun)",
+        "Chandra": "\u0C9A\u0C82\u0CA6\u0CCD\u0CB0 (Moon)",
+        "Mangala": "\u0C95\u0CC1\u0C9C (Mars)",
+        "Budha": "\u0CAC\u0CC1\u0CA7 (Mercury)",
+        "Jupiter": "\u0C97\u0CC1\u0CB0\u0CC1 (Jupiter)",
+        "Venus": "\u0CB6\u0CC1\u0C95\u0CCD\u0CB0 (Venus)",
+        "Saturn": "\u0CB6\u0CA8\u0CBF (Saturn)",
+        "Rahu": "\u0CB0\u0CBE\u0CB9\u0CC1 (Rahu)",
+        "Ketu": "\u0C95\u0CC7\u0CA4\u0CC1 (Ketu)",
+        "Mandi": "\u0CAE\u0CBE\u0C82\u0CA6\u0CBF (Mandi)"
+    };
+
+    const shortCodeMap = {
+        "Lagna": "ASC", "Surya": "Sy", "Chandra": "Ch", "Mangala": "Ma",
+        "Budha": "Bu", "Jupiter": "Ju", "Venus": "Ve", "Saturn": "Sa",
+        "Rahu": "Ra", "Ketu": "Ke"
+    };
+
+    // Calculate live time difference directly from DOM / globals so time shifts ALWAYS register immediately
+    let diffMs = 0;
+    if (typeof originalDateTime !== "undefined" && typeof currentDateTime !== "undefined" && originalDateTime && currentDateTime) {
+        diffMs = currentDateTime - originalDateTime;
+    } else {
+        const dStr = document.getElementById('dobField')?.value;
+        const tStr = document.getElementById('tobField')?.value;
+        if (dStr && tStr && raw.meta?.datetime_utc) {
+            diffMs = new Date(dStr + "T" + tStr) - new Date(raw.meta.datetime_utc);
+        }
+    }
+    const diffMinutes = diffMs / 60000;
+    const diffDays = diffMinutes / 1440;
+
+    let lagnaDeg = (parseFloat(d_raw.lagna || 0) + (diffMinutes * 0.25)) % 360;
+    if (lagnaDeg < 0) lagnaDeg += 360;
+
+    const PLANET_SPEED = {
+        Surya: 0.9856, Chandra: 13.176, Mangala: 0.524, Budha: 1.2,
+        Jupiter: 0.083, Venus: 1.18, Saturn: 0.033, Rahu: -0.05295, Ketu: -0.05295, Mandi: 0.25 * 1440
+    };
+
+    const planetKeys = ["Lagna", "Surya", "Chandra", "Mangala", "Rahu", "Jupiter", "Saturn", "Budha", "Ketu", "Venus"];
+    if (d_raw.planets && (d_raw.planets["Mandi"] !== undefined || d_raw.planets["Gulika"] !== undefined)) {
+        planetKeys.push("Mandi");
+    }
+
+    let html = `<tr>
+        <th style="color:#facc15;">Planet</th>
+        <th style="color:#facc15;">Sign (with Degree)</th>
+        <th style="color:#facc15;">Mrithyu Bhaga Degree</th>
+        <th style="color:#facc15;">Distance from MB</th>
+        <th style="color:#facc15;">Result</th>
+    </tr>`;
+
+    planetKeys.forEach(pKey => {
+        let signIdx = -1;
+        let pDegInSign = -1;
+
+        // Option A: Sync with KP / Vedic / Pivot visual chart store if checked
+        if (isVisualMode && window._vargaChartStore && window._vargaChartStore[v] && shortCodeMap[pKey]) {
+            const chart = window._vargaChartStore[v];
+            const code = shortCodeMap[pKey];
+            for (let s = 0; s < 12; s++) {
+                const found = chart[s].find(x => (code === "ASC" ? x.isAsc : x.n === code));
+                if (found) {
+                    signIdx = s;
+                    pDegInSign = found.d;
+                    break;
+                }
+            }
+        }
+
+        // Option B: Pure Sidereal Longitude (with live time progression)
+        if (signIdx === -1 || pDegInSign === -1) {
+            let rawDeg = -1;
+            if (pKey === "Lagna") {
+                rawDeg = lagnaDeg;
+            } else if (pKey === "Mandi") {
+                let baseMandi = parseFloat(d_raw.planets["Mandi"] ?? d_raw.planets["Gulika"] ?? -1);
+                if (baseMandi !== -1) {
+                    rawDeg = (baseMandi + (diffMinutes * 0.25)) % 360;
+                    if (rawDeg < 0) rawDeg += 360;
+                }
+            } else {
+                let isTrueNode = document.getElementById("useTrueNode")?.checked;
+                let baseP = undefined;
+                if (isTrueNode && (pKey === "Rahu" || pKey === "Ketu") && d_raw.planets[pKey + "_true"] !== undefined) {
+                    baseP = parseFloat(d_raw.planets[pKey + "_true"]);
+                } else if (d_raw.planets && d_raw.planets[pKey] !== undefined) {
+                    baseP = parseFloat(d_raw.planets[pKey]);
+                }
+                if (baseP !== undefined && !isNaN(baseP)) {
+                    let spd = PLANET_SPEED[pKey] || 0;
+                    rawDeg = (baseP + (spd * diffDays)) % 360;
+                    if (rawDeg < 0) rawDeg += 360;
+                }
+            }
+
+            if (rawDeg === -1 || isNaN(rawDeg)) return;
+            const vPos = getPureVargaSignAndDegForMB(rawDeg, v);
+            signIdx = vPos.sign;
+            pDegInSign = vPos.deg;
+        }
+
+        const signName = signNames[signIdx] || "-";
+        const mbDeg = activeMBTable[pKey] ? activeMBTable[pKey][signIdx] : null;
+        if (mbDeg === null || mbDeg === undefined) return;
+
+        // Shortest arc distance inside the sign
+        const dist = Math.abs(pDegInSign - mbDeg);
+
+        // Determine High / Medium / Low thresholds based on selected Orb Mode
+        let highLimit = 0.5;   // 0° 30'
+        let medLimit  = 1.0;   // 1° 00'
+        let lowLimit  = 1.5;   // 1° 30'
+
+        if (isLunarOrb) {
+            // Lunar Astro specific max orbs: Lagna/Moon/Mercury = 40' (0.6667°), Sun = 20' (0.3333°), Others = 15' (0.25°)
+            let maxOrb = 15 / 60;
+            if (pKey === "Lagna" || pKey === "Chandra" || pKey === "Budha") maxOrb = 40 / 60;
+            else if (pKey === "Surya") maxOrb = 20 / 60;
+
+            highLimit = maxOrb / 3;
+            medLimit  = (maxOrb * 2) / 3;
+            lowLimit  = maxOrb;
+        }
+
+        // Trigger Result ONLY when in range; leave completely empty when out of range
+        let resultText = "";
+        let resultStyle = "";
+
+        if (dist <= highLimit) {
+            resultText = "High";
+            resultStyle = "color:#ff2a40; font-weight:900; background:rgba(255, 42, 64, 0.16);";
+        } else if (dist <= medLimit) {
+            resultText = "Medium";
+            resultStyle = "color:#ff8800; font-weight:900; background:rgba(255, 136, 0, 0.16);";
+        } else if (dist <= lowLimit) {
+            resultText = "Low";
+            resultStyle = "color:#facc15; font-weight:900; background:rgba(250, 204, 21, 0.14);";
+        }
+
+        const pDisplay = modeKN ? (dispNamesKN[pKey] || pKey) : (dispNamesEN[pKey] || pKey);
+
+        // Highlight Moon's MB degree cell slightly when Jataka Parijata is active so user sees the difference clearly
+        const mbDegColor = (isJataka && pKey === "Chandra") ? "#0bf4e6" : "#facc15";
+
+        html += `<tr>
+            <td style="font-weight:bold; color:#0bf4e6;">${pDisplay}</td>
+            <td style="font-weight:bold;">${signName} &nbsp;<span style="color:#10b981; font-family:monospace; font-size:13px;">(${formatDMS_MB(pDegInSign)})</span></td>
+            <td style="font-weight:bold; color:${mbDegColor};">${String(mbDeg).padStart(2, '0')}&deg; 00' 00"</td>
+            <td style="font-family:monospace; font-size:14px; font-weight:bold;">${formatDMS_MB(dist)}</td>
+            <td style="${resultStyle}">${resultText}</td>
+        </tr>`;
+    });
+
+    tbl.innerHTML = html;
+
+    if (typeof attachMemoryEvents === "function") {
+        setTimeout(() => attachMemoryEvents(tbl), 50);
+    }
+}
+
+// 🔥 GUARANTEED LIVE REFRESH HOOKS (ATTACHED AFTER FULL DOM & CALC ENGINE LOAD) 🔥
+window.addEventListener("DOMContentLoaded", () => {
+    initMbDropdown();
+
+    // 1. Wrap window.calc AFTER line 2515 has defined it
+    const origCalcForMB = window.calc;
+    window.calc = function() {
+        if (typeof origCalcForMB === "function") origCalcForMB();
+        try {
+            const box = document.getElementById("mrithyuBhagaWrapper");
+            if (box && box.style.display !== "none") {
+                renderMrithyuBhagaTable();
+            }
+        } catch(e) {}
+    };
+
+    // 2. Wrap shiftTime and resetTime directly so every click on -10s/+10s/-1m/+1m/R updates immediately
+    const origShiftTimeMB = window.shiftTime;
+    if (typeof origShiftTimeMB === "function") {
+        window.shiftTime = function(sec) {
+            origShiftTimeMB(sec);
+            try {
+                const box = document.getElementById("mrithyuBhagaWrapper");
+                if (box && box.style.display !== "none") renderMrithyuBhagaTable();
+            } catch(e) {}
+        };
+    }
+
+    const origResetTimeMB = window.resetTime;
+    if (typeof origResetTimeMB === "function") {
+        window.resetTime = function() {
+            origResetTimeMB();
+            try {
+                const box = document.getElementById("mrithyuBhagaWrapper");
+                if (box && box.style.display !== "none") renderMrithyuBhagaTable();
+            } catch(e) {}
+        };
+    }
+
+    // 3. Direct listeners on controls (Date/Time inputs, Ayanamsha, Modes, True Node)
+    const watchIds = ["dobField", "tobField", "aya", "useTrueNode", "topNode", "modeKN", "modeKP", "modeSign2Sign", "modeVedic", "topKP", "topSign", "topVedic", "pivot", "topBarPivot", "shiftedLagnaToggle", "topShift"];
+    watchIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener("change", () => setTimeout(renderMrithyuBhagaTable, 30));
+            el.addEventListener("input", () => setTimeout(renderMrithyuBhagaTable, 30));
+        }
+    });
+});
+</script>
+
+
+
+
+<!-- Mrithyu Bhaga Code  -->
 
 
 
@@ -17910,3 +18907,168 @@ window.handleDbaMouseMove = function(e) {
 
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
