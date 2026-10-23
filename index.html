@@ -1168,8 +1168,11 @@
     <label style="color:var(--asc-yellow); font-weight:bold; cursor:pointer; margin-right: 15px;">
         <input type="checkbox" id="hideAllAge" onchange="calc()"> Hide Age
     </label>
-    <label style="color:var(--asc-yellow); font-weight:bold; cursor:pointer;">
+    <label style="color:var(--asc-yellow); font-weight:bold; cursor:pointer; margin-right: 15px;">
         <input type="checkbox" id="hideBhuktiAge" onchange="calc()" checked> Hide Bukthi Age
+    </label>
+    <label style="color:var(--asc-yellow); font-weight:bold; cursor:pointer;">
+        <input type="checkbox" id="showColorToggle" onchange="calc()"> Color
     </label>
 </div>
 	
@@ -2755,6 +2758,48 @@ function buildSimpleKundaliHTML(chartData, title, pivotVal, vNum, isKP) {
                     let lordStrWithPlaced = lordStr ? `${houseNum}-${lordStr}` : `${houseNum}`;
                     
                     let finalColor = (p.n === pivotCode) ? "#0bf4e6" : color;
+
+                    // --- NEW COLOR CODING LOGIC ---
+                    const isColorOn = document.getElementById("showColorToggle")?.checked;
+                    if (isColorOn) {
+                        let cat = "";
+                        const pCode = p.n;
+                        const benefics = ["Ch", "Bu", "Ve", "Ju"];
+                        const malefics = ["Sy", "Ma", "Sa"];
+                        const nodes = ["Ra", "Ke"];
+                        
+                        if (benefics.includes(pCode)) {
+                            if ([1,5,9].includes(houseNum)) cat = "VG";
+                            else if ([4,7,10].includes(houseNum)) cat = "G";
+                            else if ([2,11].includes(houseNum)) cat = "A";
+                            else if ([3].includes(houseNum)) cat = "B";
+                            else if ([6,8,12].includes(houseNum)) cat = "W";
+                        } else if (malefics.includes(pCode)) {
+                            if ([3,6,11].includes(houseNum)) cat = "VG";
+                            else if ([7,10].includes(houseNum)) cat = "G";
+                            else if ([4,9].includes(houseNum)) cat = "A";
+                            else if ([2,5].includes(houseNum)) cat = "B";
+                            else if ([1,8,12].includes(houseNum)) cat = "W";
+                        } else if (nodes.includes(pCode)) {
+                            if ([3,6,11].includes(houseNum)) cat = "VG";
+                            else if ([2,7,10].includes(houseNum)) cat = "G";
+                            else if ([1].includes(houseNum)) cat = "A";
+                            else if ([5,9].includes(houseNum)) cat = "B";
+                            else if ([4,8,12].includes(houseNum)) cat = "W";
+                        }
+                        
+                        let styleStr = "";
+                        if (cat === "VG") styleStr = "border:1px solid #16f529; color:#16f529; background:rgba(0,0,0,0.6);";
+                        else if (cat === "G") styleStr = "border:1px solid #00d9ff; color:#00d9ff; background:rgba(0,0,0,0.6);";
+                        else if (cat === "A") styleStr = "border:1px solid #facc15; color:#facc15; background:rgba(0,0,0,0.6);";
+                        else if (cat === "B") styleStr = "border:1px solid #ff4444; color:#ff4444; background:rgba(0,0,0,0.6);";
+                        else if (cat === "W") styleStr = "border:1px solid #ff4444; color:#ff4444; background:rgba(0,0,0,0.6);";
+                        
+                        if (styleStr) {
+                            name = `<span style="${styleStr} padding:1px 5px; border-radius:4px;">${name}</span>`;
+                        }
+                    }
+                    // ------------------------------
                     
                     html += `<div style="color:${finalColor}; font-size:16px; font-weight:700; margin:3px 0; white-space:nowrap;">${name}&nbsp;&nbsp;${lordStrWithPlaced}</div>`;
                 }
@@ -2789,6 +2834,23 @@ function buildSimpleKundaliHTML(chartData, title, pivotVal, vNum, isKP) {
 })();
 
 </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- FIVE FOLD PLANETS RELATIONSHIP  -->
+
 
 
 <!-- ========================================================= -->
@@ -2866,6 +2928,25 @@ function buildSimpleKundaliHTML(chartData, title, pivotVal, vNum, isKP) {
         DBA / Vimshottari Order: &nbsp;<span style="color:#facc15;">Sun &rarr; Moon &rarr; Mars &rarr; Rahu &rarr; Jupiter &rarr; Saturn &rarr; Mercury &rarr; Ketu &rarr; Venus</span>
     </div>
 
+    <!-- PLANET PLACEMENT & NATURE EVALUATION TABLE (ABOVE FIVE-FOLD TABLE) -->
+    <div class="shoda-title" id="ffTitlePlacement">D-1 PLANET PLACEMENT &amp; NATURE EVALUATION (COLOR REVERSAL CONTROLLER)</div>
+    <div style="text-align:center; color:#ccc; font-size:12px; margin-top:-5px; margin-bottom:10px; line-height:1.6;">
+        <div>
+            <b style="color:#16f529;">Benefic Rules:</b> Very Good (1,5,9) | Good (4,7,10) | Average (2,11) | <span style="color:#ff8800;">Bad (3)</span> | <span style="color:#ff2a40;">Worst (6,8,12)</span>
+            &nbsp;&nbsp;&bull;&nbsp;&nbsp;
+            <b style="color:#ff8800;">Malefic Rules:</b> Very Good (3,6,11) | Good (7,10) | Average (4,9) | <span style="color:#ff8800;">Bad (2,5)</span> | <span style="color:#ff2a40;">Worst (1,8,12)</span>
+            <br>
+            <b style="color:#c084fc;">Rahu & Ketu Rules:</b> Very Good (3,6,11) | Good (2,7,10) | Average (1) | <span style="color:#ff8800;">Bad (5,9)</span> | <span style="color:#ff2a40;">Worst (4,8,12)</span>
+        </div>
+        <div style="color:#facc15; margin-top:2px;">
+            &#x1F4A1; When a planet is <b>Badly Placed (Bad / Worst)</b>, its row colors in the Five-Fold table below are <b>REVERSED</b> (Best Friend/Friend &rarr; Red, Enemy/Bitter Enemy &rarr; Green)
+            &nbsp;|&nbsp; <button onclick="resetFfOverrides()" style="padding:2px 8px; font-size:11px; background:#333; color:#facc15; border:1px solid #facc15; border-radius:3px; cursor:pointer;">Reset Manual Overrides</button>
+        </div>
+    </div>
+    <div style="display:flex; justify-content:center; overflow-x:auto; margin-bottom: 35px; width: 100%;">
+        <table id="ffPlacementStatusTable" class="shoda-table" style="max-width:1050px; margin-bottom:0; width:100%;"></table>
+    </div>
+
     <!-- FIVE-FOLD RELATIONSHIP TABLE -->
     <div class="shoda-title" id="ffTitleFiveFold">FIVE-FOLD PLANETS RELATIONSHIP (PANCHADHA MAITRI)</div>
     <div style="text-align:center; color:#ccc; font-size:13px; margin-top:-5px; margin-bottom:12px;">
@@ -2899,6 +2980,124 @@ function buildSimpleKundaliHTML(chartData, title, pivotVal, vNum, isKP) {
 <script>
 // Base Vimshottari (DBA) Order starting from Sun
 const FF_DBA_ORDER = ["Sy", "Ch", "Ma", "Ra", "Ju", "Sa", "Bu", "Ke", "Ve"];
+
+// Default Natural Benefic / Malefic Classification
+// Benefics: Moon (Ch), Jupiter (Ju), Mercury (Bu), Venus (Ve)
+// Malefics: Sun (Sy), Mars (Ma), Rahu (Ra), Saturn (Sa), Ketu (Ke)
+const FF_DEFAULT_BENEFIC = {
+    Sy: false,
+    Ch: true,
+    Ma: false,
+    Ra: false,
+    Ju: true,
+    Sa: false,
+    Bu: true,
+    Ke: false,
+    Ve: true
+};
+
+// Store user manual overrides for Benefic/Malefic nature per planet
+window._ffNatureOverrides = window._ffNatureOverrides || {};
+
+function toggleFfPlanetNature(pCode, isBeneficSelected) {
+    window._ffNatureOverrides[pCode] = isBeneficSelected;
+    renderFiveFoldTables();
+}
+
+function resetFfOverrides() {
+    window._ffNatureOverrides = {};
+    renderFiveFoldTables();
+}
+
+// Helper: Pure house evaluation based on natural Benefic/Malefic rules
+function getBaseHouseCategoryFF(pCode, h, isNatBenefic) {
+    // Unique Rules for Rahu and Ketu
+    if (pCode === "Ra" || pCode === "Ke") {
+        if ([3, 6, 11].includes(h)) return "Very Good";
+        if ([2, 7, 10].includes(h)) return "Good";
+        if ([1].includes(h)) return "Average";
+        if ([5, 9].includes(h)) return "Bad";
+        if ([4, 8, 12].includes(h)) return "Worst";
+        return "Average";
+    }
+
+    // Standard Rules
+    if (isNatBenefic) {
+        if ([1, 5, 9].includes(h)) return "Very Good";
+        if ([4, 7, 10].includes(h)) return "Good";
+        if ([2, 11].includes(h)) return "Average";
+        if ([3].includes(h)) return "Bad";
+        if ([6, 8, 12].includes(h)) return "Worst";
+    } else {
+        if ([3, 6, 11].includes(h)) return "Very Good";
+        if ([7, 10].includes(h)) return "Good";
+        if ([4, 9].includes(h)) return "Average";
+        if ([2, 5].includes(h)) return "Bad";
+        if ([1, 8, 12].includes(h)) return "Worst";
+    }
+    return "Average";
+}
+
+// Determines functional state: Well-placed = Benefic, Badly-placed = Malefic
+function getFunctionalNature(pCode, hNum) {
+    const isNatBen = !!FF_DEFAULT_BENEFIC[pCode];
+    const h = parseInt(hNum);
+    if (isNaN(h)) return isNatBen;
+
+    const cat = getBaseHouseCategoryFF(pCode, h, isNatBen);
+    
+    // If the planet is badly placed according to its natural rules, it acts as a Malefic
+    if (cat === "Bad" || cat === "Worst") {
+        return false; 
+    } 
+    // If it is well placed, it acts as a Benefic
+    else {
+        return true; 
+    }
+}
+
+function isPlanetBeneficFF(pCode, hNum) {
+    if (window._ffNatureOverrides && window._ffNatureOverrides[pCode] !== undefined) {
+        return window._ffNatureOverrides[pCode];
+    }
+    return getFunctionalNature(pCode, hNum);
+}
+
+// Evaluate placement & control color reversal (False = Malefic = Reversed)
+function evaluatePlanetPlacementFF(houseNum, isBenefic, pCode) {
+    const h = parseInt(houseNum);
+    if (isNaN(h) || h < 1 || h > 12) {
+        return { category: "-", isBad: false, statusText: "-", color: "#888" };
+    }
+
+    const natBenefic = !!FF_DEFAULT_BENEFIC[pCode];
+    let category = getBaseHouseCategoryFF(pCode, h, natBenefic);
+    const defaultIsBenefic = getFunctionalNature(pCode, houseNum);
+
+    // If user clicked the checkbox, show it as a manual override
+    if (isBenefic !== defaultIsBenefic) {
+        category = isBenefic ? "Override \u2192 Good" : "Override \u2192 Bad";
+    }
+
+    // isBenefic directly dictates the row behavior (False = Malefic = Reversed Colors)
+    const isBad = !isBenefic; 
+
+    let color = "#facc15";
+    if (category.includes("Very Good")) color = "#16f529";
+    else if (category.includes("Good")) color = "#00d9ff";
+    else if (category.includes("Average")) color = "#facc15";
+    else if (category.includes("Bad")) color = "#ff8800";
+    else if (category.includes("Worst")) color = "#ff2a40";
+
+    if (category === "Override \u2192 Good") color = "#16f529";
+    if (category === "Override \u2192 Bad") color = "#ff2a40";
+
+    const statusText = isBad
+        ? `Acts as Malefic (${category}) \u21BB Reversed`
+        : `Acts as Benefic (${category})`;
+
+    return { category, isBad, statusText, color };
+}
 
 // Helper to cyclically rotate the DBA array based on the selected starting planet
 function getRotatedFfOrder() {
@@ -3034,7 +3233,35 @@ function combineFiveFold(permRel, tempRel) {
     return "-";
 }
 
-function styleRelationCell(rel, isFiveFold = false) {
+function styleRelationCell(rel, isFiveFold = false, reverseColors = false) {
+    if (rel === "-" || !rel) {
+        return `<span style="color:#555;">---</span>`;
+    }
+
+    // Only reverse colors in the Five-Fold table when the planet is Badly Placed
+    if (isFiveFold && reverseColors) {
+        switch (rel) {
+            case "Best Friend":
+                // Label stays "Best Friend", color becomes Bitter Enemy Red
+                return `<span style="color:#ff2a40; font-weight:900; background:rgba(255,42,64,0.15); padding:2px 7px; border-radius:4px; border:1px solid rgba(255,42,64,0.4);">${rel}</span>`;
+            case "Friend":
+                // Label stays "Friend", color becomes Enemy Orange/Red
+                return `<span style="color:#ff8800; font-weight:bold;">${rel}</span>`;
+            case "Neutral":
+                // Neutral keeps the same Yellow color
+                return `<span style="color:#facc15; font-weight:bold;">${rel}</span>`;
+            case "Enemy":
+                // Label stays "Enemy", color becomes Friend Cyan/Green
+                return `<span style="color:#00d9ff; font-weight:bold;">${rel}</span>`;
+            case "Bitter Enemy":
+                // Label stays "Bitter Enemy", color becomes Best Friend Bright Green
+                return `<span style="color:#16f529; font-weight:900; background:rgba(22,245,41,0.12); padding:2px 7px; border-radius:4px; border:1px solid rgba(22,245,41,0.4);">${rel}</span>`;
+            default:
+                return `<span style="color:#555;">---</span>`;
+        }
+    }
+
+    // Standard Normal Color Coding
     switch (rel) {
         case "Best Friend":
             return `<span style="color:#16f529; font-weight:900; background:rgba(22,245,41,0.12); padding:2px 7px; border-radius:4px; border:1px solid rgba(22,245,41,0.4);">Best Friend</span>`;
@@ -3054,12 +3281,14 @@ function styleRelationCell(rel, isFiveFold = false) {
 }
 
 function renderFiveFoldTables() {
+    const placeTbl = document.getElementById("ffPlacementStatusTable");
     const permTbl = document.getElementById("ffPermanentTable");
     const tempTbl = document.getElementById("ffTemporaryTable");
     const compTbl = document.getElementById("ffCompositeTable");
     if (!permTbl || !tempTbl || !compTbl) return;
 
     if (!raw || !window._shodaRashi) {
+        if (placeTbl) placeTbl.innerHTML = "";
         permTbl.innerHTML = "<tr><td style='color:#ff4444; padding:20px; text-align:center; font-weight:bold;'>Please load Natal Profile data first...</td></tr>";
         tempTbl.innerHTML = "";
         compTbl.innerHTML = "";
@@ -3072,6 +3301,8 @@ function renderFiveFoldTables() {
     const modeKN = document.getElementById("modeKN")?.checked;
     const activeOrder = getRotatedFfOrder();
 
+    const titlePlaceEl = document.getElementById("ffTitlePlacement");
+    if (titlePlaceEl) titlePlaceEl.innerHTML = `D-${v} PLANET PLACEMENT &amp; NATURE EVALUATION (COLOR REVERSAL CONTROLLER)`;
     document.getElementById("ffTitleFiveFold").innerHTML = `D-${v} FIVE-FOLD PLANETS RELATIONSHIP (PANCHADHA MAITRI)`;
     document.getElementById("ffTitleTemp").innerHTML = `D-${v} TEMPORARY RELATIONSHIP TABLE (TATKALIKA MAITRI)`;
     document.getElementById("ffTitlePerm").innerHTML = `D-${v} PERMANENT RELATIONSHIP TABLE (NAISARGIKA MAITRI)`;
@@ -3103,10 +3334,17 @@ function renderFiveFoldTables() {
         orderIndicator.innerHTML = `DBA / Vimshottari Order: &nbsp;<span style="color:#facc15;">${orderStr}</span>`;
     }
 
-    // Determine 1-12 sign/box index for each planet in D-v
+    // Determine 1-12 sign/box index AND Placed House (1-12) for each planet in D-v
     const pPos = {};
+    const pHouse = {};
     const chartData = window._vargaChartStore ? window._vargaChartStore[v] : null;
     const rashiData = window._shodaRashi ? window._shodaRashi[v] : null;
+    const bhavaData = window._shodaBhava ? window._shodaBhava[v] : null;
+
+    // Ascendant sign (0-11) for Pure Rashi house calculation vs Active Visual Chart
+    const pureAscSign = (window._pureAscSigns && window._pureAscSigns[v] !== undefined)
+        ? window._pureAscSigns[v]
+        : ((window._ascSigns && window._ascSigns[v] !== undefined) ? window._ascSigns[v] : 0);
 
     activeOrder.forEach(p => {
         if (useVisual && chartData) {
@@ -3120,7 +3358,67 @@ function renderFiveFoldTables() {
         if (!pPos[p] && rashiData && rashiData[p] && rashiData[p] !== "-") {
             pPos[p] = parseInt(rashiData[p]);
         }
+
+        // Determine Placed House (1-12)
+        if (useVisual && bhavaData && bhavaData[p] && bhavaData[p] !== "-") {
+            pHouse[p] = parseInt(bhavaData[p]);
+        } else if (rashiData && rashiData[p] && rashiData[p] !== "-") {
+            const pSignZero = parseInt(rashiData[p]) - 1;
+            pHouse[p] = ((pSignZero - pureAscSign + 12) % 12) + 1;
+        } else if (bhavaData && bhavaData[p] && bhavaData[p] !== "-") {
+            pHouse[p] = parseInt(bhavaData[p]);
+        } else {
+            pHouse[p] = "-";
+        }
     });
+
+    // Build Placement & Nature Evaluation Map + Render Controller Table
+    const pPlacementEval = {};
+    if (placeTbl) {
+        let placeHtml = `<tr>
+            <th style="background:#2d0066; color:#facc15; width:20%;">Planet</th>
+            <th style="background:#660033; color:#0bf4e6; width:15%;">Placed House</th>
+            <th style="background:#660033; color:#16f529; width:18%;">Benefic</th>
+            <th style="background:#660033; color:#ff8800; width:18%;">Malefic</th>
+            <th style="background:#660033; color:#facc15; width:29%;">Placement Status (Five-Fold Color Mode)</th>
+        </tr>`;
+
+        activeOrder.forEach(p => {
+            const hNum = pHouse[p];
+            const isBen = isPlanetBeneficFF(p, hNum);
+            const evalObj = evaluatePlanetPlacementFF(hNum, isBen, p);
+            pPlacementEval[p] = evalObj;
+
+            const rowBadgeStyle = evalObj.isBad
+                ? `background:rgba(255,42,64,0.15); border:1px solid #ff2a40; color:${evalObj.color}; padding:3px 10px; border-radius:4px; font-weight:900;`
+                : `background:rgba(22,245,41,0.10); border:1px solid rgba(22,245,41,0.4); color:${evalObj.color}; padding:3px 10px; border-radius:4px; font-weight:bold;`;
+
+            placeHtml += `<tr>
+                <td style="background:#2d0066; color:#facc15; font-weight:900;">${getLabel(p)}</td>
+                <td style="color:#fff; font-weight:900; font-size:15px;">${hNum !== "-" ? hNum + "H" : "-"}</td>
+                <td>
+                    <label style="cursor:pointer; display:inline-flex; align-items:center; gap:6px; color:${isBen ? '#16f529' : '#666'}; font-weight:bold;">
+                        <input type="checkbox" ${isBen ? "checked" : ""} onchange="toggleFfPlanetNature('${p}', true)" style="cursor:pointer; width:16px; height:16px; accent-color:#16f529;">
+                        Benefic
+                    </label>
+                </td>
+                <td>
+                    <label style="cursor:pointer; display:inline-flex; align-items:center; gap:6px; color:${!isBen ? '#ff8800' : '#666'}; font-weight:bold;">
+                        <input type="checkbox" ${!isBen ? "checked" : ""} onchange="toggleFfPlanetNature('${p}', false)" style="cursor:pointer; width:16px; height:16px; accent-color:#ff8800;">
+                        Malefic
+                    </label>
+                </td>
+                <td><span style="${rowBadgeStyle}">${evalObj.statusText}</span></td>
+            </tr>`;
+        });
+
+        placeTbl.innerHTML = placeHtml;
+    } else {
+        activeOrder.forEach(p => {
+            const hNum = pHouse[p];
+            pPlacementEval[p] = evaluatePlanetPlacementFF(hNum, isPlanetBeneficFF(p, hNum), p);
+        });
+    }
 
     // Helper: Calculate Temporary Relation (2,3,4,10,11,12 = Friend; 1,5,6,7,8,9 = Enemy)
     function getTempRelation(pFrom, pTo) {
@@ -3148,18 +3446,23 @@ function renderFiveFoldTables() {
         let compHtml = headerRow;
 
         activeOrder.forEach(pFrom => {
+            const isReversed = pPlacementEval[pFrom]?.isBad || false;
+            const pFromTitleTag = isReversed
+                ? `${getLabel(pFrom)} <span style="color:#ff2a40; font-size:11px;" title="Badly Placed in ${pHouse[pFrom]}H - Color Coding Reversed">(${pHouse[pFrom]}H \u21BB)</span>`
+                : `${getLabel(pFrom)} <span style="color:#10b981; font-size:11px;">(${pHouse[pFrom]}H)</span>`;
+
             let pRowPerm = `<tr><td style="background:#2d0066; color:#facc15; font-weight:900;">${getLabel(pFrom)}</td>`;
             let pRowTemp = `<tr><td style="background:#2d0066; color:#facc15; font-weight:900;">${getLabel(pFrom)}</td>`;
-            let pRowComp = `<tr><td style="background:#2d0066; color:#facc15; font-weight:900;">${getLabel(pFrom)}</td>`;
+            let pRowComp = `<tr><td style="background:#2d0066; color:#facc15; font-weight:900;">${pFromTitleTag}</td>`;
 
             activeOrder.forEach(pTo => {
                 const permRel = getPermanentRelation(pFrom, pTo);
                 const tempRel = getTempRelation(pFrom, pTo);
                 const compRel = combineFiveFold(permRel, tempRel);
 
-                pRowPerm += `<td>${styleRelationCell(permRel, false)}</td>`;
-                pRowTemp += `<td>${styleRelationCell(tempRel, false)}</td>`;
-                pRowComp += `<td>${styleRelationCell(compRel, true)}</td>`;
+                pRowPerm += `<td>${styleRelationCell(permRel, false, false)}</td>`;
+                pRowTemp += `<td>${styleRelationCell(tempRel, false, false)}</td>`;
+                pRowComp += `<td>${styleRelationCell(compRel, true, isReversed)}</td>`;
             });
 
             permHtml += pRowPerm + `</tr>`;
@@ -3192,15 +3495,20 @@ function renderFiveFoldTables() {
 
         // 3. Five-Fold Grouped
         let compHtml = `<tr>
-            <th style="background:#2d0066; color:#facc15; width:14%;">Planet</th>
-            <th style="background:#660033; color:#16f529; width:17%;">Best Friend (Adhi Mitra)</th>
-            <th style="background:#660033; color:#00d9ff; width:17%;">Friend (Mitra)</th>
-            <th style="background:#660033; color:#facc15; width:18%;">Neutral (Sama)</th>
-            <th style="background:#660033; color:#ff8800; width:17%;">Enemy (Shatru)</th>
-            <th style="background:#660033; color:#ff2a40; width:17%;">Bitter Enemy (Adhi Shatru)</th>
+            <th style="background:#2d0066; color:#facc15; width:16%;">Planet</th>
+            <th style="background:#660033; color:#facc15; width:16.8%;">Best Friend (Adhi Mitra)</th>
+            <th style="background:#660033; color:#facc15; width:16.8%;">Friend (Mitra)</th>
+            <th style="background:#660033; color:#facc15; width:16.8%;">Neutral (Sama)</th>
+            <th style="background:#660033; color:#facc15; width:16.8%;">Enemy (Shatru)</th>
+            <th style="background:#660033; color:#facc15; width:16.8%;">Bitter Enemy (Adhi Shatru)</th>
         </tr>`;
 
         activeOrder.forEach(pFrom => {
+            const isReversed = pPlacementEval[pFrom]?.isBad || false;
+            const pFromTitleTag = isReversed
+                ? `${getLabel(pFrom)} <span style="color:#ff2a40; font-size:11px;" title="Badly Placed in ${pHouse[pFrom]}H - Color Coding Reversed">(${pHouse[pFrom]}H \u21BB)</span>`
+                : `${getLabel(pFrom)} <span style="color:#10b981; font-size:11px;">(${pHouse[pFrom]}H)</span>`;
+
             let pFriends = [], pNeutrals = [], pEnemies = [];
             let tFriends = [], tEnemies = [];
             let ffBest = [], ffFriend = [], ffNeutral = [], ffEnemy = [], ffBitter = [];
@@ -3240,13 +3548,20 @@ function renderFiveFoldTables() {
                 <td style="color:#ff4444; font-weight:bold;">${tEnemies.join(", ") || "-"}</td>
             </tr>`;
 
+            // Dynamic cell colors for Five-Fold Grouped View (Normal vs Reversed)
+            const cBest   = isReversed ? "#ff2a40" : "#16f529";
+            const cFriend = isReversed ? "#ff8800" : "#00d9ff";
+            const cNeut   = "#facc15";
+            const cEnemy  = isReversed ? "#00d9ff" : "#ff8800";
+            const cBitter = isReversed ? "#16f529" : "#ff2a40";
+
             compHtml += `<tr>
-                <td style="background:#2d0066; color:#facc15; font-weight:900;">${getLabel(pFrom)}</td>
-                <td style="color:#16f529; font-weight:bold;">${ffBest.join(", ") || "-"}</td>
-                <td style="color:#00d9ff; font-weight:bold;">${ffFriend.join(", ") || "-"}</td>
-                <td style="color:#facc15; font-weight:bold;">${ffNeutral.join(", ") || "-"}</td>
-                <td style="color:#ff8800; font-weight:bold;">${ffEnemy.join(", ") || "-"}</td>
-                <td style="color:#ff2a40; font-weight:bold;">${ffBitter.join(", ") || "-"}</td>
+                <td style="background:#2d0066; color:#facc15; font-weight:900;">${pFromTitleTag}</td>
+                <td style="color:${cBest}; font-weight:900;">${ffBest.join(", ") || "-"}</td>
+                <td style="color:${cFriend}; font-weight:bold;">${ffFriend.join(", ") || "-"}</td>
+                <td style="color:${cNeut}; font-weight:bold;">${ffNeutral.join(", ") || "-"}</td>
+                <td style="color:${cEnemy}; font-weight:bold;">${ffEnemy.join(", ") || "-"}</td>
+                <td style="color:${cBitter}; font-weight:900;">${ffBitter.join(", ") || "-"}</td>
             </tr>`;
         });
 
@@ -3292,7 +3607,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
 
 
-
+<!-- FIVE FOLD PLANETS RELATIONSHIP  -->
 
 
 
@@ -3359,6 +3674,12 @@ window.addEventListener("DOMContentLoaded", () => {
     color: #ffffff !important;
 }
 </style>
+
+
+
+<!-- Vedic Aspects  -->
+
+
 
 <div class="division-title" onclick="toggleVedicAspects()">
     Vedic Aspects & Specific Chart &#9660;
@@ -8187,14 +8508,58 @@ function render(v, chart) {
 					
 					
 					const r = (!document.getElementById("showLordship")?.checked && p.r) ? ' (Rx)' : '';
-					const name=useKN?(planetNameMapKN[p.n]||p.n):p.n;
+					let name=useKN?(planetNameMapKN[p.n]||p.n):p.n;
+					
+					let placedHouse = ((sIdx - ascIndex + 12) % 12) + 1;
+
+					// --- NEW COLOR CODING LOGIC ---
+					const isColorOn = document.getElementById("showColorToggle")?.checked;
+					if (isColorOn && !p.isAsc) {
+						let cat = "";
+						const pCode = p.n;
+						
+						const benefics = ["Ch", "Bu", "Ve", "Ju"];
+						const malefics = ["Sy", "Ma", "Sa"];
+						const nodes = ["Ra", "Ke"];
+						
+						if (benefics.includes(pCode)) {
+							if ([1,5,9].includes(placedHouse)) cat = "VG";
+							else if ([4,7,10].includes(placedHouse)) cat = "G";
+							else if ([2,11].includes(placedHouse)) cat = "A";
+							else if ([3].includes(placedHouse)) cat = "B";
+							else if ([6,8,12].includes(placedHouse)) cat = "W";
+						} else if (malefics.includes(pCode)) {
+							if ([3,6,11].includes(placedHouse)) cat = "VG";
+							else if ([7,10].includes(placedHouse)) cat = "G";
+							else if ([4,9].includes(placedHouse)) cat = "A";
+							else if ([2,5].includes(placedHouse)) cat = "B";
+							else if ([1,8,12].includes(placedHouse)) cat = "W";
+						} else if (nodes.includes(pCode)) {
+							if ([3,6,11].includes(placedHouse)) cat = "VG";
+							else if ([2,7,10].includes(placedHouse)) cat = "G";
+							else if ([1].includes(placedHouse)) cat = "A";
+							else if ([5,9].includes(placedHouse)) cat = "B";
+							else if ([4,8,12].includes(placedHouse)) cat = "W";
+						}
+						
+						let styleStr = "";
+						if (cat === "VG") styleStr = "border:1px solid #16f529; color:#16f529; background:rgba(0,0,0,0.6);";
+						else if (cat === "G") styleStr = "border:1px solid #00d9ff; color:#00d9ff; background:rgba(0,0,0,0.6);";
+						else if (cat === "A") styleStr = "border:1px solid #facc15; color:#facc15; background:rgba(0,0,0,0.6);";
+						else if (cat === "B") styleStr = "border:1px solid #ff4444; color:#ff4444; background:rgba(0,0,0,0.6);";
+						else if (cat === "W") styleStr = "border:1px solid #ff4444; color:#ff4444; background:rgba(0,0,0,0.6);";
+						
+						if (styleStr) {
+							name = `<span style="${styleStr} padding:1px 5px; border-radius:4px;">${name}</span>`;
+						}
+					}
+					// ------------------------------
 
 					/* =========================
 					   PRINT PLANET LINE
 					========================= */
                     
                     let contentStr = "";
-                    let placedHouse = ((sIdx - ascIndex + 12) % 12) + 1;
 
                     if (p.isAsc) {
                         contentStr = `ASC ${Math.floor(p.d)}&deg;${Math.floor((p.d*60)%60).toString().padStart(2,'0')}&prime;`;
@@ -18907,6 +19272,171 @@ window.handleDbaMouseMove = function(e) {
 
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
