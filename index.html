@@ -2782,8 +2782,8 @@ function buildSimpleKundaliHTML(chartData, title, pivotVal, vNum, isKP) {
                             else if ([1,8,12].includes(houseNum)) cat = "W";
                         } else if (nodes.includes(pCode)) {
                             if ([3,6,11].includes(houseNum)) cat = "VG";
-                            else if ([2,7,10].includes(houseNum)) cat = "G";
-                            else if ([1].includes(houseNum)) cat = "A";
+                            else if ([2,7].includes(houseNum)) cat = "G";
+                            else if ([1,10].includes(houseNum)) cat = "A";
                             else if ([5,9].includes(houseNum)) cat = "B";
                             else if ([4,8,12].includes(houseNum)) cat = "W";
                         }
@@ -8536,8 +8536,8 @@ function render(v, chart) {
 							else if ([1,8,12].includes(placedHouse)) cat = "W";
 						} else if (nodes.includes(pCode)) {
 							if ([3,6,11].includes(placedHouse)) cat = "VG";
-							else if ([2,7,10].includes(placedHouse)) cat = "G";
-							else if ([1].includes(placedHouse)) cat = "A";
+							else if ([2,7].includes(placedHouse)) cat = "G";
+							else if ([1,10].includes(placedHouse)) cat = "A";
 							else if ([5,9].includes(placedHouse)) cat = "B";
 							else if ([4,8,12].includes(placedHouse)) cat = "W";
 						}
@@ -16239,6 +16239,7 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
 
         </div>
     </div>
+    </div>
 
     <!-- DASHA / BUKTHI / ANTARA SELECTORS -->
     <div style="width:100%; margin:0 auto 30px auto;">
@@ -16261,24 +16262,12 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
     <!-- MAIN HEADER FOR THE 9 ISLANDS -->
     <div id="dbaIslandsHeader" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:20px; text-align:center; margin-bottom:10px; width:100%;">
         <div style="background:#004d40; color:#0bf4e6; font-size:22px; font-weight:900; padding:12px; border:2px solid #0bf4e6; border-radius:6px; letter-spacing:1px;">DASHA</div>
-        <div style="background:#4d2b00; color:#ff8800; font-size:22px; font-weight:900; padding:12px; border:2px solid #ff8800; border-radius:6px; letter-spacing:1px;">BUKTHI</div>
+        <div style="background:#4d2b00; color:#ff8800; font-size:22px; font-weight:900; padding:12px; border:2px solid #ff8800; border-radius:6px; letter-spacing:1px; transition: opacity 0.3s ease;">BUKTHI</div>
         <div id="dbaMainAntaraHeader" style="background:#2e004f; color:#c084fc; font-size:22px; font-weight:900; padding:12px; border:2px solid #c084fc; border-radius:6px; letter-spacing:1px; transition: opacity 0.3s ease;">ANTARA</div>
     </div>
 
-    <!-- NEW COLLAPSIBLE WRAPPER FOR FIRST TABLE -->
-    <div style="margin-top: 20px; width:100%;">
-        <div style="color: #0bf4e6; font-size: 18px; font-weight: 900; text-align: center; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; border-bottom: 2px solid #0bf4e6; padding-bottom: 5px; display: inline-block; position: relative; left: 50%; transform: translateX(-50%);" onclick="const g = document.getElementById('dbaIslandsGrid'); g.style.display = (g.style.display === 'none' || g.style.display === '') ? 'grid' : 'none';">
-            Uniform Pivot Rotator &#9650;
-        </div>
-        
-        <!-- 9 ROWS OF ISLANDS GRID -->
-        <div id="dbaIslandsGrid" style="display:flex; flex-direction:column; gap:20px; width:100%;">
-            <!-- Filled by JS -->
-        </div>
-    </div>
-
-    <!-- BRACKET RULES LEGEND -->
-    <div style="margin-top: 25px; padding-top: 15px; border-top: 1px dashed #333; text-align: center; display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; width: 100%;">
+    <!-- BRACKET RULES LEGEND (MOVED UP) -->
+    <div style="margin-top: 10px; padding-bottom: 15px; border-bottom: 1px dashed #333; text-align: center; display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; width: 100%;">
         <div style="color: #888; font-size: 13px; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase; display: flex; align-items: center;">
             <span style="color: #fff; font-size: var(--dba-font-bracket); font-family: Consolas, 'Courier New', monospace; margin-right: 6px; font-weight: bold;">( )</span> Conjunction
         </div>
@@ -16290,20 +16279,59 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
         </div>
     </div>
 
-    <!-- NEW INDIVIDUAL PLANETS PIVOT ROTATOR -->
-    <div style="margin-top: 40px; padding-top: 20px; border-top: 2px dashed #444; width:100%;">
-        <div style="color: #39FF14; font-size: 18px; font-weight: 900; text-align: center; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; border-bottom: 2px solid #39FF14; padding-bottom: 5px; display: inline-block; position: relative; left: 50%; transform: translateX(-50%);" onclick="const g = document.getElementById('dbaRotatorGrid'); g.style.display = (g.style.display === 'none' || g.style.display === '') ? 'grid' : 'none';">
-            Individual Planets Pivot Rotator &#9650;
+    <!-- NEW COLLAPSIBLE WRAPPER FOR FIRST TABLE -->
+    <div style="margin-top: 20px; width:100%;">
+        <div style="color: #0bf4e6; font-size: 18px; font-weight: 900; text-align: center; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; padding-bottom: 5px; display: inline-block; position: relative; left: 50%; transform: translateX(-50%);" onclick="const g = document.getElementById('dbaIslandsGrid'); if (g.style.display === 'none' || g.style.display === '') { g.style.display = 'grid'; this.innerHTML = 'Uniform Pivot Rotator &#9650;'; this.style.borderBottom = '2px solid #0bf4e6'; } else { g.style.display = 'none'; this.innerHTML = 'Uniform Pivot Rotator &#9660;'; this.style.borderBottom = 'none'; }">
+            Uniform Pivot Rotator &#9660;
         </div>
-        <div id="dbaRotatorGrid" style="display:grid; gap:20px; width:100%;"></div>
+        
+        <!-- 9 ROWS OF ISLANDS GRID (COLLAPSED BY DEFAULT) -->
+        <div id="dbaIslandsGrid" style="display:none; flex-direction:column; gap:20px; width:100%;">
+            <!-- Filled by JS -->
+        </div>
+    </div>
+
+    <!-- NEW INDIVIDUAL PLANETS PIVOT ROTATOR -->
+    <div style="margin-top: 20px; padding-top: 20px; border-top: 2px dashed #444; width:100%;">
+        <div style="color: #39FF14; font-size: 18px; font-weight: 900; text-align: center; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; padding-bottom: 5px; display: inline-block; position: relative; left: 50%; transform: translateX(-50%);" onclick="const g = document.getElementById('dbaRotatorGrid'); if (g.style.display === 'none' || g.style.display === '') { g.style.display = 'grid'; this.innerHTML = 'Individual Planets Pivot Rotator &#9650;'; this.style.borderBottom = '2px solid #39FF14'; } else { g.style.display = 'none'; this.innerHTML = 'Individual Planets Pivot Rotator &#9660;'; this.style.borderBottom = 'none'; }">
+            Individual Planets Pivot Rotator &#9660;
+        </div>
+        <div id="dbaRotatorGrid" style="display:none; gap:20px; width:100%;"></div>
+    </div>
+
+    <!-- NEW ANCHOR LOCKED PIVOT ROTATOR -->
+    <div style="margin-top: 20px; padding-top: 20px; border-top: 2px dashed #444; width:100%;">
+        <div style="color: #facc15; font-size: 18px; font-weight: 900; text-align: center; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; padding-bottom: 5px; display: inline-block; position: relative; left: 50%; transform: translateX(-50%);" onclick="const g = document.getElementById('dbaAnchorRotatorGrid'); if (g.style.display === 'none' || g.style.display === '') { g.style.display = 'grid'; this.innerHTML = 'Anchor Locked Pivot Rotator &#9650;'; this.style.borderBottom = '2px solid #facc15'; } else { g.style.display = 'none'; this.innerHTML = 'Anchor Locked Pivot Rotator &#9660;'; this.style.borderBottom = 'none'; }">
+            Anchor Locked Pivot Rotator &#9660;
+        </div>
+        <div id="dbaAnchorRotatorGrid" style="display:none; gap:20px; width:100%;"></div>
     </div>
 
 </div>
 
 <button id="floatBtnDBAMixer" onclick="toggleDbaMixer(); document.querySelector('.division-title[onclick=\'toggleDbaMixer()\']').scrollIntoView({behavior:'smooth', block:'start'});" 
-    style="display:block; position:fixed; bottom:20px; right:20px; z-index:9999; background:#000; color:#c084fc; border:1px solid #c084fc; padding:5px 10px; font-weight:900; font-size:12px; border-radius:4px; cursor:pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">
+    style="display:none; position:fixed; bottom:20px; right:20px; z-index:9999; background:#000; color:#c084fc; border:1px solid #c084fc; padding:5px 10px; font-weight:900; font-size:12px; border-radius:4px; cursor:pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">
     ▲
 </button>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 <script>
 
@@ -17211,7 +17239,7 @@ function formatDbaHouses(houseString, placedHouse, inheritedColor = null, state 
     const hideUnselected = document.getElementById("dbaHideUnselected")?.checked;
     
     // PARSER FOR MIXED CONJUNCTIONS WITH COLOR TAGS
-    let mixMatch = str.match(/^([a-zA-Z_\|]+)[\(\[\{](.*?)[\)\]\}]$/);
+    let mixMatch = str.match(/^([a-zA-Z_\|\'\s\d]+)[\(\[\{](.*?)[\)\]\}]$/);
     if (mixMatch) {
         let sym = mixMatch[1];
         let innerNums = mixMatch[2];
@@ -18670,201 +18698,7 @@ function renderDbaMixer() {
         card.appendChild(k);
         kundaliContainer.appendChild(card);
 
-        // --- NEW: CREATE HOUSE & ASPECT TABLE UNDER LEGEND ---
-        let wrapper = document.getElementById("dbaMixerWrapper");
-        if (wrapper) {
-            let existingTable = document.getElementById("dbaHouseAspectTable");
-            if (existingTable) existingTable.remove();
-            
-            const tableSignLords = { 1:"Ma", 2:"Ve", 3:"Bu", 4:"Ch", 5:"Sy", 6:"Bu", 7:"Ve", 8:"Ma", 9:"Ju", 10:"Sa", 11:"Sa", 12:"Ju" };
-            const pFullNames = { Sy:"Surya", Ch:"Chandra", Ma:"Mangala", Bu:"Budha", Ju:"Jupiter", Ve:"Venus", Sa:"Saturn", Ra:"Rahu", Ke:"Ketu" };
-            
-            // Helper to get formatted string arrays per planet (with _U for underlines & Cuspal Conjs)
-            function getHouseStrArr(pCode) {
-                let placedHouse = null;
-                let pureSign = null;
-                let absDeg = getDbaAbsoluteLongitude(pCode, vNum);
-                let pNameFull = pFullNames[pCode] || pCode;
-                
-                for(let i=0; i<12; i++) {
-                    let found = isolatedChart[i].find(p => p.n === pCode);
-                    if(found) {
-                        placedHouse = ((i - ascIndex + 12) % 12) + 1;
-                        pureSign = found.pureSign !== undefined ? found.pureSign : Math.floor(absDeg / 30);
-                        break;
-                    }
-                }
-                if(!placedHouse) return [];
-
-                let houseOffset = isPlanetPivot ? 0 : (parseInt(document.getElementById("dbaPivotSelect")?.value || "1") - 1);
-                if (isNaN(houseOffset)) houseOffset = 0;
-                
-                let isCuspal = document.getElementById("dbaCuspalConjToggle")?.checked && vNum === 1 && localCusps;
-
-                if (pCode === "Ra" || pCode === "Ke") {
-                    let dispCode = tableSignLords[pureSign + 1];
-                    let dispNameFull = pFullNames[dispCode] || dispCode;
-                    let dispPlaced = null;
-                    for(let i=0; i<12; i++) {
-                        if(isolatedChart[i].find(p => p.n === dispCode)) {
-                            dispPlaced = ((i - ascIndex + 12) % 12) + 1;
-                            break;
-                        }
-                    }
-                    let dispLords = [];
-                    for(let h=1; h<=12; h++) {
-                        const signOfHouse = ((ascIndex + h - 1) % 12) + 1;
-                        if(tableSignLords[signOfHouse] === dispCode) dispLords.push(h);
-                    }
-                    
-                    if (isCuspal) {
-                        let dispDeg = getDbaAbsoluteLongitude(dispCode, vNum);
-                        for(let c=1; c<=12; c++) {
-                            let cuspDeg = isPlanetPivot ? (pivotDeg + (c - 1) * 30) % 360 : localCusps[c];
-                            if(cuspDeg !== undefined) {
-                                let diff = Math.abs(dispDeg - cuspDeg);
-                                if(diff>180) diff = 360 - diff;
-                                if(diff <= 3.3333) dispLords.push(((c - 1 - houseOffset + 12) % 12) + 1);
-                            }
-                        }
-                    }
-                    
-                    let dNums = [];
-                    if(dispPlaced) dNums.push(dispPlaced);
-                    dNums.push(...dispLords);
-                    dNums = [...new Set(dNums)].sort((a,b) => parseInt(a) - parseInt(b));
-                    dNums = dNums.map(n => parseInt(n) === dispPlaced ? n + "_U" : n);
-                    
-                    let rNums = [placedHouse].map(n => n + "_U");
-                    return [`${pNameFull}(${rNums.join(",")})`, `DISP|${dispNameFull}[${dNums.join(",")}]`];
-                } else {
-                    let lords = [];
-                    for(let h=1; h<=12; h++) {
-                        const signOfHouse = ((ascIndex + h - 1) % 12) + 1;
-                        if(tableSignLords[signOfHouse] === pCode) lords.push(h);
-                    }
-                    
-                    if (isCuspal) {
-                        for(let c=1; c<=12; c++) {
-                            let cuspDeg = isPlanetPivot ? (pivotDeg + (c - 1) * 30) % 360 : localCusps[c];
-                            if(cuspDeg !== undefined) {
-                                let diff = Math.abs(absDeg - cuspDeg);
-                                if(diff>180) diff = 360 - diff;
-                                if(diff <= 3.3333) lords.push(((c - 1 - houseOffset + 12) % 12) + 1);
-                            }
-                        }
-                    }
-                    
-                    let nums = [placedHouse, ...lords];
-                    nums = [...new Set(nums)].sort((a,b) => parseInt(a) - parseInt(b));
-                    nums = nums.map(n => parseInt(n) === placedHouse ? n + "_U" : n);
-                    return [`${pNameFull}(${nums.join(",")})`];
-                }
-            }
-
-            // Strips extra underlines for Aspects specifically
-            function getPntNums(pCode) {
-                let arr = getHouseStrArr(pCode);
-                if (pCode === "Ra" || pCode === "Ke") {
-                    let rMatch = arr[0].match(/\((.*?)\)/);
-                    let dMatch = arr[1].match(/\[(.*?)\]/);
-                    let merged = [];
-                    if(rMatch) merged.push(...rMatch[1].split(","));
-                    
-                    // NEW FIX: Remove "_U" from Dispositor so only the main node gets underlined in aspects
-                    if(dMatch) merged.push(...dMatch[1].split(",").map(n => n.replace("_U", "")));
-                    
-                    return [...new Set(merged)].sort((a,b) => parseInt(a) - parseInt(b));
-                } else {
-                    let match = arr[0].match(/\((.*?)\)/);
-                    return match ? match[1].split(",") : [];
-                }
-            }
-
-            let houseData = Array(13).fill().map(() => ({ placed: [], aspectedBy: [] }));
-            
-            for(let s=0; s<12; s++) {
-                let hNum = ((s - ascIndex + 12) % 12) + 1;
-                isolatedChart[s].filter(p => !p.isAsc).forEach(p => {
-                    // Push string arrays directly for Placements
-                    houseData[hNum].placed.push(...getHouseStrArr(p.n));
-                    
-                    // Calc Aspects
-                    let aspects = [];
-                    if (p.n === "Sa") aspects = [3, 7, 10];
-                    else if (p.n === "Ma") aspects = [4, 7, 8];
-                    else if (p.n === "Ju") aspects = [5, 7, 9];
-                    else if (p.n === "Ra" || p.n === "Ke") {
-                        if (document.getElementById("dbaRaKeAspToggle")?.checked) aspects.push(5, 9);
-                        if (document.getElementById("dbaRaKe7thAspToggle")?.checked) aspects.push(7);
-                    }
-                    else aspects = [7]; 
-                    
-                    let pNums = getPntNums(p.n);
-                    let pNameFull = pFullNames[p.n] || p.n;
-                    
-                    aspects.forEach(asp => {
-                        let target = (hNum + asp - 1) % 12;
-                        if (target === 0) target = 12;
-                        houseData[target].aspectedBy.push("ASP|" + pNameFull + "{" + pNums.join(",") + "}");
-                    });
-                });
-            }
-
-            let tbodyHTML = "";
-            let customPlus = ' <span style="color:#facc15; font-weight:bold; font-size:18px; margin:0 6px;">+</span> ';
-
-            for(let hNum=1; hNum<=12; hNum++) {
-                let signOfHouse = ((ascIndex + hNum - 1) % 12) + 1;
-                let slCode = tableSignLords[signOfHouse];
-                let slStr = formatDbaHouses(pFullNames[slCode] || slCode, -1);
-
-                let pStrArr = houseData[hNum].placed.map(x => formatDbaHouses(x, -1));
-                let pStr = pStrArr.length > 0 ? pStrArr.join(customPlus) : "-";
-                
-                let aStrArr = [...new Set(houseData[hNum].aspectedBy)].map(x => formatDbaHouses(x, -1));
-                let aStr = aStrArr.length > 0 ? aStrArr.join(customPlus) : "-";
-                
-                tbodyHTML += `
-                    <tr style="border-bottom:1px solid #333; background: #0a0a0a;">
-                        <td style="padding:12px 6px; border-right:1px solid #333; font-weight:900; color:#facc15; font-size: var(--dba-font-large);">${hNum}</td>
-                        <td style="padding:12px 6px; border-right:1px solid #333;">${slStr}</td>
-                        <td style="padding:12px 10px; border-right:1px solid #333; text-align: left; line-height: 2;">${pStr}</td>
-                        <td style="padding:12px 10px; text-align: left; line-height: 2;">${aStr}</td>
-                    </tr>
-                `;
-            }
-
-            let tableDiv = document.createElement("div");
-            tableDiv.id = "dbaHouseAspectTable";
-            tableDiv.style.width = "100%";
-            tableDiv.style.marginTop = "35px";
-            tableDiv.style.paddingTop = "25px";
-            tableDiv.style.borderTop = "1px dashed #444";
-            
-            tableDiv.innerHTML = `
-            <div style="color: #0bf4e6; font-size: 18px; font-weight: 900; text-align: center; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; border-bottom: 2px solid #0bf4e6; padding-bottom: 5px; display: inline-block; position: relative; left: 50%; transform: translateX(-50%);" onclick="const t = document.getElementById('dbaHouseAspectTableContent'); t.style.display = (t.style.display === 'none' || t.style.display === '') ? 'block' : 'none';">
-                House Placements & Aspects &#9650;
-            </div>
-            <div id="dbaHouseAspectTableContent" class="varga-card" style="max-width: 100%; width: 100%; margin: 0 auto; background: #111; padding: 20px; border: 1px solid var(--grid-line); border-radius: 6px; box-sizing: border-box; box-shadow: 0 4px 6px rgba(0,0,0,0.5); font-family: 'Segoe UI', Arial, sans-serif; display: block;">
-                <table style="width:100%; border-collapse: collapse; text-align:center; color:#fff; font-size: var(--dba-font-base); background: #000; border: 1px solid #333;">
-                    <thead>
-                        <tr style="background:#222; color:#ff8800; border-bottom:2px solid #ff8800;">
-                            <th style="padding:12px 8px; border-right:1px solid #444; width: 60px;">HOUSE</th>
-                            <th style="padding:12px 8px; border-right:1px solid #444; width: 100px;">SIGN LORD</th>
-                            <th style="padding:12px 8px; border-right:1px solid #444; width: 40%;">PLACED</th>
-                            <th style="padding:12px 8px;">ASPECTED BY</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${tbodyHTML}
-                    </tbody>
-                </table>
-            </div>
-            `;
-            
-            wrapper.appendChild(tableDiv);
-        }
+        
     }
 
     try {
@@ -18999,8 +18833,10 @@ function renderDbaMixer() {
             `;
         }
         
-        // CONVERT THE WRAPPER INTO A TRUE ALIGNED GRID
-        grid.style.display = "grid";
+        // CONVERT THE WRAPPER INTO A TRUE ALIGNED GRID (maintaining open/collapsed state)
+        if (grid.style.display !== "none") {
+            grid.style.display = "grid";
+        }
         
         let numCols = 1;
         if(dbaActiveLevel === "dasha") numCols = 2;
@@ -19220,11 +19056,125 @@ function renderDbaRotator() {
     // Safely restore user's active pivot so it doesn't break upper tables
     pivotSelect.value = originalPivot;
 
-    rotGrid.style.display = "grid";
+    if (rotGrid.style.display !== "none") {
+        rotGrid.style.display = "grid";
+    }
     const mainGrid = document.getElementById("dbaIslandsGrid");
     if (mainGrid) rotGrid.style.gridTemplateColumns = mainGrid.style.gridTemplateColumns; // Match dragging rules dynamically
     rotGrid.style.alignItems = "stretch";
     rotGrid.innerHTML = rotHtml;
+}
+
+// --- NEW ANCHOR LOCKED PIVOT ROTATOR LOGIC ---
+function renderDbaAnchorRotator() {
+    const anchorGrid = document.getElementById("dbaAnchorRotatorGrid");
+    if (!anchorGrid) return;
+    const vNum = parseInt(document.getElementById("dbaVargaSelect")?.value || "1");
+    const pivotSelect = document.getElementById("dbaPivotSelect");
+    if (!pivotSelect) return;
+
+    // Save current dropdown selection so we don't disturb Uniform Pivot Rotator
+    const originalPivot = pivotSelect.value;
+
+    // Resolve Active Anchor (Default: Chandra -> "Ch", Lagna -> "1")
+    const activeAnchor = window.dbaActiveAnchor || "Ch";
+    const anchorPivotVal = (activeAnchor === "ASC") ? "1" : activeAnchor;
+    const anchorLabel = (activeAnchor === "ASC") ? "Lagna" : (DBA_NAMES[activeAnchor] || activeAnchor);
+
+    // Temporarily lock pivot to the selected Anchor for the entire table
+    pivotSelect.value = anchorPivotVal;
+
+    let anchorHtml = "";
+
+    if (dbaActiveLevel === "none") {
+        anchorHtml += `<div style="background:#004d40; color:#0bf4e6; font-size:22px; font-weight:900; padding:12px; border:2px solid #0bf4e6; border-radius:6px; text-align:center; letter-spacing:1px;">DASHA (Anchor Pivot: ${anchorLabel})</div>`;
+
+        let mLord = getDbaMoonStarLord();
+        let startIdx = DBA_PLANETS.indexOf(mLord);
+        if (startIdx === -1) startIdx = 0;
+        let iterOrder = [...DBA_PLANETS.slice(startIdx), ...DBA_PLANETS.slice(0, startIdx)];
+
+        iterOrder.forEach(dCode => {
+            let dData = getDbaMinimalScript(dCode, vNum);
+            anchorHtml += `<div style="background:#111; border:2px solid #0bf4e6; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5); height:100%; box-sizing:border-box;">${formatDbaBox(dData, false)}</div>`;
+        });
+    } else if (dbaActiveLevel === "dasha") {
+        anchorHtml += `
+            <div style="position:relative; background:#004d40; color:#0bf4e6; font-size:22px; font-weight:900; padding:12px; border:2px solid #0bf4e6; border-radius:6px; text-align:center; letter-spacing:1px;">
+                DASHA (Anchor: ${anchorLabel})
+                <div onmousedown="startDbaResize(event, 0)" onmouseenter="this.style.background='rgba(255,255,255,0.1)'" onmouseleave="this.style.background='transparent'" style="position:absolute; top:0; bottom:0; right:-20px; width:20px; cursor:col-resize; z-index:100; transition:0.2s;">
+                    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:2px; height:20px; background:rgba(255,255,255,0.3); border-radius:2px;"></div>
+                </div>
+            </div>
+            <div style="position:relative; background:#4d2b00; color:#ff8800; font-size:22px; font-weight:900; padding:12px; border:2px solid #ff8800; border-radius:6px; text-align:center; letter-spacing:1px;">BUKTHI (Anchor: ${anchorLabel})</div>
+        `;
+
+        let startIdx = DBA_PLANETS.indexOf(dbaActiveDasha);
+        if (startIdx === -1) startIdx = 0;
+        let iterOrder = [...DBA_PLANETS.slice(startIdx), ...DBA_PLANETS.slice(0, startIdx)];
+
+        let dData = getDbaMinimalScript(dbaActiveDasha, vNum);
+
+        iterOrder.forEach(bCode => {
+            let bData = getDbaMinimalScript(bCode, vNum);
+            anchorHtml += `
+                <div style="background:#111; border:2px solid #0bf4e6; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5); height:100%; box-sizing:border-box;">${formatDbaBox(dData, false)}</div>
+                <div style="background:#111; border:2px solid #ff8800; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5); height:100%; box-sizing:border-box;">${formatDbaBox(bData, false)}</div>
+            `;
+        });
+    } else if (dbaActiveLevel === "bukthi" || dbaActiveLevel === "antara") {
+        anchorHtml += `
+            <div style="position:relative; background:#004d40; color:#0bf4e6; font-size:22px; font-weight:900; padding:12px; border:2px solid #0bf4e6; border-radius:6px; text-align:center; letter-spacing:1px;">
+                DASHA (Anchor: ${anchorLabel})
+                <div onmousedown="startDbaResize(event, 0)" onmouseenter="this.style.background='rgba(255,255,255,0.1)'" onmouseleave="this.style.background='transparent'" style="position:absolute; top:0; bottom:0; right:-20px; width:20px; cursor:col-resize; z-index:100; transition:0.2s;">
+                    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:2px; height:20px; background:rgba(255,255,255,0.3); border-radius:2px;"></div>
+                </div>
+            </div>
+            <div style="position:relative; background:#4d2b00; color:#ff8800; font-size:22px; font-weight:900; padding:12px; border:2px solid #ff8800; border-radius:6px; text-align:center; letter-spacing:1px;">
+                BUKTHI (Anchor: ${anchorLabel})
+                <div onmousedown="startDbaResize(event, 1)" onmouseenter="this.style.background='rgba(255,255,255,0.1)'" onmouseleave="this.style.background='transparent'" style="position:absolute; top:0; bottom:0; right:-20px; width:20px; cursor:col-resize; z-index:100; transition:0.2s;">
+                    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:2px; height:20px; background:rgba(255,255,255,0.3); border-radius:2px;"></div>
+                </div>
+            </div>
+            <div style="position:relative; background:#2e004f; color:#c084fc; font-size:22px; font-weight:900; padding:12px; border:2px solid #c084fc; border-radius:6px; text-align:center; letter-spacing:1px;">ANTARA (Anchor: ${anchorLabel})</div>
+        `;
+
+        let dData = getDbaMinimalScript(dbaActiveDasha, vNum);
+        let bData = getDbaMinimalScript(dbaActiveBukthi, vNum);
+
+        if (dbaActiveLevel === "bukthi") {
+            let startIdx = DBA_PLANETS.indexOf(dbaActiveBukthi);
+            if (startIdx === -1) startIdx = 0;
+            let iterOrder = [...DBA_PLANETS.slice(startIdx), ...DBA_PLANETS.slice(0, startIdx)];
+
+            iterOrder.forEach(aCode => {
+                let aData = getDbaMinimalScript(aCode, vNum);
+                anchorHtml += `
+                    <div style="background:#111; border:2px solid #0bf4e6; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5); height:100%; box-sizing:border-box;">${formatDbaBox(dData, false)}</div>
+                    <div style="background:#111; border:2px solid #ff8800; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5); height:100%; box-sizing:border-box;">${formatDbaBox(bData, false)}</div>
+                    <div style="background:#111; border:2px solid #c084fc; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5); height:100%; box-sizing:border-box;">${formatDbaBox(aData, false)}</div>
+                `;
+            });
+        } else if (dbaActiveLevel === "antara") {
+            let aData = getDbaMinimalScript(dbaActiveAntara, vNum);
+            anchorHtml += `
+                <div style="background:#111; border:2px solid #0bf4e6; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5); height:100%; box-sizing:border-box;">${formatDbaBox(dData, false)}</div>
+                <div style="background:#111; border:2px solid #ff8800; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5); height:100%; box-sizing:border-box;">${formatDbaBox(bData, false)}</div>
+                <div style="background:#111; border:2px solid #c084fc; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5); height:100%; box-sizing:border-box;">${formatDbaBox(aData, false)}</div>
+            `;
+        }
+    }
+
+    // Restore original user Pivot selection
+    pivotSelect.value = originalPivot;
+
+    if (anchorGrid.style.display !== "none") {
+        anchorGrid.style.display = "grid";
+    }
+    const mainGrid = document.getElementById("dbaIslandsGrid");
+    if (mainGrid) anchorGrid.style.gridTemplateColumns = mainGrid.style.gridTemplateColumns;
+    anchorGrid.style.alignItems = "stretch";
+    anchorGrid.innerHTML = anchorHtml;
 }
 
 // Hook into existing Render logic smoothly without altering original definitions
@@ -19232,18 +19182,22 @@ const originalRenderDbaMixer = window.renderDbaMixer;
 window.renderDbaMixer = function() {
     if(typeof originalRenderDbaMixer === "function") originalRenderDbaMixer();
     renderDbaRotator();
+    renderDbaAnchorRotator();
+    renderStandaloneHouseAspects(); // HOOK NEW INDEPENDENT TABLE
 };
 
-// Hook into existing Drag logic to sync column widths effortlessly
+// Hook into existing Drag logic to sync column widths effortlessly across all tables
 const originalHandleDbaMouseMove = window.handleDbaMouseMove;
 window.handleDbaMouseMove = function(e) {
     if(typeof originalHandleDbaMouseMove === "function") originalHandleDbaMouseMove(e);
     const mainGrid = document.getElementById("dbaIslandsGrid");
     const rotGrid = document.getElementById("dbaRotatorGrid");
+    const anchorGrid = document.getElementById("dbaAnchorRotatorGrid");
     if (mainGrid && rotGrid) rotGrid.style.gridTemplateColumns = mainGrid.style.gridTemplateColumns;
+    if (mainGrid && anchorGrid) anchorGrid.style.gridTemplateColumns = mainGrid.style.gridTemplateColumns;
 };
 
-// Ensure the main calc cycle updates this table automatically
+// Ensure the main calc cycle updates everything automatically
 (function hookDbaMixerIntoCalc(){
     const originalCoreCalc = window.calc;
     window.calc = function(){
@@ -19256,6 +19210,8 @@ window.handleDbaMouseMove = function(e) {
     };
 })();
 </script>
+
+
 
 <!-- Nakshatra Nadi DBA Mixer ▲ ---- ENDS HERE -->
 
@@ -19270,335 +19226,403 @@ window.handleDbaMouseMove = function(e) {
 
 
 
+
+
+<!-- House Placements & Aspects -->
+
+<!-- =========================================================
+     STANDALONE HOUSE PLACEMENTS & ASPECTS 
+========================================================= -->
+<div class="division-title" onclick="toggleHouseAspects()">
+    House Placements & Aspects &#9660;
+</div>
+
+<div id="houseAspectsWrapper" class="shoda-wrapper" style="display:block; padding-bottom: 60px; max-width: 100%; padding-left: 20px; padding-right: 20px; width: 100%; box-sizing: border-box; --dba-font-base: 17px; --dba-font-large: 18px; --dba-font-bracket: 22px;">
+    
+    <!-- INDEPENDENT CONTROLS FOR HOUSE PLACEMENTS -->
+    <div style="background:#0a0a0a; border:1px solid var(--grid-line); padding:15px; border-radius:6px; margin: 0 auto 20px auto; width: 100%; max-width: 800px; display:flex; justify-content:center; gap:20px; flex-wrap:wrap; box-sizing: border-box;">
+        <label style="color:var(--grid-line); font-weight:bold; font-size:16px; display:flex; align-items:center; gap:8px;">
+            VARGA:
+            <select id="haVargaSelect" onchange="renderStandaloneHouseAspects()" style="background:#000; color:#fff; border:1px solid var(--grid-line); padding:6px 10px; font-size:14px; font-weight:bold; cursor:pointer;">
+                <option value="1">D1</option>
+                <option value="10">D10</option>
+                <option value="9">D9</option>
+                <option value="7">D7</option>
+                <option value="2">D2</option>
+                <option value="4">D4</option>
+                <option value="8">D8</option>
+                <option value="60">D60</option>
+                <option value="11">D11</option>
+                <option value="30">D30</option>
+                <option value="21">D21</option>
+                <option value="16">D16</option>
+                <option value="6">D6</option>
+                <option value="12">D12</option>
+                <option value="3">D3</option>
+                <option value="24">D24</option>
+                <option value="27">D27</option>
+                <option value="20">D20</option>
+                <option value="40">D40</option>
+                <option value="45">D45</option>
+                <option value="5">D5</option>
+            </select>
+        </label>
+
+        <label style="color:var(--grid-line); font-weight:bold; font-size:16px; display:flex; align-items:center; gap:8px;">
+            PIVOT:
+            <select id="haPivotSelect" onchange="syncAllPivots(this.id); renderStandaloneHouseAspects();" style="background:#000; color:#fff; border:1px solid var(--grid-line); padding:6px 10px; font-size:14px; font-weight:bold; cursor:pointer;">
+                <option value="1">1st House</option>
+                <option value="2">2nd House</option>
+                <option value="3">3rd House</option>
+                <option value="4">4th House</option>
+                <option value="5">5th House</option>
+                <option value="6">6th House</option>
+                <option value="7">7th House</option>
+                <option value="8">8th House</option>
+                <option value="9">9th House</option>
+                <option value="10">10th House</option>
+                <option value="11">11th House</option>
+                <option value="12">12th House</option>
+                <option value="Sy">Surya</option>
+                <option value="Ch">Chandra</option>
+                <option value="Ma">Mangala</option>
+                <option value="Ra">Rahu</option>
+                <option value="Ju">Jupiter</option>
+                <option value="Sa">Saturn</option>
+                <option value="Bu">Budha</option>
+                <option value="Ke">Ketu</option>
+                <option value="Ve">Venus</option>
+            </select>
+        </label>
+        
+        <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#ff3366; font-weight:bold; font-size:15px;">
+            <input type="checkbox" id="haLocalShiftToggle" onchange="renderStandaloneHouseAspects()"> Shift
+        </label>
+    </div>
+
+    <div class="varga-card" style="max-width: 100%; width: 100%; margin: 0 auto; background: #111; padding: 20px; border: 1px solid var(--grid-line); border-radius: 6px; box-sizing: border-box; box-shadow: 0 4px 6px rgba(0,0,0,0.5); font-family: 'Segoe UI', Arial, sans-serif;">
+        <div id="houseAspectsContainer" style="width:100%;">
+             <!-- Filled dynamically by completely isolated logic below -->
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleHouseAspects() {
+    const box = document.getElementById("houseAspectsWrapper");
+    const title = document.querySelector('.division-title[onclick=\'toggleHouseAspects()\']');
+    if(!box) return;
+    const isOpening = (box.style.display === "none");
+    box.style.display = isOpening ? "block" : "none";
+    if (title) title.innerHTML = isOpening ? "House Placements & Aspects &#9660;" : "House Placements & Aspects &#9654;";
+}
+
+function renderStandaloneHouseAspects() {
+    let haContainer = document.getElementById("houseAspectsContainer");
+    if (!haContainer) return;
+
+    // Generate crisp dynamic colors for this standalone table (Expanded to 15 distinct colors)
+    const crispColors = [
+        "#39FF14", "#00E5FF", "#FFE600", "#FF1744", "#D500F9", 
+        "#FF9100", "#F50057", "#1DE9B6", "#00E676", "#E040FB",
+        "#FF3366", "#B2FF59", "#FFFF00", "#64FFDA", "#FF6D00"
+    ];
+    let shuffledColors = crispColors.sort(() => 0.5 - Math.random());
+    window._dbaColors = {
+        conj: shuffledColors[0],
+        asp: shuffledColors[1],
+        disp: shuffledColors[2],
+        planet: shuffledColors[3],
+        zodiac: shuffledColors[4],
+        lord: shuffledColors[5]
+    };
+
+    // 1. REBUILD 100% ISOLATED CHART STATE FOR INDEPENDENCE
+    const vNum = parseInt(document.getElementById("haVargaSelect")?.value || "1");
+    const isKpActive = document.getElementById("modeKP")?.checked || false;
+    const pivotStr = document.getElementById("haPivotSelect")?.value || "1";
+    const isPlanetPivot = ["Sy", "Ch", "Ma", "Ra", "Ju", "Sa", "Bu", "Ke", "Ve"].includes(pivotStr);
+    const modeVedic = document.getElementById("modeVedic")?.checked;
+    const SHIFTED_LAGNA = document.getElementById("haLocalShiftToggle")?.checked;
+
+    let isolatedChart = Array(12).fill().map(() => []);
+    let dbaCusps = typeof getDbaCusps === "function" ? getDbaCusps() : null;
+    let ascAbsDegLocal = typeof getDbaAscendantAbsolute === "function" ? getDbaAscendantAbsolute(vNum) : 0;
+    
+    let localCusps = dbaCusps;
+    if (!localCusps && vNum === 1) {
+        let rawData = (typeof raw !== "undefined" && raw) ? raw : (window.raw || null);
+        if (rawData && rawData.ayanamshas) {
+            const aya = document.getElementById('aya')?.value || 'Lahiri';
+            if (rawData.ayanamshas[aya] && rawData.ayanamshas[aya].cusps) {
+                let bCusps = rawData.ayanamshas[aya].cusps;
+                let sAmt = 0;
+                if (SHIFTED_LAGNA && typeof currentDateTime !== "undefined" && typeof originalDateTime !== "undefined") {
+                    sAmt = ((currentDateTime - originalDateTime) / 60000) * 0.25;
+                }
+                localCusps = {};
+                for (let c = 1; c <= 12; c++) {
+                    if (bCusps[c] !== undefined) {
+                        let v = parseFloat(bCusps[c]) + sAmt;
+                        while(v < 0) v += 360; while(v >= 360) v -= 360;
+                        localCusps[c] = v;
+                    }
+                }
+            }
+        }
+    }
+
+    let pivotDeg = -1;
+    if (isPlanetPivot && typeof getDbaAbsoluteLongitude === "function") {
+        pivotDeg = getDbaAbsoluteLongitude(pivotStr, vNum);
+    }
+
+    let ascIndex = 0;
+    if (isPlanetPivot && pivotDeg !== -1) {
+        let purePivotSign = Math.floor(pivotDeg / 30);
+        ascIndex = purePivotSign;
+        if (SHIFTED_LAGNA && isKpActive && (pivotDeg % 30) >= 15) ascIndex = (ascIndex + 1) % 12;
+    } else {
+        let pureBaseSign = Math.floor(ascAbsDegLocal / 30);
+        ascIndex = pureBaseSign;
+        if (SHIFTED_LAGNA && isKpActive && (ascAbsDegLocal % 30) >= 15) ascIndex = (ascIndex + 1) % 12;
+        let houseOffset = parseInt(pivotStr) - 1;
+        if (!isNaN(houseOffset)) ascIndex = (ascIndex + houseOffset) % 12;
+    }
+
+    const pNamesList = ["Sy", "Ch", "Ma", "Bu", "Ju", "Ve", "Sa", "Ra", "Ke"];
+    if (typeof getDbaAbsoluteLongitude === "function") {
+        pNamesList.forEach(p => {
+            let absDeg = getDbaAbsoluteLongitude(p, vNum);
+            if (absDeg === -1) return;
+            let purePntSign = Math.floor(absDeg / 30); 
+            
+            if (isPlanetPivot && pivotDeg !== -1) {
+                if (isKpActive) {
+                    let relDeg = (absDeg - pivotDeg + 360) % 360;
+                    isolatedChart[(ascIndex + Math.floor(relDeg / 30)) % 12].push({ n: p, pureSign: purePntSign, isAsc: false });
+                } else if (modeVedic) {
+                    let relDeg = (absDeg - (pivotDeg - 15) + 360) % 360;
+                    isolatedChart[(ascIndex + Math.floor(relDeg / 30)) % 12].push({ n: p, pureSign: purePntSign, isAsc: false });
+                } else {
+                    isolatedChart[Math.floor(absDeg / 30)].push({ n: p, pureSign: purePntSign, isAsc: false });
+                }
+            } else {
+                let baseAsc = Math.floor(ascAbsDegLocal / 30);
+                if (SHIFTED_LAGNA && isKpActive && (ascAbsDegLocal % 30) >= 15) baseAsc = (baseAsc + 1) % 12;
+                
+                if (vNum === 1 && isKpActive && localCusps && typeof getPlacidusHouse === "function") {
+                    let placidusHouse = getPlacidusHouse(absDeg, localCusps);
+                    if (placidusHouse !== null) {
+                        let houseIndex = (baseAsc + placidusHouse - 1) % 12;
+                        isolatedChart[houseIndex].push({ n: p, pureSign: purePntSign, isAsc: false });
+                    } else {
+                        let relDeg = (absDeg - ascAbsDegLocal + 360) % 360;
+                        isolatedChart[(baseAsc + Math.floor(relDeg / 30)) % 12].push({ n: p, pureSign: purePntSign, isAsc: false });
+                    }
+                } else if (isKpActive) {
+                    let relDeg = (absDeg - ascAbsDegLocal + 360) % 360;
+                    isolatedChart[(baseAsc + Math.floor(relDeg / 30)) % 12].push({ n: p, pureSign: purePntSign, isAsc: false });
+                } else if (modeVedic) {
+                    let relDeg = (absDeg - (ascAbsDegLocal - 15) + 360) % 360;
+                    isolatedChart[(baseAsc + Math.floor(relDeg / 30)) % 12].push({ n: p, pureSign: purePntSign, isAsc: false });
+                } else {
+                    isolatedChart[Math.floor(absDeg / 30)].push({ n: p, pureSign: purePntSign, isAsc: false });
+                }
+            }
+        });
+    }
+
+    // 2. ISOLATED TABLE GENERATION LOGIC
+    const tableSignLords = { 1:"Ma", 2:"Ve", 3:"Bu", 4:"Ch", 5:"Sy", 6:"Bu", 7:"Ve", 8:"Ma", 9:"Ju", 10:"Sa", 11:"Sa", 12:"Ju" };
+    const pFullNames = { Sy:"Surya", Ch:"Chandra", Ma:"Mangala", Bu:"Budha", Ju:"Jupiter", Ve:"Venus", Sa:"Saturn", Ra:"Rahu", Ke:"Ketu" };
+    
+    function getHouseStrArr(pCode) {
+        let placedHouse = null;
+        let pureSign = null;
+        let absDeg = typeof getDbaAbsoluteLongitude === "function" ? getDbaAbsoluteLongitude(pCode, vNum) : 0;
+        let pNameFull = pFullNames[pCode] || pCode;
+        
+        for(let i=0; i<12; i++) {
+            let found = isolatedChart[i].find(p => p.n === pCode);
+            if(found) {
+                placedHouse = ((i - ascIndex + 12) % 12) + 1;
+                pureSign = found.pureSign !== undefined ? found.pureSign : Math.floor(absDeg / 30);
+                break;
+            }
+        }
+        if(!placedHouse) return [];
+
+        let houseOffset = isPlanetPivot ? 0 : (parseInt(document.getElementById("dbaPivotSelect")?.value || "1") - 1);
+        if (isNaN(houseOffset)) houseOffset = 0;
+        
+        let isCuspal = document.getElementById("dbaCuspalConjToggle")?.checked && vNum === 1 && localCusps;
+
+        if (pCode === "Ra" || pCode === "Ke") {
+            let dispCode = tableSignLords[pureSign + 1];
+            let dispNameFull = pFullNames[dispCode] || dispCode;
+            let dispPlaced = null;
+            for(let i=0; i<12; i++) {
+                if(isolatedChart[i].find(p => p.n === dispCode)) {
+                    dispPlaced = ((i - ascIndex + 12) % 12) + 1;
+                    break;
+                }
+            }
+            let dispLords = [];
+            for(let h=1; h<=12; h++) {
+                const signOfHouse = ((ascIndex + h - 1) % 12) + 1;
+                if(tableSignLords[signOfHouse] === dispCode) dispLords.push(h);
+            }
+            
+            if (isCuspal && typeof getDbaAbsoluteLongitude === "function") {
+                let dispDeg = getDbaAbsoluteLongitude(dispCode, vNum);
+                for(let c=1; c<=12; c++) {
+                    let cuspDeg = isPlanetPivot ? (pivotDeg + (c - 1) * 30) % 360 : localCusps[c];
+                    if(cuspDeg !== undefined) {
+                        let diff = Math.abs(dispDeg - cuspDeg);
+                        if(diff>180) diff = 360 - diff;
+                        if(diff <= 3.3333) dispLords.push(((c - 1 - houseOffset + 12) % 12) + 1);
+                    }
+                }
+            }
+            
+            let dNums = [];
+            if(dispPlaced) dNums.push(dispPlaced);
+            dNums.push(...dispLords);
+            dNums = [...new Set(dNums)].sort((a,b) => parseInt(a) - parseInt(b));
+            dNums = dNums.map(n => parseInt(n) === dispPlaced ? n + "_U" : n);
+            
+            let rNums = [placedHouse].map(n => n + "_U");
+            return [`${pNameFull}(${rNums.join(",")})`, `DISP|${dispNameFull}[${dNums.join(",")}]`];
+        } else {
+            let lords = [];
+            for(let h=1; h<=12; h++) {
+                const signOfHouse = ((ascIndex + h - 1) % 12) + 1;
+                if(tableSignLords[signOfHouse] === pCode) lords.push(h);
+            }
+            
+            if (isCuspal) {
+                for(let c=1; c<=12; c++) {
+                    let cuspDeg = isPlanetPivot ? (pivotDeg + (c - 1) * 30) % 360 : localCusps[c];
+                    if(cuspDeg !== undefined) {
+                        let diff = Math.abs(absDeg - cuspDeg);
+                        if(diff>180) diff = 360 - diff;
+                        if(diff <= 3.3333) lords.push(((c - 1 - houseOffset + 12) % 12) + 1);
+                    }
+                }
+            }
+            
+            let nums = [placedHouse, ...lords];
+            nums = [...new Set(nums)].sort((a,b) => parseInt(a) - parseInt(b));
+            nums = nums.map(n => parseInt(n) === placedHouse ? n + "_U" : n);
+            return [`${pNameFull}(${nums.join(",")})`];
+        }
+    }
+
+    function getPntNums(pCode) {
+        let arr = getHouseStrArr(pCode);
+        if (pCode === "Ra" || pCode === "Ke") {
+            let rMatch = arr[0] ? arr[0].match(/\((.*?)\)/) : null;
+            let dMatch = arr[1] ? arr[1].match(/\[(.*?)\]/) : null;
+            let merged = [];
+            if(rMatch) merged.push(...rMatch[1].split(","));
+            if(dMatch) merged.push(...dMatch[1].split(",").map(n => n.replace("_U", "")));
+            return [...new Set(merged)].sort((a,b) => parseInt(a) - parseInt(b));
+        } else {
+            let match = arr[0] ? arr[0].match(/\((.*?)\)/) : null;
+            return match ? match[1].split(",") : [];
+        }
+    }
+
+    let houseData = Array(13).fill().map(() => ({ placed: [], aspectedBy: [] }));
+    
+    for(let s=0; s<12; s++) {
+        let hNum = ((s - ascIndex + 12) % 12) + 1;
+        isolatedChart[s].filter(p => !p.isAsc).forEach(p => {
+            houseData[hNum].placed.push(...getHouseStrArr(p.n));
+            
+            let aspects = [];
+            if (p.n === "Sa") aspects = [3, 7, 10];
+            else if (p.n === "Ma") aspects = [4, 7, 8];
+            else if (p.n === "Ju") aspects = [5, 7, 9];
+            else if (p.n === "Ra" || p.n === "Ke") {
+                if (document.getElementById("dbaRaKeAspToggle")?.checked) aspects.push(5, 9);
+                if (document.getElementById("dbaRaKe7thAspToggle")?.checked) aspects.push(7);
+            }
+            else aspects = [7]; 
+            
+            let pNums = getPntNums(p.n);
+            let pNameFull = pFullNames[p.n] || p.n;
+            
+            aspects.forEach(asp => {
+                let target = (hNum + asp - 1) % 12;
+                if (target === 0) target = 12;
+                let ordinal = (asp === 3) ? "3rd" : asp + "th";
+                houseData[target].aspectedBy.push("ASP|" + pNameFull + "'s " + ordinal + "{" + pNums.join(",") + "}");
+            });
+        });
+    }
+
+    let tbodyHTML = "";
+    let customPlus = ' <span style="color:#facc15; font-weight:bold; font-size:18px; margin:0 6px;">+</span> ';
+    const zodiacNames = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
+
+    for(let hNum=1; hNum<=12; hNum++) {
+        let signOfHouse = ((ascIndex + hNum - 1) % 12) + 1;
+        let zodiacName = zodiacNames[signOfHouse - 1];
+        let slCode = tableSignLords[signOfHouse];
+        
+        // Pass dynamic Lord Color directly to formatDbaHouses
+        let slStr = (typeof formatDbaHouses === "function") ? formatDbaHouses(pFullNames[slCode] || slCode, -1, window._dbaColors.lord) : `<span style="color:${window._dbaColors.lord}; font-weight:bold;">${pFullNames[slCode] || slCode}</span>`;
+
+        let pStrArr = houseData[hNum].placed.map(x => (typeof formatDbaHouses === "function") ? formatDbaHouses(x, -1) : x);
+        let pStr = pStrArr.length > 0 ? pStrArr.join(customPlus) : "-";
+        
+        let aStrArr = [...new Set(houseData[hNum].aspectedBy)].map(x => (typeof formatDbaHouses === "function") ? formatDbaHouses(x, -1) : x);
+        let aStr = aStrArr.length > 0 ? aStrArr.join(customPlus) : "-";
+        
+        tbodyHTML += `
+            <tr style="border-bottom:1px solid #333; background: #0a0a0a;">
+                <td style="padding:12px 6px; border-right:1px solid #333; font-weight:900; color:#facc15; font-size: var(--dba-font-large);">${hNum}</td>
+                <td style="padding:12px 6px; border-right:1px solid #333; font-weight:bold; color:${window._dbaColors.zodiac};">${zodiacName}</td>
+                <td style="padding:12px 6px; border-right:1px solid #333;">${slStr}</td>
+                <td style="padding:12px 10px; border-right:1px solid #333; text-align: left; line-height: 2;">${pStr}</td>
+                <td style="padding:12px 10px; text-align: left; line-height: 2;">${aStr}</td>
+            </tr>
+        `;
+    }
+	
+
+    haContainer.innerHTML = `
+        <table style="width:100%; border-collapse: collapse; text-align:center; color:#fff; font-size: var(--dba-font-base); background: #000; border: 1px solid #333;">
+            <thead>
+                <tr style="background:#222; color:#ff8800; border-bottom:2px solid #ff8800;">
+                    <th style="padding:12px 8px; border-right:1px solid #444; width: 60px;">HOUSE</th>
+                    <th style="padding:12px 8px; border-right:1px solid #444; width: 100px;">ZODIAC</th>
+                    <th style="padding:12px 8px; border-right:1px solid #444; width: 100px;">SIGN LORD</th>
+                    <th style="padding:12px 8px; border-right:1px solid #444; width: 35%;">PLACED</th>
+                    <th style="padding:12px 8px;">ASPECTED BY</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${tbodyHTML}
+            </tbody>
+        </table>
+    `;
+}
+</script>
+
+<!-- House Placements & Aspects -->
+
+
+
+
+
+
+
+
+
+
+
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
