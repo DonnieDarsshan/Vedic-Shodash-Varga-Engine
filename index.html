@@ -295,10 +295,13 @@
 				}
 				
 				/* Single Cell Highlight */
-				.mem-cell{
-				background:#ff8800 !important;   /* orange */
+				.mem-cell {
+				background:#facc15 !important;   /* yellow */
 				color:#000000 !important;
 				border:1px solid #000000 !important;
+			}
+				.mem-cell * {
+				color:#000000 !important;        /* force inner colored text to black */
 			}
 				
 
@@ -3093,7 +3096,7 @@ function evaluatePlanetPlacementFF(houseNum, isBenefic, pCode) {
     if (category === "Override \u2192 Bad") color = "#ff2a40";
 
     const statusText = isBad
-        ? `Acts as Malefic (${category}) \u21BB Reversed`
+        ? `Acts as Malefic (${category})`
         : `Acts as Benefic (${category})`;
 
     return { category, isBad, statusText, color };
@@ -3390,8 +3393,8 @@ function renderFiveFoldTables() {
             pPlacementEval[p] = evalObj;
 
             const rowBadgeStyle = evalObj.isBad
-                ? `background:rgba(255,42,64,0.15); border:1px solid #ff2a40; color:${evalObj.color}; padding:3px 10px; border-radius:4px; font-weight:900;`
-                : `background:rgba(22,245,41,0.10); border:1px solid rgba(22,245,41,0.4); color:${evalObj.color}; padding:3px 10px; border-radius:4px; font-weight:bold;`;
+                ? `color:#ff2a40; font-weight:900; white-space:nowrap;`
+                : `color:#16f529; font-weight:bold; white-space:nowrap;`;
 
             placeHtml += `<tr>
                 <td style="background:#2d0066; color:#facc15; font-weight:900;">${getLabel(p)}</td>
@@ -3447,9 +3450,7 @@ function renderFiveFoldTables() {
 
         activeOrder.forEach(pFrom => {
             const isReversed = pPlacementEval[pFrom]?.isBad || false;
-            const pFromTitleTag = isReversed
-                ? `${getLabel(pFrom)} <span style="color:#ff2a40; font-size:11px;" title="Badly Placed in ${pHouse[pFrom]}H - Color Coding Reversed">(${pHouse[pFrom]}H \u21BB)</span>`
-                : `${getLabel(pFrom)} <span style="color:#10b981; font-size:11px;">(${pHouse[pFrom]}H)</span>`;
+            const pFromTitleTag = getLabel(pFrom);
 
             let pRowPerm = `<tr><td style="background:#2d0066; color:#facc15; font-weight:900;">${getLabel(pFrom)}</td>`;
             let pRowTemp = `<tr><td style="background:#2d0066; color:#facc15; font-weight:900;">${getLabel(pFrom)}</td>`;
@@ -11044,7 +11045,7 @@ function loadCloudProfile(event) {
 
 
 
-
+<!-- Nakshatra Nadi For All Divisional Charts  -->
 
 
 
@@ -12723,6 +12724,31 @@ function renderNakshatraNadiTab() {
 
     const threePerRow = document.getElementById("nadiThreePerRowToggle")?.checked;
     const twoPerRow = document.getElementById("nadiTwoPerRowToggle")?.checked;
+    const onePerRow = !threePerRow && !twoPerRow;
+
+    // Auto-enable Starlord, Sub-lord & Sub-sub when entering 1-Planet column mode,
+    // and restore previous checkbox state when returning to 2-Planet / 3-Planet mode
+    if (onePerRow && !window._wasOnePerRow) {
+        const cStar = document.getElementById("nadiComboStarToggle");
+        const cSub = document.getElementById("nadiComboSubToggle");
+        const cSubSub = document.getElementById("nadiComboSubSubToggle");
+        window._savedComboStateBeforeOne = {
+            star: cStar ? cStar.checked : true,
+            sub: cSub ? cSub.checked : false,
+            subSub: cSubSub ? cSubSub.checked : false
+        };
+        if (cStar) cStar.checked = true;
+        if (cSub) cSub.checked = true;
+        if (cSubSub) cSubSub.checked = true;
+    } else if (!onePerRow && window._wasOnePerRow && window._savedComboStateBeforeOne) {
+        const cStar = document.getElementById("nadiComboStarToggle");
+        const cSub = document.getElementById("nadiComboSubToggle");
+        const cSubSub = document.getElementById("nadiComboSubSubToggle");
+        if (cStar) cStar.checked = window._savedComboStateBeforeOne.star;
+        if (cSub) cSub.checked = window._savedComboStateBeforeOne.sub;
+        if (cSubSub) cSubSub.checked = window._savedComboStateBeforeOne.subSub;
+    }
+    window._wasOnePerRow = onePerRow;
     
     if (threePerRow) {
         container.style.gridTemplateColumns = "repeat(3, 1fr)";
@@ -12732,16 +12758,72 @@ function renderNakshatraNadiTab() {
         container.style.gridTemplateColumns = "1fr"; 
     }
 
-    
-	
-	function buildRow(label, scriptStr, colorCode, noBottomBorder = false, extraLords = [], rowIdx = "") {
+    function buildRow(label, scriptStr, colorCode, noBottomBorder = false, extraLords = [], rowIdx = "") {
         if (scriptStr.includes("ERR")) scriptStr = "Data Error";
         const borderStyle = noBottomBorder ? 'none' : '1px solid #555';
         
         let parts = scriptStr.split(" - ");
         let name = parts[0] || "";
-        let house = formatNadiNumbers(parts[1] || "");
-        let lords = formatNadiNumbers(parts[2] || "");
+        let houseRaw = parts[1] || "";
+        let lordsRaw = parts[2] || "";
+
+        // ====================================================
+        // 1-PLANET MODE: DEDICATED MULTI-COLUMN TABLE LAYOUT
+        // ====================================================
+        if (onePerRow) {
+            const emptyDash = `<span style="color:#555;">-</span>`;
+            const houseFmt = houseRaw ? formatNadiNumbers(houseRaw) : emptyDash;
+            const lordsFmt = lordsRaw ? formatNadiNumbers(lordsRaw) : emptyDash;
+
+            const starCol   = (extraLords && extraLords.length === 3) ? extraLords[0] : emptyDash;
+            const subCol    = (extraLords && extraLords.length === 3) ? extraLords[1] : emptyDash;
+            const subSubCol = (extraLords && extraLords.length === 3) ? extraLords[2] : emptyDash;
+
+            const onePlanetGrid = "60px 1px 95px 1px 56px 1px 1.6fr 1px 1fr 1px 1fr 1px 1fr";
+            let headerHtml = "";
+
+            if (label === "PL") {
+                headerHtml = `
+                <div style="display:grid; grid-template-columns: ${onePlanetGrid}; gap: 6px; font-size:12px; font-weight:900; text-transform:uppercase; letter-spacing:0.4px; align-items:center; background:#1a1a1a; border-bottom: 1px solid var(--grid-line); padding: 7px 0; margin-top:-8px; box-sizing:border-box;">
+                    <div style="text-align:center; color:#aaa;">Level</div>
+                    <div style="background-color: #444; height: 100%; width: 1px;"></div>
+                    <div style="text-align:center; color:#aaa;">Planet</div>
+                    <div style="background-color: #444; height: 100%; width: 1px;"></div>
+                    <div style="text-align:center; color:#aaa;">House</div>
+                    <div style="background-color: #444; height: 100%; width: 1px;"></div>
+                    <div style="text-align:${alignText}; padding:0 8px; color:#ffffff;">Planet Script</div>
+                    <div style="background-color: #444; height: 100%; width: 1px;"></div>
+                    <div style="text-align:center; color:#0bf4e6;">Starlord</div>
+                    <div style="background-color: #444; height: 100%; width: 1px;"></div>
+                    <div style="text-align:center; color:#ff8800;">Sub-Sublord</div>
+                    <div style="background-color: #444; height: 100%; width: 1px;"></div>
+                    <div style="text-align:center; color:#facc15;">Sublord</div>
+                </div>`;
+            }
+
+            return headerHtml + `
+            <div class="nadi-sync-row-${rowIdx}" style="display:grid; grid-template-columns: ${onePlanetGrid}; gap: 6px; font-size:14px; align-items:center; border-bottom: ${borderStyle}; padding: 7px 0; color: ${colorCode}; box-sizing:border-box;">
+                <div style="font-weight:bold; text-align:center; white-space:nowrap;">${label}</div>
+                <div style="background-color: #444; height: 100%; width: 1px;"></div>
+                <div style="font-weight:bold; text-align:center; white-space:nowrap;">${name}</div>
+                <div style="background-color: #444; height: 100%; width: 1px;"></div>
+                <div style="font-weight:bold; text-align:center;">${houseFmt !== "-" ? houseFmt : emptyDash}</div>
+                <div style="background-color: #444; height: 100%; width: 1px;"></div>
+                <div style="font-weight:bold; text-align:${alignText}; padding:0 8px; line-height:1.4;">${lordsFmt !== "-" ? lordsFmt : emptyDash}</div>
+                <div style="background-color: #444; height: 100%; width: 1px;"></div>
+                <div style="font-weight:bold; text-align:center; padding:0 4px; line-height:1.4; color:#0bf4e6;">${starCol}</div>
+                <div style="background-color: #444; height: 100%; width: 1px;"></div>
+                <div style="font-weight:bold; text-align:center; padding:0 4px; line-height:1.4; color:#ff8800;">${subSubCol}</div>
+                <div style="background-color: #444; height: 100%; width: 1px;"></div>
+                <div style="font-weight:bold; text-align:center; padding:0 4px; line-height:1.4; color:#facc15;">${subCol}</div>
+            </div>`;
+        }
+
+        // ====================================================
+        // 3-PLANET & 2-PLANET MODES (ORIGINAL COMPACT LAYOUT)
+        // ====================================================
+        let house = formatNadiNumbers(houseRaw);
+        let lords = formatNadiNumbers(lordsRaw);
 
         if (extraLords && extraLords.length > 0) {
             let validExtras = extraLords.filter(e => e.trim() !== "" && !e.includes(">-</span>"));
@@ -12761,17 +12843,6 @@ function renderNakshatraNadiTab() {
             <div style="font-weight:bold; text-align:${alignText}; line-height:1.4;">${lords}</div>
         </div>`;
     }
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 
     const applyUntenentedRule = document.getElementById("nadiUntenentedToggle")?.checked;
     
@@ -12797,6 +12868,21 @@ function renderNakshatraNadiTab() {
         cuspalSublordOf.sort((a,b)=>a-b);
         cuspalSubSublordOf.sort((a,b)=>a-b);
 
+        // In 1-Planet mode, return exact 3-column array [Starlord, Sublord, Sub-Sublord]
+        if (onePerRow) {
+            const fmtCol = (arr, isEnabled) => {
+                if (!isEnabled || arr.length === 0) return `<span style="color:#555;">-</span>`;
+                const formatted = formatNadiNumbers(arr.join(","));
+                return (!formatted || formatted === "-") ? `<span style="color:#555;">-</span>` : formatted;
+            };
+            return [
+                fmtCol(cuspalStarlordOf, comboStar),
+                fmtCol(cuspalSublordOf, comboSub),
+                fmtCol(cuspalSubSublordOf, comboSubSub)
+            ];
+        }
+
+        // In 2-Planet mode, return inline badge array
         let extras = [];
         if (!threePerRow) {
             if (comboStar && cuspalStarlordOf.length > 0) {
@@ -13397,7 +13483,7 @@ function handleNadiPivotChange() {
 </script>
 
 
-
+<!-- Nakshatra Nadi For All Divisional Charts  -->
 
 
 
@@ -19626,3 +19712,58 @@ function renderStandaloneHouseAspects() {
 
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
