@@ -836,15 +836,36 @@
 
 
 <div id="onlineFetchBox">
-    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px;">
-        <div style="color: #10b981; font-size: 16px; letter-spacing: 1px; flex: 1;">&#x1F310; CLOUD HOROSCOPE FETCHER</div>
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px; flex-wrap: wrap; gap: 10px;">
+        <div id="fetcherHeaderTitle" style="color: #10b981; font-size: 16px; letter-spacing: 1px; flex: 1; min-width: 240px;">&#x1F310; CLOUD HOROSCOPE FETCHER</div>
         
-        <div style="display: flex; gap: 10px; align-items: center; justify-content: center; flex: 1;">
+        <div style="display: flex; gap: 10px; align-items: center; justify-content: center; flex: 1; min-width: 260px;">
             <span style="color: #ccc; font-size: 13px;">Profile Name:</span>
             <input type="text" id="onName" placeholder="e.g. Name" style="width: 200px; color: #fff; text-align: center; text-transform: uppercase;">
         </div>
         
-        <div style="flex: 1;"></div>
+        <!-- KP HORARY 1-249 CONTROLS -->
+        <div style="display: flex; gap: 8px; align-items: center; justify-content: flex-end; flex: 1.5; flex-wrap: wrap;">
+            <button id="horaryToggleBtn" type="button" class="action-btn" onclick="toggleHoraryMode()" style="background: linear-gradient(to bottom, #334155, #0f172a); border-color: #facc15; color: #facc15;">
+                &#x1F52E; HORARY 1-249
+            </button>
+
+            <div id="horaryControlsBox" style="display: none; align-items: center; gap: 8px; background: #150022; border: 1px solid #c084fc; padding: 3px 8px; border-radius: 4px;">
+                <span style="color: #c084fc; font-size: 12px; font-weight: bold;">No (1-249):</span>
+                <input type="text" id="horaryNumInput" placeholder="1-249" maxlength="3"
+                       style="width: 55px; text-align: center; color: #39ff14; background: #000; border: 1px solid #c084fc; font-size: 15px; font-weight: 900; padding: 3px 5px;"
+                       oninput="validateHoraryInput(this)"
+                       onkeydown="handleHoraryKeydown(event)">
+                <button type="button" class="action-btn" onclick="generateRandomHorary()" style="background: linear-gradient(to bottom, #7e22ce, #3b0764); border-color: #c084fc; color: #fff; font-size: 12px; padding: 3px 8px;">
+                    &#x1F3B2; RANDOM
+                </button>
+            </div>
+
+            <label style="cursor: pointer; display: inline-flex; align-items: center; gap: 8px; background: #111; border: 1px solid var(--grid-line); padding: 5px 12px; border-radius: 4px; color: #facc15; font-size: 13px; font-weight: bold;">
+                <input type="checkbox" id="offlineServerToggle" onchange="toggleOfflineServerMode()" style="cursor: pointer; width: 16px; height: 16px; accent-color: #10b981;">
+                <span id="offlineServerStatusText">Offline Mode (Local PC)</span>
+            </label>
+        </div>
     </div>
     
     <div class="fetch-row">
@@ -10552,11 +10573,65 @@ window.clearFetchData = function() {
 
 
 // ==========================================
+// 🔌 OFFLINE / ONLINE SERVER ROUTER ENGINE
+// ==========================================
+window.RENDER_API_URL = "https://donnie-astro-engine.onrender.com";
+window.LOCAL_API_URL  = "http://127.0.0.1:5000";
+
+// Global Fetch Interceptor: Automatically routes ANY Render API call (Natal, Transit, SAV, Horary)
+// to your local PC server (127.0.0.1:5000) whenever the Offline Mode checkbox is checked!
+(function() {
+    const originalFetch = window.fetch;
+    window.fetch = async function(input, init) {
+        const isOffline = document.getElementById("offlineServerToggle")?.checked;
+        if (isOffline && typeof input === "string" && input.includes("donnie-astro-engine.onrender.com")) {
+            const localUrl = input.replace("https://donnie-astro-engine.onrender.com", window.LOCAL_API_URL);
+            return originalFetch(localUrl, init);
+        }
+        return originalFetch(input, init);
+    };
+})();
+
+function toggleOfflineServerMode() {
+    const isOffline = document.getElementById("offlineServerToggle")?.checked;
+    const titleEl = document.getElementById("fetcherHeaderTitle");
+    const statusText = document.getElementById("offlineServerStatusText");
+
+    if (isOffline) {
+        if (titleEl) {
+            titleEl.innerHTML = "&#x1F4BB; OFFLINE LOCAL HOROSCOPE FETCHER (127.0.0.1:5000)";
+            titleEl.style.color = "#facc15";
+        }
+        if (statusText) {
+            statusText.innerText = "Offline Active (Local Server)";
+            statusText.style.color = "#10b981";
+        }
+        // Quick ping to verify if Start_Offline_Server.bat is running
+        fetch(window.LOCAL_API_URL + "/calculate", { method: "OPTIONS" }).catch(() => {
+            alert("⚠️ Local Server not detected!\n\nPlease double-click 'Start_Offline_Server.bat' in your astrology-api folder so your laptop server is running.");
+        });
+    } else {
+        if (titleEl) {
+            titleEl.innerHTML = "&#x1F310; CLOUD HOROSCOPE FETCHER";
+            titleEl.style.color = "#10b981";
+        }
+        if (statusText) {
+            statusText.innerText = "Offline Mode (Local PC)";
+            statusText.style.color = "#facc15";
+        }
+    }
+}
+
+// ==========================================
 // 🛡️ SAFE TIMEZONE FETCHER (ANTI-HANG)
 // ==========================================
 window._isFetchingNatal = false; // 🔒 Global lock to prevent server crashing
 
 async function getDynamicTimezoneSafe(lat, lon) {
+    // If Offline Mode is checked, skip internet timezone check and return IST (330) in 0ms!
+    if (document.getElementById("offlineServerToggle")?.checked) {
+        return 330;
+    }
     try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 2500); // Strict 2.5s limit
@@ -10577,10 +10652,207 @@ async function getDynamicTimezoneSafe(lat, lon) {
     return 330; // Default IST (5.5 hours)
 }
 
+// =========================================================
+// 🔮 KP HORARY (1 TO 249) ENGINE & UI CONTROLLER
+// =========================================================
+window._isHoraryActive = false;
+
+function fillTodayDateTimeForHorary() {
+    const now = new Date();
+    document.getElementById("onDay").value   = String(now.getDate()).padStart(2, '0');
+    document.getElementById("onMonth").value = String(now.getMonth() + 1).padStart(2, '0');
+    document.getElementById("onYear").value  = String(now.getFullYear());
+    document.getElementById("onHour").value  = String(now.getHours()).padStart(2, '0');
+    document.getElementById("onMin").value   = String(now.getMinutes()).padStart(2, '0');
+    document.getElementById("onSec").value   = String(now.getSeconds()).padStart(2, '0');
+    if (typeof calculateLiveAge === "function") calculateLiveAge();
+}
+
+function toggleHoraryMode() {
+    window._isHoraryActive = !window._isHoraryActive;
+    const btn = document.getElementById("horaryToggleBtn");
+    const box = document.getElementById("horaryControlsBox");
+    const inp = document.getElementById("horaryNumInput");
+
+    if (window._isHoraryActive) {
+        box.style.display = "inline-flex";
+        btn.style.background = "linear-gradient(to bottom, #16a34a, #052e16)";
+        btn.style.borderColor = "#39ff14";
+        btn.style.color = "#39ff14";
+        btn.innerHTML = "&#x1F52E; HORARY: ON";
+        
+        // Automatically fill today's date & time when Horary is activated
+        fillTodayDateTimeForHorary();
+        setTimeout(() => inp.focus(), 50);
+    } else {
+        box.style.display = "none";
+        btn.style.background = "linear-gradient(to bottom, #334155, #0f172a)";
+        btn.style.borderColor = "#facc15";
+        btn.style.color = "#facc15";
+        btn.innerHTML = "&#x1F52E; HORARY 1-249";
+        inp.value = "";
+    }
+}
+
+function validateHoraryInput(el) {
+    // Strip anything that is not a digit (0-9) immediately
+    let clean = el.value.replace(/[^0-9]/g, '');
+    
+    // Disallow leading zeros (0 is not allowed)
+    clean = clean.replace(/^0+/, '');
+    
+    if (clean !== "") {
+        let num = parseInt(clean, 10);
+        // If user tries to type a number > 249, remove the last typed digit(s) so it disappears
+        while (num > 249 && clean.length > 0) {
+            clean = clean.slice(0, -1);
+            num = clean ? parseInt(clean, 10) : 0;
+        }
+    }
+    el.value = clean;
+}
+
+function handleHoraryKeydown(e) {
+    if (e.key === "Enter") {
+        e.preventDefault();
+        fetchFromCloud();
+        return;
+    }
+    if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+        e.preventDefault();
+        let val = parseInt(e.target.value, 10);
+        if (isNaN(val)) val = 1;
+        else if (e.key === "ArrowUp") val = (val >= 249) ? 1 : val + 1;
+        else if (e.key === "ArrowDown") val = (val <= 1) ? 249 : val - 1;
+        e.target.value = String(val);
+    }
+}
+
+function generateRandomHorary() {
+    if (!window._isHoraryActive) {
+        toggleHoraryMode();
+    } else {
+        fillTodayDateTimeForHorary();
+    }
+    const rnd = Math.floor(Math.random() * 249) + 1; // 1 to 249 inclusive
+    const inp = document.getElementById("horaryNumInput");
+    if (inp) inp.value = String(rnd);
+    
+    const nameEl = document.getElementById("onName");
+    if (nameEl && (!nameEl.value.trim() || nameEl.value.trim().startsWith("HORARY #"))) {
+        nameEl.value = `HORARY #${rnd}`;
+    }
+    fetchFromCloud();
+}
+
+// Builds the exact 1 to 249 KP Sub-Lord Table (0° Aries for #1 up to Pisces end for #249)
+function getKPHorary249Degree(horaryNum) {
+    const num = parseInt(horaryNum, 10);
+    if (isNaN(num) || num < 1 || num > 249) return 0;
+
+    const signLords = ["Ma", "Ve", "Bu", "Ch", "Sy", "Bu", "Ve", "Ma", "Ju", "Sa", "Sa", "Ju"];
+    const dashaOrder = ["Ke", "Ve", "Sy", "Ch", "Ma", "Ra", "Ju", "Sa", "Bu"];
+    const dashaYears = { Ke: 7, Ve: 20, Sy: 6, Ch: 10, Ma: 7, Ra: 18, Ju: 16, Sa: 19, Bu: 17 };
+    const nakSpan = 40 / 3; // 13°20' = 13.333333333333334°
+
+    const rawSubs = [];
+    for (let nak = 0; nak < 27; nak++) {
+        const starLord = dashaOrder[nak % 9];
+        const startIdx = dashaOrder.indexOf(starLord);
+        let nakStartDeg = nak * nakSpan;
+        let curDeg = nakStartDeg;
+
+        for (let s = 0; s < 9; s++) {
+            const subLord = dashaOrder[(startIdx + s) % 9];
+            const span = (dashaYears[subLord] / 120) * nakSpan;
+            rawSubs.push({
+                start: curDeg,
+                end: curDeg + span,
+                star: starLord,
+                sub: subLord
+            });
+            curDeg += span;
+        }
+    }
+
+    // Split any Sub-Lord span that crosses a 30° Zodiac Sign boundary (creates the 249 KP divisions)
+    const table249 = [];
+    const EPS = 1e-7;
+    for (let i = 0; i < rawSubs.length; i++) {
+        const item = rawSubs[i];
+        const sDeg = item.start;
+        const eDeg = item.end;
+        const signStart = Math.floor((sDeg + EPS) / 30);
+        const signEnd   = Math.floor((eDeg - EPS) / 30);
+
+        if (signStart !== signEnd && signEnd > signStart) {
+            const boundary = signEnd * 30;
+            if (boundary - sDeg > EPS && eDeg - boundary > EPS) {
+                table249.push({ start: sDeg, end: boundary, sign: signStart, signLord: signLords[signStart % 12], star: item.star, sub: item.sub });
+                table249.push({ start: boundary, end: eDeg, sign: signEnd % 12, signLord: signLords[signEnd % 12], star: item.star, sub: item.sub });
+                continue;
+            }
+        }
+        table249.push({ start: sDeg, end: eDeg, sign: signStart % 12, signLord: signLords[signStart % 12], star: item.star, sub: item.sub });
+    }
+
+    const entry = table249[num - 1];
+    return entry ? entry.start : 0;
+}
+
+// Applies the KP Horary Ascendant degree to all Ayanamshas in the fetched JSON
+function applyHoraryPivotToRawData(rawData, horaryNum) {
+    if (!rawData || !rawData.ayanamshas) return;
+    const targetAscDeg = getKPHorary249Degree(horaryNum);
+
+    Object.keys(rawData.ayanamshas).forEach(ayaKey => {
+        const ayaObj = rawData.ayanamshas[ayaKey];
+        if (!ayaObj) return;
+
+        const oldLagna = parseFloat(ayaObj.lagna || 0);
+        const delta = (targetAscDeg - oldLagna + 360) % 360;
+
+        // Set Lagna (Pivot) to exact Horary degree
+        ayaObj.lagna = targetAscDeg;
+
+        // Rotate Cusps smoothly so Cusp 1 = Horary Ascendant and all 12 Cusps maintain house geometry
+        if (ayaObj.cusps) {
+            for (let c = 1; c <= 12; c++) {
+                if (ayaObj.cusps[c] !== undefined) {
+                    ayaObj.cusps[c] = (parseFloat(ayaObj.cusps[c]) + delta) % 360;
+                }
+            }
+            ayaObj.cusps[1] = targetAscDeg;
+        }
+    });
+}
+
 // --- GLOBAL TRACKING FOR WAKE TIMER ---
 let wakeInterval = null; // Removed 'isFirstCloudFetch' entirely
 
 async function fetchFromCloud() {
+    // Check if KP Horary Mode is active
+    const isHorary = !!window._isHoraryActive;
+    let horaryNum = 0;
+
+    if (isHorary) {
+        const hVal = document.getElementById("horaryNumInput")?.value.trim();
+        horaryNum = parseInt(hVal, 10);
+        if (!hVal || isNaN(horaryNum) || horaryNum < 1 || horaryNum > 249) {
+            alert("⚠️ KP HORARY: Please enter a valid Horary Number between 1 and 249!");
+            document.getElementById("horaryNumInput")?.focus();
+            return;
+        }
+        // If date or time is empty when Horary is active, auto-fill Today's Date & Time
+        if (!document.getElementById("onDay").value || !document.getElementById("onHour").value) {
+            fillTodayDateTimeForHorary();
+        }
+        const nameEl = document.getElementById("onName");
+        if (nameEl && (!nameEl.value.trim() || nameEl.value.trim().startsWith("HORARY #"))) {
+            nameEl.value = `HORARY #${horaryNum}`;
+        }
+    }
+
     const d = document.getElementById("onDay").value;
     const m = document.getElementById("onMonth").value;
     const y = document.getElementById("onYear").value;
@@ -10612,7 +10884,8 @@ async function fetchFromCloud() {
         lat: parseFloat(latVal),
         lon: parseFloat(lonVal),
         timezone_offset: dynamicOffset, // 🔥 Dynamic offset applied here!
-        horary_mode: false 
+        horary_mode: isHorary,
+        horary_number: isHorary ? horaryNum : 0
     };
 
     const btn = document.getElementById("fetchCloudBtn");
@@ -10694,8 +10967,13 @@ async function fetchFromCloud() {
             const data = result.data;
             raw = data;
 
+            // 🔮 Apply KP Horary 1-249 Ascendant & Cusp Pivot if Horary Mode is ON
+            if (isHorary && horaryNum >= 1 && horaryNum <= 249) {
+                applyHoraryPivotToRawData(raw, horaryNum);
+            }
+
             if (!raw.meta) {
-                const userName = document.getElementById("onName").value.trim() || "Cloud Fetched Chart";
+                const userName = document.getElementById("onName").value.trim() || (isHorary ? `Horary #${horaryNum}` : "Cloud Fetched Chart");
                 // 🔥 FIX: Removed the 'Z' at the end of this string so the 
                 // browser correctly treats fetched manual inputs as Local Time.
                 const dateStr = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}T${String(hr).padStart(2,'0')}:${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
@@ -19712,58 +19990,5 @@ function renderStandaloneHouseAspects() {
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
