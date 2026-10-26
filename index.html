@@ -846,6 +846,56 @@
         
         <!-- KP HORARY 1-249 CONTROLS -->
         <div style="display: flex; gap: 8px; align-items: center; justify-content: flex-end; flex: 1.5; flex-wrap: wrap;">
+            <button type="button" class="action-btn" onclick="document.getElementById('horaryInfoOverlay').style.display='flex'" style="background: linear-gradient(to bottom, #2d0066, #110022); border-color: var(--grid-line); color: var(--asc-yellow); padding: 4px 10px;" title="KP Horary Lagna Mapping">
+                &#x2139;
+            </button>
+
+            <!-- HORARY MAPPING TABLE OVERLAY (THEME MATCHED & CLOSES ON CLICK ANYWHERE) -->
+            <style>
+                #horaryMapTable { width: 100%; border-collapse: collapse; background: #0a0a0a; border: 2px solid var(--grid-line); font-size: 14px; font-weight: bold; text-align: center; }
+                #horaryMapTable th { background: #660033; color: var(--asc-yellow); border: 1px solid var(--grid-line); padding: 8px 10px; font-size: 13px; letter-spacing: 0.5px; text-transform: uppercase; }
+                #horaryMapTable td { border: 1px solid #333; border-bottom: 1px solid rgba(255, 204, 0, 0.25); padding: 6px 10px; transition: background 0.12s ease; }
+                #horaryMapTable tr:nth-child(even) td { background: #120812; }
+                #horaryMapTable tr:hover td { background: #004d40 !important; color: #fff !important; }
+                #horaryMapTable td.hm-no { background: #2d0066; color: var(--asc-yellow); width: 14%; border-right: 1px solid var(--grid-line); font-weight: 900; }
+                #horaryMapTable td.hm-sign { color: #00d9ff; width: 38%; border-right: 2px solid var(--grid-line); letter-spacing: 0.4px; }
+                #horaryMapTable td.hm-num { color: #10b981; width: 24%; font-family: monospace; font-size: 15px; font-weight: 900; }
+            </style>
+            <div id="horaryInfoOverlay" onclick="this.style.display='none'" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); z-index: 99999; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(3px);">
+                <div style="background: linear-gradient(135deg, #1a001a 0%, #1a0000 100%); border: 2px solid var(--grid-line); border-radius: 6px; padding: 18px 22px; max-width: 500px; width: 92%; box-shadow: 0 0 30px rgba(255, 204, 0, 0.25), 0 10px 40px rgba(0, 0, 0, 0.95);">
+                    <div style="background: #0a0a0a; border: 1px solid var(--grid-line); color: var(--asc-yellow); font-weight: 900; font-size: 15px; text-align: center; padding: 9px 12px; margin-bottom: 14px; letter-spacing: 1px; text-transform: uppercase; border-radius: 4px; box-shadow: inset 0 0 10px rgba(255, 204, 0, 0.12);">
+                        &#x1F52E; HORARY NUMBERS &amp; EXACT LAGNA MAPPING
+                    </div>
+                    <table id="horaryMapTable">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th style="border-right: 2px solid var(--grid-line);">Horary Lagna</th>
+                                <th>From</th>
+                                <th>To</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="hm-no">1</td><td class="hm-sign">Aries</td><td class="hm-num">1</td><td class="hm-num">22</td></tr>
+                            <tr><td class="hm-no">2</td><td class="hm-sign">Taurus</td><td class="hm-num">23</td><td class="hm-num">41</td></tr>
+                            <tr><td class="hm-no">3</td><td class="hm-sign">Gemini</td><td class="hm-num">42</td><td class="hm-num">62</td></tr>
+                            <tr><td class="hm-no">4</td><td class="hm-sign">Cancer</td><td class="hm-num">63</td><td class="hm-num">83</td></tr>
+                            <tr><td class="hm-no">5</td><td class="hm-sign">Leo</td><td class="hm-num">84</td><td class="hm-num">105</td></tr>
+                            <tr><td class="hm-no">6</td><td class="hm-sign">Virgo</td><td class="hm-num">106</td><td class="hm-num">124</td></tr>
+                            <tr><td class="hm-no">7</td><td class="hm-sign">Libra</td><td class="hm-num">125</td><td class="hm-num">145</td></tr>
+                            <tr><td class="hm-no">8</td><td class="hm-sign">Scorpio</td><td class="hm-num">146</td><td class="hm-num">166</td></tr>
+                            <tr><td class="hm-no">9</td><td class="hm-sign">Sagittarius</td><td class="hm-num">167</td><td class="hm-num">188</td></tr>
+                            <tr><td class="hm-no">10</td><td class="hm-sign">Capricorn</td><td class="hm-num">189</td><td class="hm-num">207</td></tr>
+                            <tr><td class="hm-no">11</td><td class="hm-sign">Aquarius</td><td class="hm-num">208</td><td class="hm-num">228</td></tr>
+                            <tr><td class="hm-no">12</td><td class="hm-sign">Pisces</td><td class="hm-num">229</td><td class="hm-num">249</td></tr>
+                        </tbody>
+                    </table>
+                    <div style="text-align: center; color: #888; font-size: 11px; margin-top: 10px; letter-spacing: 0.5px;">
+                        Click anywhere to close
+                    </div>
+                </div>
+            </div>
+
             <button id="horaryToggleBtn" type="button" class="action-btn" onclick="toggleHoraryMode()" style="background: linear-gradient(to bottom, #334155, #0f172a); border-color: #facc15; color: #facc15;">
                 &#x1F52E; HORARY 1-249
             </button>
@@ -973,7 +1023,18 @@
 			</div>
 		</div>
 
-
+            <script>
+            function fillTodayDateTimeOnly() {
+                const now = new Date();
+                document.getElementById('onDay').value = String(now.getDate()).padStart(2, '0');
+                document.getElementById('onMonth').value = String(now.getMonth() + 1).padStart(2, '0');
+                document.getElementById('onYear').value = now.getFullYear();
+                document.getElementById('onHour').value = String(now.getHours()).padStart(2, '0');
+                document.getElementById('onMin').value = String(now.getMinutes()).padStart(2, '0');
+                document.getElementById('onSec').value = String(now.getSeconds()).padStart(2, '0');
+            }
+            </script>
+            <button class="action-btn" onclick="fillTodayDateTimeOnly()" style="background: linear-gradient(to bottom, #b45309, #78350f); border-color: #f59e0b; color: #fff;">&#x23F2; TODAY'S</button>
 
             <button class="action-btn btn-clear" onclick="clearFetchData()">&#x1F9F9; Clear</button>
 
@@ -2944,6 +3005,11 @@ function buildSimpleKundaliHTML(chartData, title, pivotVal, vNum, isKP) {
                 <input type="checkbox" id="ffViewGrouped" onchange="toggleFfView('grouped')">
                 Grouped Summary
             </label>
+            <span style="color:#444; margin-left:6px; margin-right:6px;">|</span>
+            <label style="color:#ff8800; font-weight:bold; font-size:14px; cursor:pointer; display:flex; align-items:center; gap:6px;" title="Reverses relationship roles for Malefic/Badly Placed planets">
+                <input type="checkbox" id="ffRoleReversal" checked onchange="renderFiveFoldTables()">
+                Role Reversal
+            </label>
         </div>
 
     </div>
@@ -3322,6 +3388,7 @@ function renderFiveFoldTables() {
     const v = parseInt(document.getElementById("fiveFoldVargaSelect")?.value || "1");
     const useVisual = document.getElementById("ffBasisVisual")?.checked;
     const isMatrixView = document.getElementById("ffViewMatrix")?.checked;
+    const applyRoleReversal = document.getElementById("ffRoleReversal")?.checked;
     const modeKN = document.getElementById("modeKN")?.checked;
     const activeOrder = getRotatedFfOrder();
 
@@ -3480,11 +3547,21 @@ function renderFiveFoldTables() {
             activeOrder.forEach(pTo => {
                 const permRel = getPermanentRelation(pFrom, pTo);
                 const tempRel = getTempRelation(pFrom, pTo);
-                const compRel = combineFiveFold(permRel, tempRel);
+                let compRel = combineFiveFold(permRel, tempRel);
+
+                if (applyRoleReversal && isReversed) {
+                    if (compRel === "Best Friend") compRel = "Bitter Enemy";
+                    else if (compRel === "Friend") compRel = "Enemy";
+                    else if (compRel === "Enemy") compRel = "Friend";
+                    else if (compRel === "Bitter Enemy") compRel = "Best Friend";
+                }
 
                 pRowPerm += `<td>${styleRelationCell(permRel, false, false)}</td>`;
                 pRowTemp += `<td>${styleRelationCell(tempRel, false, false)}</td>`;
-                pRowComp += `<td>${styleRelationCell(compRel, true, isReversed)}</td>`;
+                
+                // If Role Reversal is active, the text changed. So we DO NOT reverse the colors.
+                const shouldReverseColor = isReversed && !applyRoleReversal;
+                pRowComp += `<td>${styleRelationCell(compRel, true, shouldReverseColor)}</td>`;
             });
 
             permHtml += pRowPerm + `</tr>`;
@@ -3549,7 +3626,15 @@ function renderFiveFoldTables() {
                 if (tempRel === "Friend") tFriends.push(pName);
                 else if (tempRel === "Enemy") tEnemies.push(pName);
 
-                const compRel = combineFiveFold(permRel, tempRel);
+                let compRel = combineFiveFold(permRel, tempRel);
+                
+                if (applyRoleReversal && isReversed) {
+                    if (compRel === "Best Friend") compRel = "Bitter Enemy";
+                    else if (compRel === "Friend") compRel = "Enemy";
+                    else if (compRel === "Enemy") compRel = "Friend";
+                    else if (compRel === "Bitter Enemy") compRel = "Best Friend";
+                }
+
                 if (compRel === "Best Friend") ffBest.push(pName);
                 else if (compRel === "Friend") ffFriend.push(pName);
                 else if (compRel === "Neutral") ffNeutral.push(pName);
@@ -3571,11 +3656,13 @@ function renderFiveFoldTables() {
             </tr>`;
 
             // Dynamic cell colors for Five-Fold Grouped View (Normal vs Reversed)
-            const cBest   = isReversed ? "#ff2a40" : "#16f529";
-            const cFriend = isReversed ? "#ff8800" : "#00d9ff";
+            // If Role Reversal is active, the planets actually moved columns, so we keep standard column colors.
+            const shouldReverseColor = isReversed && !applyRoleReversal;
+            const cBest   = shouldReverseColor ? "#ff2a40" : "#16f529";
+            const cFriend = shouldReverseColor ? "#ff8800" : "#00d9ff";
             const cNeut   = "#facc15";
-            const cEnemy  = isReversed ? "#00d9ff" : "#ff8800";
-            const cBitter = isReversed ? "#16f529" : "#ff2a40";
+            const cEnemy  = shouldReverseColor ? "#00d9ff" : "#ff8800";
+            const cBitter = shouldReverseColor ? "#16f529" : "#ff2a40";
 
             compHtml += `<tr>
                 <td style="background:#2d0066; color:#facc15; font-weight:900;">${pFromTitleTag}</td>
