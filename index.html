@@ -1269,17 +1269,34 @@
 		Vimshottari Dasha &#9660;
 	</div>
 
-	<div class="vim-find-bar">
+	<style>
+		#antaraToggleBtn {
+			background: #111;
+			color: var(--asc-yellow);
+			border: 1px solid var(--grid-line);
+			padding: 4px 12px;
+			margin-right: 15px;
+			font-weight: bold;
+			font-size: 12px;
+			cursor: pointer;
+			white-space: nowrap;
+			transition: all 0.15s ease;
+		}
+		#antaraToggleBtn.active {
+			background: var(--grid-line);
+			color: #000;
+			border-color: var(--grid-line);
+			box-shadow: 0 0 8px rgba(255, 204, 0, 0.5);
+		}
+	</style>
+
+	<div class="vim-find-bar" style="flex-wrap: nowrap; white-space: nowrap;">
 		<button onclick="setTodayVimDate()">Current Date</button>
 		<span style="color:#ffcc00;font-weight:bold;">Find Date</span>
 		<input type="date" id="vimFindDate">
 		<button onclick="findVimDate()">Find</button>
 		<button onclick="collapseVim()">Collapse All</button>
-		
-		<select id="expandLevel" style="background:#111;color:#fff;border:1px solid var(--grid-line);padding:4px 6px;margin-right:15px;">
-		    <option value="2" selected>Bukthi</option>
-		    <option value="3">Antara</option>
-	    </select>
+		<button type="button" id="antaraToggleBtn" onclick="toggleAntaraMode()">Antara</button>
 
         <!-- OFFSET CONTROLS -->
         <button onclick="applyVimOffset(-1)">&#9664;</button>
@@ -3327,25 +3344,29 @@ function styleRelationCell(rel, isFiveFold = false, reverseColors = false) {
     if (rel === "-" || !rel) {
         return `<span style="color:#555;">---</span>`;
     }
+    
+    const modeKN = document.getElementById("modeKN")?.checked;
+    const txt = modeKN ? {
+        "Best Friend": "ಪರಮ ಮಿತ್ರ",
+        "Friend": "ಮಿತ್ರ",
+        "Neutral": "ತಟಸ್ಥ",
+        "Enemy": "ಶತ್ರು",
+        "Bitter Enemy": "ಪರಮ ಶತ್ರು"
+    }[rel] : rel;
 
     // Only reverse colors in the Five-Fold table when the planet is Badly Placed
     if (isFiveFold && reverseColors) {
         switch (rel) {
             case "Best Friend":
-                // Label stays "Best Friend", color becomes Bitter Enemy Red
-                return `<span style="color:#ff2a40; font-weight:900; background:rgba(255,42,64,0.15); padding:2px 7px; border-radius:4px; border:1px solid rgba(255,42,64,0.4);">${rel}</span>`;
+                return `<span style="color:#ff2a40; font-weight:900; background:rgba(255,42,64,0.15); padding:2px 7px; border-radius:4px; border:1px solid rgba(255,42,64,0.4);">${txt}</span>`;
             case "Friend":
-                // Label stays "Friend", color becomes Enemy Orange/Red
-                return `<span style="color:#ff8800; font-weight:bold;">${rel}</span>`;
+                return `<span style="color:#ff8800; font-weight:bold;">${txt}</span>`;
             case "Neutral":
-                // Neutral keeps the same Yellow color
-                return `<span style="color:#facc15; font-weight:bold;">${rel}</span>`;
+                return `<span style="color:#facc15; font-weight:bold;">${txt}</span>`;
             case "Enemy":
-                // Label stays "Enemy", color becomes Friend Cyan/Green
-                return `<span style="color:#00d9ff; font-weight:bold;">${rel}</span>`;
+                return `<span style="color:#00d9ff; font-weight:bold;">${txt}</span>`;
             case "Bitter Enemy":
-                // Label stays "Bitter Enemy", color becomes Best Friend Bright Green
-                return `<span style="color:#16f529; font-weight:900; background:rgba(22,245,41,0.12); padding:2px 7px; border-radius:4px; border:1px solid rgba(22,245,41,0.4);">${rel}</span>`;
+                return `<span style="color:#16f529; font-weight:900; background:rgba(22,245,41,0.12); padding:2px 7px; border-radius:4px; border:1px solid rgba(22,245,41,0.4);">${txt}</span>`;
             default:
                 return `<span style="color:#555;">---</span>`;
         }
@@ -3354,17 +3375,17 @@ function styleRelationCell(rel, isFiveFold = false, reverseColors = false) {
     // Standard Normal Color Coding
     switch (rel) {
         case "Best Friend":
-            return `<span style="color:#16f529; font-weight:900; background:rgba(22,245,41,0.12); padding:2px 7px; border-radius:4px; border:1px solid rgba(22,245,41,0.4);">Best Friend</span>`;
+            return `<span style="color:#16f529; font-weight:900; background:rgba(22,245,41,0.12); padding:2px 7px; border-radius:4px; border:1px solid rgba(22,245,41,0.4);">${txt}</span>`;
         case "Friend":
-            return `<span style="color:#00d9ff; font-weight:bold;">Friend</span>`;
+            return `<span style="color:#00d9ff; font-weight:bold;">${txt}</span>`;
         case "Neutral":
-            return `<span style="color:#facc15; font-weight:bold;">Neutral</span>`;
+            return `<span style="color:#facc15; font-weight:bold;">${txt}</span>`;
         case "Enemy":
             return isFiveFold
-                ? `<span style="color:#ff8800; font-weight:bold;">Enemy</span>`
-                : `<span style="color:#ff4444; font-weight:bold;">Enemy</span>`;
+                ? `<span style="color:#ff8800; font-weight:bold;">${txt}</span>`
+                : `<span style="color:#ff4444; font-weight:bold;">${txt}</span>`;
         case "Bitter Enemy":
-            return `<span style="color:#ff2a40; font-weight:900; background:rgba(255,42,64,0.15); padding:2px 7px; border-radius:4px; border:1px solid rgba(255,42,64,0.4);">Bitter Enemy</span>`;
+            return `<span style="color:#ff2a40; font-weight:900; background:rgba(255,42,64,0.15); padding:2px 7px; border-radius:4px; border:1px solid rgba(255,42,64,0.4);">${txt}</span>`;
         default:
             return `<span style="color:#555;">---</span>`;
     }
@@ -3403,18 +3424,13 @@ function renderFiveFoldTables() {
         Ju: "Jupiter", Sa: "Saturn", Bu: "Mercury", Ke: "Ketu", Ve: "Venus"
     };
     const namesKN = {
-        Sy: "\u0CB0\u0CB5\u0CBF (Sun)", Ch: "\u0C9A\u0C82\u0CA6\u0CCD\u0CB0 (Moon)", Ma: "\u0C95\u0CC1\u0C9C (Mars)",
-        Ra: "\u0CB0\u0CBE\u0CB9\u0CC1 (Rahu)", Ju: "\u0C97\u0CC1\u0CB0\u0CC1 (Jup)", Sa: "\u0CB6\u0CA8\u0CBF (Sat)",
-        Bu: "\u0CAC\u0CC1\u0CA7 (Mer)", Ke: "\u0C95\u0CC7\u0CA4\u0CC1 (Ketu)", Ve: "\u0CB6\u0CC1\u0C95\u0CCD\u0CB0 (Ven)"
-    };
-    const shortNamesKN = {
         Sy: "\u0CB0\u0CB5\u0CBF", Ch: "\u0C9A\u0C82\u0CA6\u0CCD\u0CB0", Ma: "\u0C95\u0CC1\u0C9C",
         Ra: "\u0CB0\u0CBE\u0CB9\u0CC1", Ju: "\u0C97\u0CC1\u0CB0\u0CC1", Sa: "\u0CB6\u0CA8\u0CBF",
         Bu: "\u0CAC\u0CC1\u0CA7", Ke: "\u0C95\u0CC7\u0CA4\u0CC1", Ve: "\u0CB6\u0CC1\u0C95\u0CCD\u0CB0"
     };
 
     const getLabel = (code, isHeader = false) => {
-        if (modeKN) return isHeader ? shortNamesKN[code] : namesKN[code];
+        if (modeKN) return namesKN[code];
         return namesEN[code];
     };
 
@@ -3577,29 +3593,31 @@ function renderFiveFoldTables() {
         // ==========================================
         // VIEW 2: GROUPED SUMMARY TABLE VIEW
         // ==========================================
+        const hPlanet = modeKN ? "ಗ್ರಹ" : "Planet";
+
         // 1. Permanent Grouped
         let permHtml = `<tr>
-            <th style="background:#2d0066; color:#facc15; width:16%;">Planet</th>
-            <th style="background:#660033; color:#00d9ff; width:28%;">Permanent Friends</th>
-            <th style="background:#660033; color:#facc15; width:28%;">Permanent Neutrals</th>
-            <th style="background:#660033; color:#ff4444; width:28%;">Permanent Enemies</th>
+            <th style="background:#2d0066; color:#facc15; width:16%;">${hPlanet}</th>
+            <th style="background:#660033; color:#00d9ff; width:28%;">${modeKN ? "ಶಾಶ್ವತ ಮಿತ್ರರು" : "Permanent Friends"}</th>
+            <th style="background:#660033; color:#facc15; width:28%;">${modeKN ? "ಶಾಶ್ವತ ತಟಸ್ಥ" : "Permanent Neutrals"}</th>
+            <th style="background:#660033; color:#ff4444; width:28%;">${modeKN ? "ಶಾಶ್ವತ ಶತ್ರುಗಳು" : "Permanent Enemies"}</th>
         </tr>`;
 
         // 2. Temporary Grouped
         let tempHtml = `<tr>
-            <th style="background:#2d0066; color:#facc15; width:16%;">Planet</th>
-            <th style="background:#660033; color:#00d9ff; width:42%;">Temporary Friends (2, 3, 4, 10, 11, 12)</th>
-            <th style="background:#660033; color:#ff4444; width:42%;">Temporary Enemies (1, 5, 6, 7, 8, 9)</th>
+            <th style="background:#2d0066; color:#facc15; width:16%;">${hPlanet}</th>
+            <th style="background:#660033; color:#00d9ff; width:42%;">${modeKN ? "ತಾತ್ಕಾಲಿಕ ಮಿತ್ರರು (2, 3, 4, 10, 11, 12)" : "Temporary Friends (2, 3, 4, 10, 11, 12)"}</th>
+            <th style="background:#660033; color:#ff4444; width:42%;">${modeKN ? "ತಾತ್ಕಾಲಿಕ ಶತ್ರುಗಳು (1, 5, 6, 7, 8, 9)" : "Temporary Enemies (1, 5, 6, 7, 8, 9)"}</th>
         </tr>`;
 
         // 3. Five-Fold Grouped
         let compHtml = `<tr>
-            <th style="background:#2d0066; color:#facc15; width:16%;">Planet</th>
-            <th style="background:#660033; color:#facc15; width:16.8%;">Best Friend (Adhi Mitra)</th>
-            <th style="background:#660033; color:#facc15; width:16.8%;">Friend (Mitra)</th>
-            <th style="background:#660033; color:#facc15; width:16.8%;">Neutral (Sama)</th>
-            <th style="background:#660033; color:#facc15; width:16.8%;">Enemy (Shatru)</th>
-            <th style="background:#660033; color:#facc15; width:16.8%;">Bitter Enemy (Adhi Shatru)</th>
+            <th style="background:#2d0066; color:#facc15; width:16%;">${hPlanet}</th>
+            <th style="background:#660033; color:#facc15; width:16.8%;">${modeKN ? "ಪರಮ ಮಿತ್ರ" : "Best Friend (Adhi Mitra)"}</th>
+            <th style="background:#660033; color:#facc15; width:16.8%;">${modeKN ? "ಮಿತ್ರ" : "Friend (Mitra)"}</th>
+            <th style="background:#660033; color:#facc15; width:16.8%;">${modeKN ? "ತಟಸ್ಥ" : "Neutral (Sama)"}</th>
+            <th style="background:#660033; color:#facc15; width:16.8%;">${modeKN ? "ಶತ್ರು" : "Enemy (Shatru)"}</th>
+            <th style="background:#660033; color:#facc15; width:16.8%;">${modeKN ? "ಪರಮ ಶತ್ರು" : "Bitter Enemy (Adhi Shatru)"}</th>
         </tr>`;
 
         activeOrder.forEach(pFrom => {
@@ -6587,9 +6605,11 @@ function resetTime() {
    UI RESET ENGINE
 ========================================= */
 function resetAllControlsToDefault() {
-    // 1. Reset Standard Dropdowns
+    // 1. Reset Standard Dropdowns & Antara Button
     if (document.getElementById('aya')) document.getElementById('aya').value = 'Lahiri';
-    if (document.getElementById('expandLevel')) document.getElementById('expandLevel').value = '2';
+    window._antaraEnabled = false;
+    const antBtn = document.getElementById('antaraToggleBtn');
+    if (antBtn) antBtn.classList.remove('active');
     if (document.getElementById('pivot')) document.getElementById('pivot').value = 'ASC';
     if (document.getElementById('nadiHousePivot')) document.getElementById('nadiHousePivot').value = '1';
     
@@ -9809,7 +9829,7 @@ function buildFullDasha(containerId, baseDeg){
 
             bhuktiRow.onclick=(e)=>{
                 e.stopPropagation();
-                const levelLimit = parseInt(document.getElementById("expandLevel")?.value || "2");
+                const levelLimit = window._antaraEnabled ? 3 : 2;
                 box.querySelectorAll(".vim-bhukti").forEach(r=>r.classList.remove("active"));
                 bhuktiRow.classList.add("active");
 
@@ -10199,12 +10219,58 @@ function collapseVim(){
 
 
 
+window._antaraEnabled = false;
+
+function toggleAntaraMode() {
+  window._antaraEnabled = !window._antaraEnabled;
+  const btn = document.getElementById("antaraToggleBtn");
+  if (btn) {
+    btn.classList.toggle("active", window._antaraEnabled);
+  }
+
+  const allContainers = ["vimChandra1","vimLagna","vimShani","vimJupiter","vimRahu","vimKetu","vimSurya","vimMangala","vimChandra2","vimVenus","vimBudha","vimLagna2"];
+
+  if (!window._antaraEnabled) {
+    // Antara OFF -> collapse all Antara (Level 3) boxes while keeping Dasha & Bukthi open
+    allContainers.forEach(id => {
+      if (currentOpenBhuktiBox[id]) {
+        currentOpenBhuktiBox[id].style.display = "none";
+        currentOpenBhuktiBox[id] = null;
+      }
+      const c = document.getElementById(id);
+      if (c) {
+        c.querySelectorAll(".vim-antara").forEach(el => {
+          el.classList.remove("active");
+          if (el.parentElement) el.parentElement.style.display = "none";
+        });
+      }
+    });
+  } else {
+    // Antara ON -> if a Find Date is selected, expand down to exact active Antara; otherwise open Antara under any clicked Bukthi
+    const findVal = document.getElementById("vimFindDate")?.value;
+    const anyActiveBhukti = document.querySelector(".vim-bhukti.active");
+    if (findVal && anyActiveBhukti) {
+      findVimDate();
+    } else {
+      allContainers.forEach(id => {
+        const c = document.getElementById(id);
+        if (!c) return;
+        const activeBhukti = c.querySelector(".vim-bhukti.active");
+        if (activeBhukti && activeBhukti.nextElementSibling) {
+          activeBhukti.nextElementSibling.style.display = "block";
+          currentOpenBhuktiBox[id] = activeBhukti.nextElementSibling;
+        }
+      });
+    }
+  }
+}
+
 function expandVimForDate(containerId,targetDate){
 
   const container=document.getElementById(containerId);
   if(!container) return;
 
-  const levelLimit = parseInt(document.getElementById("expandLevel")?.value || "2");
+  const levelLimit = window._antaraEnabled ? 3 : 2;
 
   /* =========================
 	 RESET EVERYTHING
@@ -20077,5 +20143,223 @@ function renderStandaloneHouseAspects() {
 
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
