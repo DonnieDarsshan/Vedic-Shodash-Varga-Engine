@@ -687,29 +687,83 @@
 
 
 
-	<div class="header-info">
-		<div id="personName">Varga Engine</div>
-		
-		
-		<div id="personDetails" style="display:flex; justify-content:center; align-items:center; gap:10px; flex-wrap:wrap;">
-		<input type="date" id="dobField" onchange="manualTimeChange()" oninput="manualTimeChange()">
-		<input type="time" id="tobField" step="1" onchange="manualTimeChange()" oninput="manualTimeChange()">
+	<style>
+		@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@600;800&display=swap');
+		.luxury-header-box {
+			text-align: center;
+			margin: 5px auto 28px auto;
+			padding: 18px 30px;
+			max-width: 1500px;
+			background: linear-gradient(135deg, rgba(15, 0, 15, 0.95) 0%, rgba(35, 5, 5, 0.95) 50%, rgba(15, 0, 15, 0.95) 100%);
+			border-top: 2px solid #ffcc00;
+			border-bottom: 2px solid #ffcc00;
+			border-left: 1px solid rgba(255, 204, 0, 0.35);
+			border-right: 1px solid rgba(255, 204, 0, 0.35);
+			border-radius: 6px;
+			box-shadow: 0 10px 30px rgba(0, 0, 0, 0.85), 0 0 20px rgba(255, 204, 0, 0.12), inset 0 0 25px rgba(255, 204, 0, 0.08);
+			position: relative;
+			box-sizing: border-box;
+		}
+		.luxury-main-title {
+			font-family: 'Cinzel Decorative', 'Cinzel', 'Georgia', serif;
+			font-size: 2.3em;
+			font-weight: 900;
+			letter-spacing: 3px;
+			text-transform: uppercase;
+			background: linear-gradient(180deg, #ffffff 0%, #fff3b0 25%, #ffcc00 55%, #b8860b 85%, #fff3b0 100%);
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+			filter: drop-shadow(0px 3px 6px rgba(0, 0, 0, 0.95)) drop-shadow(0px 0px 12px rgba(255, 204, 0, 0.3));
+			margin: 0;
+			line-height: 1.25;
+		}
+		.luxury-sub-divider {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 14px;
+			margin-top: 8px;
+		}
+		.luxury-line-left {
+			height: 1px;
+			width: 140px;
+			background: linear-gradient(90deg, transparent, #ffcc00);
+		}
+		.luxury-line-right {
+			height: 1px;
+			width: 140px;
+			background: linear-gradient(90deg, #ffcc00, transparent);
+		}
+		.luxury-sub-title {
+			font-family: 'Cinzel', serif;
+			font-size: 0.82em;
+			color: #10b981;
+			letter-spacing: 4px;
+			text-transform: uppercase;
+			font-weight: 800;
+			text-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+		}
+	</style>
 
-		<button onclick="shiftTime(-10)">-10s</button>
-		<button onclick="shiftTime(10)">+10s</button>
-		<button onclick="shiftTime(-60)">-1m</button>
-		<button onclick="shiftTime(60)">+1m</button>
-		<button onclick="shiftTime(-300)">-5m</button>
-		<button onclick="shiftTime(300)">+5m</button>
-		<button onclick="shiftTime(-600)">-10m</button>
-		<button onclick="shiftTime(600)">+10m</button>
+	<div class="header-info luxury-header-box">
+		<h1 class="luxury-main-title">&#x2726; Vedic Astrology Charts Interpreter &#x2726;</h1>
+		<div class="luxury-sub-divider">
+			<span class="luxury-line-left"></span>
+			<span class="luxury-sub-title">Shodashavarga &bull; KP &bull; Nakshatra Nadi</span>
+			<span class="luxury-line-right"></span>
+		</div>
 
+		<!-- Hidden DOM anchors so internal JS time/profile functions never throw errors -->
+		<div style="display:none !important;">
+			<div id="personName"></div>
+			<div id="personDetails">
+				<input type="date" id="dobField" onchange="manualTimeChange()" oninput="manualTimeChange()">
+				<input type="time" id="tobField" step="1" onchange="manualTimeChange()" oninput="manualTimeChange()">
+			</div>
+		</div>
 	</div>
-
-
-
-
-	</div>
+	
+	
 	
 	
 	
@@ -3354,8 +3408,8 @@ function styleRelationCell(rel, isFiveFold = false, reverseColors = false) {
         "Bitter Enemy": "ಪರಮ ಶತ್ರು"
     }[rel] : rel;
 
-    // Only reverse colors in the Five-Fold table when the planet is Badly Placed
-    if (isFiveFold && reverseColors) {
+    // Reverse colors in Five-Fold and Temporary tables when the planet is Badly Placed (and Role Reversal is OFF)
+    if (reverseColors) {
         switch (rel) {
             case "Best Friend":
                 return `<span style="color:#ff2a40; font-weight:900; background:rgba(255,42,64,0.15); padding:2px 7px; border-radius:4px; border:1px solid rgba(255,42,64,0.4);">${txt}</span>`;
@@ -3562,21 +3616,25 @@ function renderFiveFoldTables() {
 
             activeOrder.forEach(pTo => {
                 const permRel = getPermanentRelation(pFrom, pTo);
-                const tempRel = getTempRelation(pFrom, pTo);
-                let compRel = combineFiveFold(permRel, tempRel);
+                const rawTempRel = getTempRelation(pFrom, pTo);
+                let tempRel = rawTempRel;
+                let compRel = combineFiveFold(permRel, rawTempRel);
 
                 if (applyRoleReversal && isReversed) {
+                    if (tempRel === "Friend") tempRel = "Enemy";
+                    else if (tempRel === "Enemy") tempRel = "Friend";
+
                     if (compRel === "Best Friend") compRel = "Bitter Enemy";
                     else if (compRel === "Friend") compRel = "Enemy";
                     else if (compRel === "Enemy") compRel = "Friend";
                     else if (compRel === "Bitter Enemy") compRel = "Best Friend";
                 }
 
-                pRowPerm += `<td>${styleRelationCell(permRel, false, false)}</td>`;
-                pRowTemp += `<td>${styleRelationCell(tempRel, false, false)}</td>`;
-                
-                // If Role Reversal is active, the text changed. So we DO NOT reverse the colors.
+                // If Role Reversal is OFF, still reverse colors for Malefic rows in Temp & Five-Fold tables
                 const shouldReverseColor = isReversed && !applyRoleReversal;
+
+                pRowPerm += `<td>${styleRelationCell(permRel, false, false)}</td>`;
+                pRowTemp += `<td>${styleRelationCell(tempRel, false, shouldReverseColor)}</td>`;
                 pRowComp += `<td>${styleRelationCell(compRel, true, shouldReverseColor)}</td>`;
             });
 
@@ -3640,18 +3698,22 @@ function renderFiveFoldTables() {
                 else if (permRel === "Neutral") pNeutrals.push(pName);
                 else if (permRel === "Enemy") pEnemies.push(pName);
 
-                const tempRel = getTempRelation(pFrom, pTo);
-                if (tempRel === "Friend") tFriends.push(pName);
-                else if (tempRel === "Enemy") tEnemies.push(pName);
-
-                let compRel = combineFiveFold(permRel, tempRel);
+                const rawTempRel = getTempRelation(pFrom, pTo);
+                let tempRel = rawTempRel;
+                let compRel = combineFiveFold(permRel, rawTempRel);
                 
                 if (applyRoleReversal && isReversed) {
+                    if (tempRel === "Friend") tempRel = "Enemy";
+                    else if (tempRel === "Enemy") tempRel = "Friend";
+
                     if (compRel === "Best Friend") compRel = "Bitter Enemy";
                     else if (compRel === "Friend") compRel = "Enemy";
                     else if (compRel === "Enemy") compRel = "Friend";
                     else if (compRel === "Bitter Enemy") compRel = "Best Friend";
                 }
+
+                if (tempRel === "Friend") tFriends.push(pName);
+                else if (tempRel === "Enemy") tEnemies.push(pName);
 
                 if (compRel === "Best Friend") ffBest.push(pName);
                 else if (compRel === "Friend") ffFriend.push(pName);
@@ -3667,15 +3729,17 @@ function renderFiveFoldTables() {
                 <td style="color:#ff4444; font-weight:bold;">${pEnemies.join(", ") || "-"}</td>
             </tr>`;
 
-            tempHtml += `<tr>
-                <td style="background:#2d0066; color:#facc15; font-weight:900;">${getLabel(pFrom)}</td>
-                <td style="color:#00d9ff; font-weight:bold;">${tFriends.join(", ") || "-"}</td>
-                <td style="color:#ff4444; font-weight:bold;">${tEnemies.join(", ") || "-"}</td>
-            </tr>`;
-
-            // Dynamic cell colors for Five-Fold Grouped View (Normal vs Reversed)
+            // Dynamic cell colors for Grouped View (Normal vs Reversed)
             // If Role Reversal is active, the planets actually moved columns, so we keep standard column colors.
             const shouldReverseColor = isReversed && !applyRoleReversal;
+            const cTempFriend = shouldReverseColor ? "#ff4444" : "#00d9ff";
+            const cTempEnemy  = shouldReverseColor ? "#00d9ff" : "#ff4444";
+
+            tempHtml += `<tr>
+                <td style="background:#2d0066; color:#facc15; font-weight:900;">${pFromTitleTag}</td>
+                <td style="color:${cTempFriend}; font-weight:bold;">${tFriends.join(", ") || "-"}</td>
+                <td style="color:${cTempEnemy}; font-weight:bold;">${tEnemies.join(", ") || "-"}</td>
+            </tr>`;
             const cBest   = shouldReverseColor ? "#ff2a40" : "#16f529";
             const cFriend = shouldReverseColor ? "#ff8800" : "#00d9ff";
             const cNeut   = "#facc15";
@@ -20143,223 +20207,5 @@ function renderStandaloneHouseAspects() {
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
