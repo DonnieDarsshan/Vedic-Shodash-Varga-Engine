@@ -651,11 +651,23 @@
 		</div>
 
 		<!-- Menu Toggle Button (Narrow Clean SVG Hamburger) -->
-		<button id="toggleTopBarBtn" onclick="toggleTopBar()" style="background:transparent; border:none; padding:0; margin:0; cursor:pointer; outline:none; display:flex; align-items:center; justify-content:center;">
+		<button id="toggleTopBarBtn" onclick="toggleTopBar()" title="Toggle Quick Menu" style="background:transparent; border:none; padding:0; margin:0; cursor:pointer; outline:none; display:flex; align-items:center; justify-content:center;">
 			<svg width="15" height="14" viewBox="0 0 15 14" fill="none" style="display:block;">
 				<line x1="1" y1="2" x2="14" y2="2" stroke="var(--asc-yellow)" stroke-width="2" stroke-linecap="round"/>
 				<line x1="1" y1="7" x2="14" y2="7" stroke="var(--asc-yellow)" stroke-width="2" stroke-linecap="round"/>
 				<line x1="1" y1="12" x2="14" y2="12" stroke="var(--asc-yellow)" stroke-width="2" stroke-linecap="round"/>
+			</svg>
+		</button>
+
+		<!-- Fullscreen Toggle Button (Android & Desktop Compatible) -->
+		<button id="fullScreenBtn" onclick="toggleFullScreen()" title="Toggle Fullscreen" style="background:transparent; border:none; padding:0; margin:0 0 0 4px; cursor:pointer; outline:none; display:flex; align-items:center; justify-content:center;">
+			<!-- Enter Fullscreen Icon -->
+			<svg id="fsEnterIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--asc-yellow)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="display:block;">
+				<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+			</svg>
+			<!-- Exit Fullscreen Icon -->
+			<svg id="fsExitIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+				<path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>
 			</svg>
 		</button>
 		
@@ -671,6 +683,44 @@
 				content.style.display = "none";
 			}
 		}
+
+		// Fullscreen Toggle Logic (Supports Android Chrome/Brave/Webkit & Desktop)
+		function toggleFullScreen() {
+			const doc = window.document;
+			const docEl = doc.documentElement;
+
+			const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+			const cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+
+			if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+				if (requestFullScreen) {
+					requestFullScreen.call(docEl).catch(err => {
+						console.warn("Fullscreen request blocked:", err);
+					});
+				}
+			} else {
+				if (cancelFullScreen) {
+					cancelFullScreen.call(doc);
+				}
+			}
+		}
+
+		// Sync Enter/Exit icon even if exited via Android Back gesture or ESC key
+		function syncFullScreenIcon() {
+			const doc = window.document;
+			const isFs = !!(doc.fullscreenElement || doc.mozFullScreenElement || doc.webkitFullscreenElement || doc.msFullscreenElement);
+			const enterIcon = document.getElementById("fsEnterIcon");
+			const exitIcon = document.getElementById("fsExitIcon");
+			if (enterIcon && exitIcon) {
+				enterIcon.style.display = isFs ? "none" : "block";
+				exitIcon.style.display = isFs ? "block" : "none";
+			}
+		}
+
+		document.addEventListener("fullscreenchange", syncFullScreenIcon);
+		document.addEventListener("webkitfullscreenchange", syncFullScreenIcon);
+		document.addEventListener("mozfullscreenchange", syncFullScreenIcon);
+		document.addEventListener("MSFullscreenChange", syncFullScreenIcon);
 	</script>
 	
 	
@@ -20207,5 +20257,278 @@ function renderStandaloneHouseAspects() {
 
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
