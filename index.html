@@ -1142,8 +1142,56 @@
 
             <button class="action-btn btn-clear" onclick="clearFetchData()">&#x1F9F9; Clear</button>
 
-            <input type="file" id="loadProfileInput" accept=".json" style="display:none" onchange="loadCloudProfile(event)">
-            <button class="action-btn btn-load" onclick="document.getElementById('loadProfileInput').click()">&#x1F4C2; Load Profile</button>
+            <script>
+            window._wasInFS = false;
+            function triggerFileLoad(inputId) {
+                let doc = window.document;
+                window._wasInFS = !!(doc.fullscreenElement || doc.webkitFullscreenElement || doc.msFullscreenElement);
+                document.getElementById(inputId).click();
+            }
+            function autoRestoreFS() {
+                if (window._wasInFS) {
+                    // Browsers block auto-fullscreen without a physical tap.
+                    // This captures your VERY NEXT tap anywhere on the screen to restore it.
+                    const restoreAction = () => {
+                        let docEl = window.document.documentElement;
+                        let reqFS = docEl.requestFullscreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+                        if (reqFS) {
+                            let promise = reqFS.call(docEl);
+                            if (promise && promise.catch) promise.catch(() => {});
+                        }
+                        // Remove the listeners once triggered
+                        document.removeEventListener('click', restoreAction, { capture: true });
+                        document.removeEventListener('touchstart', restoreAction, { capture: true });
+                    };
+                    
+                    document.addEventListener('click', restoreAction, { once: true, capture: true });
+                    document.addEventListener('touchstart', restoreAction, { once: true, capture: true });
+                }
+            }
+
+            // ==========================================
+            // AUTO-ENTER FULLSCREEN ON HEADING CLICK
+            // ==========================================
+            document.addEventListener('click', function(e) {
+                // If the user clicks any heading, automatically enter full screen
+                if (e.target.closest('.division-title') || e.target.closest('.vim-heading')) {
+                    let doc = window.document;
+                    let isFs = !!(doc.fullscreenElement || doc.webkitFullscreenElement || doc.msFullscreenElement);
+                    
+                    if (!isFs) {
+                        let docEl = doc.documentElement;
+                        let reqFS = docEl.requestFullscreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+                        if (reqFS) {
+                            let promise = reqFS.call(docEl);
+                            if (promise && promise.catch) promise.catch(() => {});
+                        }
+                    }
+                }
+            });
+            </script>
+            <input type="file" id="loadProfileInput" accept=".json" style="display:none" onchange="autoRestoreFS(); loadCloudProfile(event)" oncancel="autoRestoreFS()">
+            <button type="button" class="action-btn btn-load" onclick="triggerFileLoad('loadProfileInput')">&#x1F4C2; Load Profile</button>
             <button class="action-btn btn-save" onclick="saveCloudProfile()">&#x1F4BE; Save Profile</button>
             <button id="fetchCloudBtn" class="action-btn btn-fetch" onclick="fetchFromCloud()">Fetch Data &#x1F4E1;</button>
         </div>
@@ -1170,8 +1218,8 @@
 
 
 <div class="controls">
-		<input type="file" id="fIn" accept=".json" style="display:none">
-		<button onclick="document.getElementById('fIn').click()">LOAD JSON DATA</button>
+		<input type="file" id="fIn" accept=".json" style="display:none" oncancel="autoRestoreFS()">
+		<button type="button" onclick="triggerFileLoad('fIn')">LOAD JSON DATA</button>
 	
 	
 	
@@ -6805,6 +6853,7 @@ function resetAllControlsToDefault() {
 
 
 document.getElementById('fIn').onchange = (e) => {
+    autoRestoreFS(); // Trigger fullscreen restore on next tap
     // Protect against cancelled file dialogs
     if (!e.target.files || !e.target.files[0]) return; 
 
