@@ -1000,7 +1000,7 @@
                 </div>
             </div>
 
-            <button id="horaryToggleBtn" type="button" class="action-btn" onclick="toggleHoraryMode()" style="background: linear-gradient(to bottom, #334155, #0f172a); border-color: #facc15; color: #facc15;">
+            <button id="horaryToggleBtn" type="button" class="action-btn" onclick="openHorary249Mode()" style="background: linear-gradient(to bottom, #334155, #0f172a); border-color: #facc15; color: #facc15;">
                 &#x1F52E; HORARY 1-249
             </button>
 
@@ -1014,6 +1014,188 @@
                     &#x1F3B2; RANDOM
                 </button>
             </div>
+
+            <button id="horary12ToggleBtn" type="button" class="action-btn" onclick="toggleHorary12Mode()" style="background: linear-gradient(to bottom, #334155, #0f172a); border-color: #00d9ff; color: #00d9ff;">
+                &#x1F52E; HORARY 1-12
+            </button>
+
+            <div id="horary12ControlsBox" style="display: none; align-items: center; gap: 8px; background: #001a22; border: 1px solid #00d9ff; padding: 3px 8px; border-radius: 4px;">
+                <span style="color: #00d9ff; font-size: 12px; font-weight: bold;">No (1-12):</span>
+                <input type="text" id="horary12NumInput" placeholder="1-12" maxlength="2"
+                       style="width: 45px; text-align: center; color: #39ff14; background: #000; border: 1px solid #00d9ff; font-size: 15px; font-weight: 900; padding: 3px 5px;"
+                       oninput="validateHorary12Input(this)"
+                       onkeydown="handleHorary12Keydown(event)">
+                <button type="button" class="action-btn" onclick="generateRandomHorary12()" style="background: linear-gradient(to bottom, #0284c7, #0c4a6e); border-color: #00d9ff; color: #fff; font-size: 12px; padding: 3px 8px;">
+                    &#x1F3B2; RANDOM
+                </button>
+            </div>
+
+            <script>
+                window._horary12Active = false;
+
+                // Maps 1-12 directly to the starting KP Horary number of each Zodiac Sign (0°00' of that sign)
+                const HORARY_12_TO_249_MAP = {
+                    1: 1,    // Aries (0°00')
+                    2: 23,   // Taurus (0°00')
+                    3: 42,   // Gemini (0°00')
+                    4: 63,   // Cancer (0°00')
+                    5: 84,   // Leo (0°00')
+                    6: 106,  // Virgo (0°00')
+                    7: 125,  // Libra (0°00')
+                    8: 146,  // Scorpio (0°00')
+                    9: 167,  // Sagittarius (0°00')
+                    10: 189, // Capricorn (0°00')
+                    11: 208, // Aquarius (0°00')
+                    12: 229  // Pisces (0°00')
+                };
+
+                function resetHorary12UI() {
+                    window._horary12Active = false;
+                    const box12 = document.getElementById("horary12ControlsBox");
+                    const btn12 = document.getElementById("horary12ToggleBtn");
+                    if (box12) box12.style.display = "none";
+                    if (btn12) {
+                        btn12.style.background = "linear-gradient(to bottom, #334155, #0f172a)";
+                        btn12.style.color = "#00d9ff";
+                        btn12.style.borderColor = "#00d9ff";
+                    }
+                }
+
+                function openHorary249Mode() {
+                    const box249 = document.getElementById("horaryControlsBox");
+                    const btn249 = document.getElementById("horaryToggleBtn");
+                    const inp249 = document.getElementById("horaryNumInput");
+
+                    if (window._horary12Active) {
+                        // Switch seamlessly from 1-12 mode to 1-249 mode while keeping Horary engine active
+                        resetHorary12UI();
+                        if (box249) box249.style.display = "flex";
+                        if (btn249) {
+                            btn249.style.background = "linear-gradient(to bottom, #7e22ce, #3b0764)";
+                            btn249.style.color = "#ffffff";
+                            btn249.style.borderColor = "#c084fc";
+                        }
+                        if (inp249) {
+                            inp249.focus();
+                            inp249.select();
+                        }
+                    } else {
+                        if (typeof toggleHoraryMode === "function") toggleHoraryMode();
+                    }
+                }
+
+                function toggleHorary12Mode() {
+                    const box12 = document.getElementById("horary12ControlsBox");
+                    const btn12 = document.getElementById("horary12ToggleBtn");
+                    const box249 = document.getElementById("horaryControlsBox");
+                    const btn249 = document.getElementById("horaryToggleBtn");
+                    const inp12 = document.getElementById("horary12NumInput");
+
+                    if (!window._horary12Active) {
+                        // If main horary engine is currently OFF, turn it ON first
+                        if (box249 && box249.style.display === "none") {
+                            if (typeof toggleHoraryMode === "function") toggleHoraryMode();
+                        }
+
+                        // Hide 1-249 box and un-highlight 1-249 button
+                        if (box249) box249.style.display = "none";
+                        if (btn249) {
+                            btn249.style.background = "linear-gradient(to bottom, #334155, #0f172a)";
+                            btn249.style.color = "#facc15";
+                            btn249.style.borderColor = "#facc15";
+                        }
+
+                        // Activate 1-12 UI
+                        window._horary12Active = true;
+                        if (box12) box12.style.display = "flex";
+                        if (btn12) {
+                            btn12.style.background = "linear-gradient(to bottom, #0284c7, #0c4a6e)";
+                            btn12.style.color = "#ffffff";
+                            btn12.style.borderColor = "#38bdf8";
+                        }
+
+                        if (inp12) {
+                            if (!inp12.value) inp12.value = "1";
+                            syncHorary12ToMainInput();
+                            inp12.focus();
+                            inp12.select();
+                        }
+                    } else {
+                        // Turn OFF Horary mode completely
+                        resetHorary12UI();
+                        if (box249) box249.style.display = "flex"; // Temporarily set flex so toggleHoraryMode() detects it as ON and shuts it OFF cleanly
+                        if (typeof toggleHoraryMode === "function") toggleHoraryMode();
+                    }
+                }
+
+                function syncHorary12ToMainInput() {
+                    const inp12 = document.getElementById("horary12NumInput");
+                    const inp249 = document.getElementById("horaryNumInput");
+                    if (!inp12 || !inp249) return;
+
+                    let v = parseInt(inp12.value, 10);
+                    if (!isNaN(v) && v >= 1 && v <= 12) {
+                        inp249.value = HORARY_12_TO_249_MAP[v];
+                        if (typeof validateHoraryInput === "function") {
+                            validateHoraryInput(inp249);
+                        }
+                    } else {
+                        inp249.value = "";
+                    }
+                }
+
+                function validateHorary12Input(el) {
+                    let val = el.value.replace(/\D/g, "");
+                    if (val !== "") {
+                        let num = parseInt(val, 10);
+                        if (num < 1) val = "1";
+                        if (num > 12) val = "12";
+                    }
+                    el.value = val;
+                    syncHorary12ToMainInput();
+                }
+
+                function generateRandomHorary12() {
+                    const inp12 = document.getElementById("horary12NumInput");
+                    if (!inp12) return;
+                    const rand12 = Math.floor(Math.random() * 12) + 1;
+                    inp12.value = rand12;
+                    syncHorary12ToMainInput();
+                }
+
+                function handleHorary12Keydown(e) {
+                    const inp12 = e.target;
+                    if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+                        e.preventDefault();
+                        let val = parseInt(inp12.value, 10);
+                        if (isNaN(val)) val = 1;
+                        else if (e.key === "ArrowUp") val = (val >= 12) ? 1 : val + 1;
+                        else if (e.key === "ArrowDown") val = (val <= 1) ? 12 : val - 1;
+                        inp12.value = val;
+                        syncHorary12ToMainInput();
+                    } else if (e.key === "Enter") {
+                        e.preventDefault();
+                        syncHorary12ToMainInput();
+                        if (typeof fetchFromCloud === "function") fetchFromCloud();
+                    }
+                }
+
+                // Mouse wheel support on 1-12 input box (1 step at a time)
+                window.addEventListener("DOMContentLoaded", () => {
+                    const inp12 = document.getElementById("horary12NumInput");
+                    if (inp12) {
+                        inp12.addEventListener("wheel", function(e) {
+                            e.preventDefault();
+                            let val = parseInt(this.value, 10);
+                            if (isNaN(val)) val = 1;
+                            if (e.deltaY < 0) val = (val >= 12) ? 1 : val + 1;
+                            else if (e.deltaY > 0) val = (val <= 1) ? 12 : val - 1;
+                            this.value = val;
+                            syncHorary12ToMainInput();
+                        }, { passive: false });
+                    }
+                });
+            </script>
 
             <label style="cursor: pointer; display: inline-flex; align-items: center; gap: 8px; background: #111; border: 1px solid var(--grid-line); padding: 5px 12px; border-radius: 4px; color: #facc15; font-size: 13px; font-weight: bold;">
                 <input type="checkbox" id="offlineServerToggle" onchange="toggleOfflineServerMode()" style="cursor: pointer; width: 16px; height: 16px; accent-color: #10b981;">
@@ -20085,6 +20267,24 @@ window.handleDbaMouseMove = function(e) {
     <!-- INDEPENDENT CONTROLS FOR HOUSE PLACEMENTS -->
     <div style="background:#0a0a0a; border:1px solid var(--grid-line); padding:15px; border-radius:6px; margin: 0 auto 20px auto; width: 100%; max-width: 800px; display:flex; justify-content:center; gap:20px; flex-wrap:wrap; box-sizing: border-box;">
         <label style="color:var(--grid-line); font-weight:bold; font-size:16px; display:flex; align-items:center; gap:8px;">
+            SORT BY:
+            <select id="haSortSelect" onchange="renderStandaloneHouseAspects()" style="background:#000; color:#fff; border:1px solid var(--grid-line); padding:6px 10px; font-size:14px; font-weight:bold; cursor:pointer;">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+                <option value="12">12</option>
+            </select>
+        </label>
+
+        <label style="color:var(--grid-line); font-weight:bold; font-size:16px; display:flex; align-items:center; gap:8px;">
             VARGA:
             <select id="haVargaSelect" onchange="renderStandaloneHouseAspects()" style="background:#000; color:#fff; border:1px solid var(--grid-line); padding:6px 10px; font-size:14px; font-weight:bold; cursor:pointer;">
                 <option value="1">D1</option>
@@ -20409,8 +20609,10 @@ function renderStandaloneHouseAspects() {
     let tbodyHTML = "";
     let customPlus = ' <span style="color:#facc15; font-weight:bold; font-size:18px; margin:0 6px;">+</span> ';
     const zodiacNames = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
+    const sortBy = parseInt(document.getElementById("haSortSelect")?.value || "1");
 
-    for(let hNum=1; hNum<=12; hNum++) {
+    for(let i=0; i<12; i++) {
+        let hNum = ((sortBy - 1 + i) % 12) + 1;
         let signOfHouse = ((ascIndex + hNum - 1) % 12) + 1;
         let zodiacName = zodiacNames[signOfHouse - 1];
         let slCode = tableSignLords[signOfHouse];
@@ -20469,333 +20671,4 @@ function renderStandaloneHouseAspects() {
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
