@@ -3206,6 +3206,36 @@ function buildSimpleKundaliHTML(chartData, title, pivotVal, vNum, isKP) {
         <table id="ffPlacementStatusTable" class="shoda-table" style="max-width:1050px; margin-bottom:0; width:100%;"></table>
     </div>
 
+    <!-- SIDE-BY-SIDE MAHADASHA & BUKTHI RELATIONSHIP TABLES -->
+    <div style="background:#0a0a0a; border:1px solid var(--grid-line); padding:10px 20px; margin-top:35px; margin-bottom:30px; display:flex; justify-content:center; align-items:center; gap:15px; flex-wrap:wrap; border-radius:4px; max-width:600px; margin-left:auto; margin-right:auto;">
+        <label id="ffDbaDropLabel" style="color:var(--grid-line); font-weight:bold; font-size:15px;">
+            SELECT MAHADASHA:
+        </label>
+        <select id="ffDbaMahaSelect" onchange="renderFiveFoldTables()" style="background:#000; color:#facc15; border:1px solid var(--grid-line); padding:6px 14px; font-size:15px; font-weight:bold; cursor:pointer;">
+            <option value="ALL">All 9 Mahadashas (Full DBA)</option>
+            <option value="Sy">Sun (Surya)</option>
+            <option value="Ch">Moon (Chandra)</option>
+            <option value="Ma">Mars (Mangala)</option>
+            <option value="Ra" selected>Rahu</option>
+            <option value="Ju">Jupiter (Guru)</option>
+            <option value="Sa">Saturn (Shani)</option>
+            <option value="Bu">Mercury (Budha)</option>
+            <option value="Ke">Ketu</option>
+            <option value="Ve">Venus (Shukra)</option>
+        </select>
+    </div>
+
+    <div style="display:flex; gap:25px; justify-content:center; align-items:flex-start; flex-wrap:wrap; margin-bottom:60px; width:100%;">
+        <div style="flex:1; min-width:340px; max-width:640px;">
+            <div class="shoda-title" id="ffTitleDbaFiveFold" style="margin-top:0;">FIVE-FOLD PLANETS RELATIONSHIP</div>
+            <table id="ffDbaFiveFoldTable" class="shoda-table" style="margin-bottom:0; width:100%;"></table>
+        </div>
+        <div style="flex:1; min-width:340px; max-width:640px;">
+            <div class="shoda-title" id="ffTitleDbaTemp" style="margin-top:0;">TEMPORARY RELATIONSHIP</div>
+            <table id="ffDbaTempTable" class="shoda-table" style="margin-bottom:0; width:100%;"></table>
+        </div>
+    </div>
+
     <!-- FIVE-FOLD RELATIONSHIP TABLE -->
     <div class="shoda-title" id="ffTitleFiveFold">FIVE-FOLD PLANETS RELATIONSHIP (PANCHADHA MAITRI)</div>
     <div style="text-align:center; color:#ccc; font-size:13px; margin-top:-5px; margin-bottom:12px;">
@@ -3428,6 +3458,29 @@ function toggleFiveFoldRelationship() {
     }
 }
 
+function attachSingleStepScrollFF(selectId) {
+    const el = document.getElementById(selectId);
+    if (!el || el._ffSingleScrollBound) return;
+    el._ffSingleScrollBound = true;
+
+    el.addEventListener("wheel", function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+
+        if (this._ffWheelLock) return;
+        this._ffWheelLock = true;
+        setTimeout(() => { this._ffWheelLock = false; }, 90);
+
+        const len = this.options.length;
+        if (!len) return;
+
+        const dir = e.deltaY > 0 ? 1 : -1;
+        this.selectedIndex = (this.selectedIndex + dir + len) % len;
+        renderFiveFoldTables();
+    }, { passive: false, capture: true });
+}
+
 function initFiveFoldDropdown() {
     const sel = document.getElementById("fiveFoldVargaSelect");
     if (sel && sel.options.length === 0) {
@@ -3439,11 +3492,10 @@ function initFiveFoldDropdown() {
             sel.appendChild(op);
         });
         sel.value = 1;
-        if (typeof attachInfiniteScroll === "function") {
-            attachInfiniteScroll("fiveFoldVargaSelect", renderFiveFoldTables);
-            attachInfiniteScroll("fiveFoldStartPlanet", renderFiveFoldTables);
-        }
     }
+    attachSingleStepScrollFF("fiveFoldVargaSelect");
+    attachSingleStepScrollFF("fiveFoldStartPlanet");
+    attachSingleStepScrollFF("ffDbaMahaSelect");
 }
 
 function toggleFfBasis(mode) {
@@ -3492,7 +3544,7 @@ function combineFiveFold(permRel, tempRel) {
     return "-";
 }
 
-function styleRelationCell(rel, isFiveFold = false, reverseColors = false) {
+function styleRelationCell(rel, isFiveFold = false, isTemp = false) {
     if (rel === "-" || !rel) {
         return `<span style="color:#555;">---</span>`;
     }
@@ -3506,25 +3558,18 @@ function styleRelationCell(rel, isFiveFold = false, reverseColors = false) {
         "Bitter Enemy": "ಪರಮ ಶತ್ರು"
     }[rel] : rel;
 
-    // Reverse colors in Five-Fold and Temporary tables when the planet is Badly Placed (and Role Reversal is OFF)
-    if (reverseColors) {
-        switch (rel) {
-            case "Best Friend":
-                return `<span style="color:#ff2a40; font-weight:900; background:rgba(255,42,64,0.15); padding:2px 7px; border-radius:4px; border:1px solid rgba(255,42,64,0.4);">${txt}</span>`;
-            case "Friend":
-                return `<span style="color:#ff8800; font-weight:bold;">${txt}</span>`;
-            case "Neutral":
-                return `<span style="color:#facc15; font-weight:bold;">${txt}</span>`;
-            case "Enemy":
-                return `<span style="color:#00d9ff; font-weight:bold;">${txt}</span>`;
-            case "Bitter Enemy":
-                return `<span style="color:#16f529; font-weight:900; background:rgba(22,245,41,0.12); padding:2px 7px; border-radius:4px; border:1px solid rgba(22,245,41,0.4);">${txt}</span>`;
-            default:
-                return `<span style="color:#555;">---</span>`;
+    // Temporary Table: Strictly Green for Friend & Red for Enemy (No Teal)
+    if (isTemp) {
+        if (rel === "Friend") {
+            return `<span style="color:#16f529; font-weight:bold;">${txt}</span>`;
         }
+        if (rel === "Enemy") {
+            return `<span style="color:#ff4444; font-weight:bold;">${txt}</span>`;
+        }
+        return `<span style="color:#555;">---</span>`;
     }
 
-    // Standard Normal Color Coding
+    // Locked Color Coding: Best Friend = Green, Friend = Teal, Neutral = Yellow, Enemy = Orange/Red, Bitter Enemy = Red
     switch (rel) {
         case "Best Friend":
             return `<span style="color:#16f529; font-weight:900; background:rgba(22,245,41,0.12); padding:2px 7px; border-radius:4px; border:1px solid rgba(22,245,41,0.4);">${txt}</span>`;
@@ -3728,12 +3773,9 @@ function renderFiveFoldTables() {
                     else if (compRel === "Bitter Enemy") compRel = "Best Friend";
                 }
 
-                // If Role Reversal is OFF, still reverse colors for Malefic rows in Temp & Five-Fold tables
-                const shouldReverseColor = isReversed && !applyRoleReversal;
-
                 pRowPerm += `<td>${styleRelationCell(permRel, false, false)}</td>`;
-                pRowTemp += `<td>${styleRelationCell(tempRel, false, shouldReverseColor)}</td>`;
-                pRowComp += `<td>${styleRelationCell(compRel, true, shouldReverseColor)}</td>`;
+                pRowTemp += `<td>${styleRelationCell(tempRel, false, true)}</td>`;
+                pRowComp += `<td>${styleRelationCell(compRel, true, false)}</td>`;
             });
 
             permHtml += pRowPerm + `</tr>`;
@@ -3759,10 +3801,10 @@ function renderFiveFoldTables() {
             <th style="background:#660033; color:#ff4444; width:28%;">${modeKN ? "ಶಾಶ್ವತ ಶತ್ರುಗಳು" : "Permanent Enemies"}</th>
         </tr>`;
 
-        // 2. Temporary Grouped
+        // 2. Temporary Grouped (Green for Friends, Red for Enemies)
         let tempHtml = `<tr>
             <th style="background:#2d0066; color:#facc15; width:16%;">${hPlanet}</th>
-            <th style="background:#660033; color:#00d9ff; width:42%;">${modeKN ? "ತಾತ್ಕಾಲಿಕ ಮಿತ್ರರು (2, 3, 4, 10, 11, 12)" : "Temporary Friends (2, 3, 4, 10, 11, 12)"}</th>
+            <th style="background:#660033; color:#16f529; width:42%;">${modeKN ? "ತಾತ್ಕಾಲಿಕ ಮಿತ್ರರು (2, 3, 4, 10, 11, 12)" : "Temporary Friends (2, 3, 4, 10, 11, 12)"}</th>
             <th style="background:#660033; color:#ff4444; width:42%;">${modeKN ? "ತಾತ್ಕಾಲಿಕ ಶತ್ರುಗಳು (1, 5, 6, 7, 8, 9)" : "Temporary Enemies (1, 5, 6, 7, 8, 9)"}</th>
         </tr>`;
 
@@ -3827,22 +3869,20 @@ function renderFiveFoldTables() {
                 <td style="color:#ff4444; font-weight:bold;">${pEnemies.join(", ") || "-"}</td>
             </tr>`;
 
-            // Dynamic cell colors for Grouped View (Normal vs Reversed)
-            // If Role Reversal is active, the planets actually moved columns, so we keep standard column colors.
-            const shouldReverseColor = isReversed && !applyRoleReversal;
-            const cTempFriend = shouldReverseColor ? "#ff4444" : "#00d9ff";
-            const cTempEnemy  = shouldReverseColor ? "#00d9ff" : "#ff4444";
+            // Locked cell colors for Grouped View (Green/Teal for Friends, Orange/Red for Enemies)
+            const cTempFriend = "#16f529";
+            const cTempEnemy  = "#ff4444";
 
             tempHtml += `<tr>
                 <td style="background:#2d0066; color:#facc15; font-weight:900;">${pFromTitleTag}</td>
                 <td style="color:${cTempFriend}; font-weight:bold;">${tFriends.join(", ") || "-"}</td>
                 <td style="color:${cTempEnemy}; font-weight:bold;">${tEnemies.join(", ") || "-"}</td>
             </tr>`;
-            const cBest   = shouldReverseColor ? "#ff2a40" : "#16f529";
-            const cFriend = shouldReverseColor ? "#ff8800" : "#00d9ff";
+            const cBest   = "#16f529";
+            const cFriend = "#00d9ff";
             const cNeut   = "#facc15";
-            const cEnemy  = shouldReverseColor ? "#00d9ff" : "#ff8800";
-            const cBitter = shouldReverseColor ? "#16f529" : "#ff2a40";
+            const cEnemy  = "#ff8800";
+            const cBitter = "#ff2a40";
 
             compHtml += `<tr>
                 <td style="background:#2d0066; color:#facc15; font-weight:900;">${pFromTitleTag}</td>
@@ -3859,9 +3899,132 @@ function renderFiveFoldTables() {
         compTbl.innerHTML = compHtml;
     }
 
+    // =========================================================
+    // SIDE-BY-SIDE MAHADASHA & BUKTHI TABLES (FULL DBA ORDER)
+    // =========================================================
+    const dbaFfTbl = document.getElementById("ffDbaFiveFoldTable");
+    const dbaTempTbl = document.getElementById("ffDbaTempTable");
+    const mahaSelectEl = document.getElementById("ffDbaMahaSelect");
+
+    // Standard DBA sequence: Sun -> Moon -> Mars -> Rahu -> Jupiter -> Saturn -> Mercury -> Ketu -> Venus
+    const STANDARD_DBA = ["Sy", "Ch", "Ma", "Ra", "Ju", "Sa", "Bu", "Ke", "Ve"];
+
+    if (mahaSelectEl) {
+        const curVal = mahaSelectEl.value || "ALL";
+        const allText = modeKN ? "ಎಲ್ಲಾ 9 ಮಹಾದಶೆಗಳು (ಪೂರ್ಣ DBA)" : "All 9 Mahadashas (Full DBA)";
+        let optsHtml = `<option value="ALL">${allText}</option>`;
+        STANDARD_DBA.forEach(pCode => {
+            const lbl = modeKN ? `${namesKN[pCode]} (${namesEN[pCode]})` : `${namesEN[pCode]}`;
+            optsHtml += `<option value="${pCode}" ${curVal === pCode ? "selected" : ""}>${lbl}</option>`;
+        });
+        mahaSelectEl.innerHTML = optsHtml;
+        mahaSelectEl.value = curVal;
+        attachSingleStepScrollFF("ffDbaMahaSelect");
+    }
+
+    const dropLbl = document.getElementById("ffDbaDropLabel");
+    if (dropLbl) dropLbl.innerHTML = modeKN ? "ಮಹಾದಶೆ ಆಯ್ಕೆಮಾಡಿ:" : "SELECT MAHADASHA:";
+
+    const titleDbaFF = document.getElementById("ffTitleDbaFiveFold");
+    const titleDbaTemp = document.getElementById("ffTitleDbaTemp");
+    if (titleDbaFF) titleDbaFF.innerHTML = modeKN ? `D-${v} ಪಂಚಧಾ ಮೈತ್ರಿ (ಮಹಾದಶೆ - ಭುಕ್ತಿ)` : `D-${v} FIVE-FOLD PLANETS RELATIONSHIP`;
+    if (titleDbaTemp) titleDbaTemp.innerHTML = modeKN ? `D-${v} ತಾತ್ಕಾಲಿಕ ಮೈತ್ರಿ (ಮಹಾದಶೆ - ಭುಕ್ತಿ)` : `D-${v} TEMPORARY RELATIONSHIP`;
+
+    if (dbaFfTbl && dbaTempTbl) {
+        const selectedMaha = mahaSelectEl ? mahaSelectEl.value : "ALL";
+        const mahaList = (selectedMaha === "ALL") ? STANDARD_DBA : [selectedMaha];
+
+        const hMaha = modeKN ? "ಮಹಾದಶೆ" : "Mahadasha";
+        const hBukthi = modeKN ? "ಭುಕ್ತಿ" : "Bukthi";
+        const hResult = modeKN ? "ಫಲಿತಾಂಶ" : "Result";
+
+        const sMaha = modeKN ? "ಮಹಾದಶೆ" : "Mahadasha";
+        const sBukthi = modeKN ? "ಭುಕ್ತಿ" : "Bukthi";
+
+        // Generates an independent clean HTML block with increased gap spacing
+        let dbaFfHtml = "";
+        let dbaTempHtml = "";
+
+        mahaList.forEach((pMaha, mIdx) => {
+            const mahaStartIdx = FF_DBA_ORDER.indexOf(pMaha);
+            const bukthiOrder = (mahaStartIdx !== -1)
+                ? [...FF_DBA_ORDER.slice(mahaStartIdx), ...FF_DBA_ORDER.slice(0, mahaStartIdx)]
+                : [...activeOrder];
+
+            const isReversed = pPlacementEval[pMaha]?.isBad || false;
+
+            // Increased gap spacing between tables/groups
+            const wrapperStyle = (selectedMaha === "ALL" && mIdx > 0) ? "margin-top: 55px;" : "margin-top: 25px;";
+
+            let tableHeader = `<table class="shoda-table" style="margin-bottom:0; width:100%;">
+                <tr>
+                    <th style="background:#1a1a1a; color:#facc15; width:36%;">${hMaha}</th>
+                    <th style="background:#1a1a1a; color:#0bf4e6; width:34%;">${hBukthi}</th>
+                    <th style="background:#1a1a1a; color:#facc15; width:30%;">${hResult}</th>
+                </tr>`;
+
+            let subFfRows = tableHeader;
+            let subTempRows = tableHeader;
+
+            bukthiOrder.forEach(pBukthi => {
+                const mahaLabel = `${getLabel(pMaha)} ${sMaha}`;
+                const bukthiLabel = `${getLabel(pBukthi)} ${sBukthi}`;
+
+                let ffRel = "-";
+                let tempRel = "-";
+
+                if (pMaha === pBukthi) {
+                    const isBen = !isReversed;
+                    ffRel = isBen ? "Friend" : "Enemy";
+                    tempRel = isBen ? "Friend" : "Enemy";
+                } else {
+                    const permRel = getPermanentRelation(pMaha, pBukthi);
+                    const rawTempRel = getTempRelation(pMaha, pBukthi);
+                    tempRel = rawTempRel;
+                    ffRel = combineFiveFold(permRel, rawTempRel);
+
+                    if (applyRoleReversal && isReversed) {
+                        if (tempRel === "Friend") tempRel = "Enemy";
+                        else if (tempRel === "Enemy") tempRel = "Friend";
+
+                        if (ffRel === "Best Friend") ffRel = "Bitter Enemy";
+                        else if (ffRel === "Friend") ffRel = "Enemy";
+                        else if (ffRel === "Enemy") ffRel = "Friend";
+                        else if (ffRel === "Bitter Enemy") ffRel = "Best Friend";
+                    }
+                }
+
+                subFfRows += `<tr>
+                    <td style="background:#0a0a0a; color:#facc15; font-weight:900;">${mahaLabel}</td>
+                    <td style="background:#0a0a0a; color:#00d9ff; font-weight:bold;">${bukthiLabel}</td>
+                    <td style="background:#0a0a0a;">${styleRelationCell(ffRel, true, false)}</td>
+                </tr>`;
+
+                subTempRows += `<tr>
+                    <td style="background:#0a0a0a; color:#facc15; font-weight:900;">${mahaLabel}</td>
+                    <td style="background:#0a0a0a; color:#00d9ff; font-weight:bold;">${bukthiLabel}</td>
+                    <td style="background:#0a0a0a;">${styleRelationCell(tempRel, false, true)}</td>
+                </tr>`;
+            });
+
+            subFfRows += `</table>`;
+            subTempRows += `</table>`;
+
+            dbaFfHtml += `<div style="${wrapperStyle}">${subFfRows}</div>`;
+            dbaTempHtml += `<div style="${wrapperStyle}">${subTempRows}</div>`;
+        });
+
+        dbaFfTbl.outerHTML = `<div id="ffDbaFiveFoldTable">${dbaFfHtml}</div>`;
+        dbaTempTbl.outerHTML = `<div id="ffDbaTempTable">${dbaTempHtml}</div>`;
+    }
+
     // Attach interactive crosshair hover & click highlights
     if (typeof attachMemoryEvents === "function") {
         setTimeout(() => {
+            const freshFf = document.getElementById("ffDbaFiveFoldTable");
+            const freshTemp = document.getElementById("ffDbaTempTable");
+            if (freshFf) freshFf.querySelectorAll(".shoda-table").forEach(t => attachMemoryEvents(t));
+            if (freshTemp) freshTemp.querySelectorAll(".shoda-table").forEach(t => attachMemoryEvents(t));
             attachMemoryEvents(permTbl);
             attachMemoryEvents(tempTbl);
             attachMemoryEvents(compTbl);
@@ -20306,6 +20469,61 @@ function renderStandaloneHouseAspects() {
 
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
