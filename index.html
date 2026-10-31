@@ -2299,6 +2299,864 @@ function renderCuspalTables() {
 
 
 
+<!-- Functional Benefic & Functional Malefic ▲ ---- STARTS HERE -->
+<div class="division-title" onclick="toggleFuncBeneficMalefic()">
+    Functional Benefic &amp; Functional Malefic &#9660;
+</div>
+
+<div id="funcBeneficMaleficWrapper" class="shoda-wrapper" style="display:none; padding-bottom: 30px;">
+    
+    <div style="text-align:center; margin-bottom:14px; display:flex; justify-content:center; align-items:center; gap:20px; flex-wrap:wrap;">
+        <div>
+            <label style="color:var(--grid-line); font-weight:bold; font-size:16px; margin-right:10px;">
+                SELECT DIVISIONAL CHART:
+            </label>
+            <select id="fbmVargaSelect"
+                    onchange="renderFuncBeneficMaleficTab()"
+                    style="background:#000;color:#fff;border:1px solid var(--grid-line);
+                           padding:6px 10px;font-size:16px;font-weight:bold;cursor:pointer;">
+            </select>
+        </div>
+
+        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:var(--asc-yellow); font-weight:900; font-size:15px; background:#111; border:1px solid var(--grid-line); padding:5px 12px; border-radius:4px;">
+            <input type="checkbox" id="fbmLocalShiftToggle" onchange="renderFuncBeneficMaleficTab()">
+            Shifted Lagna (Local Shift)
+        </label>
+    </div>
+
+    <div style="text-align:center; margin-bottom:20px; font-weight:800; color:var(--text-white); display:flex; justify-content:center; flex-wrap:wrap; gap:25px;">
+        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px;">
+            <input type="checkbox" id="fbmRkAspectsToggle" onchange="renderFuncBeneficMaleficTab()">
+            Rahu &amp; Ketu Aspects: 3, 11 (Default is 5, 9)
+        </label>
+        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:#10b981;">
+            <input type="checkbox" id="fbmIncludeAspectsToggle" onchange="renderFuncBeneficMaleficTab()">
+            Include Aspects
+        </label>
+        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:#facc15;">
+            <input type="checkbox" id="fbmIncludeRaKeAspectsToggle" checked onchange="renderFuncBeneficMaleficTab()">
+            Include Ra/Ke Aspects
+        </label>
+    </div>
+
+    <!-- EXACT KUNDALI LIKE VEDIC ASPECTS & SPECIFIC CHART -->
+    <div id="fbmSingleKundali" style="display:flex; justify-content:center; margin-bottom: 35px; width:100%;"></div>
+
+    <!-- ASCENDANT & STARLORD BANNER -->
+    <div class="shoda-title" id="fbmTableHeading" style="font-size:20px; letter-spacing:0.5px;">
+        FUNCTIONAL BENEFIC &amp; FUNCTIONAL MALEFIC
+    </div>
+    <div id="fbmSubIndicator" style="text-align:center; color:#10b981; font-weight:bold; margin-top:-4px; margin-bottom:16px; font-size:15px;"></div>
+
+    <!-- SUMMARY PILLS BOX (BENEFIC VS MALEFIC FOR THIS ASCENDANT) -->
+    <div id="fbmSummaryBanner" style="max-width:1150px; margin:0 auto 22px auto; display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:16px;"></div>
+
+    <!-- MAIN DBA SORTED FUNCTIONAL TABLE -->
+    <div style="display:flex; justify-content:center; overflow-x:auto; width:100%; margin-top: 35px; margin-bottom: 90px;">
+        <table id="fbmMainTable" class="shoda-table" style="max-width:1150px; margin-bottom:0; width:100%;"></table>
+    </div>
+
+    <!-- REFERENCE TABLE 1: 12 ASCENDANTS HOUSE LORDSHIP COLOR TABLE (WITH 1-12 SORT CHECKBOX) -->
+    <div style="max-width:1150px; margin: 90px auto 90px auto; width:100%;">
+        <div style="display:flex; justify-content:center; align-items:center; gap:20px; margin-bottom:14px;">
+            <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:var(--asc-yellow); font-weight:900; font-size:15px; background:#111; border:1px solid var(--grid-line); padding:5px 14px; border-radius:4px;">
+                <input type="checkbox" id="fbmRef1SortToggle" onchange="renderFbmRefTable1()">
+                Sort Houses 1 to 12
+            </label>
+        </div>
+        <div id="fbmRefTable1Container" style="display:flex; justify-content:center; overflow-x:auto; width:100%;"></div>
+    </div>
+
+    <!-- REFERENCE TABLE 2: 1 TO 12 BHAVA MATRIX & LORDSHIP PLACEMENT REFERENCE -->
+    <div style="max-width:1150px; margin: 90px auto 80px auto; width:100%;">
+        <div style="display:flex; justify-content:center; align-items:center; gap:20px; margin-bottom:14px;">
+            <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:var(--asc-yellow); font-weight:900; font-size:15px; background:#111; border:1px solid var(--grid-line); padding:5px 14px; border-radius:4px;">
+                <input type="checkbox" id="fbmRef2SortToggle" onchange="renderFbmRefTable2()">
+                Sort
+            </label>
+        </div>
+        <div id="fbmRefTable2Container" style="width:100%; display:flex; justify-content:center; overflow-x:auto;"></div>
+    </div>
+
+</div>
+
+<script>
+/* =========================================================================
+   FUNCTIONAL BENEFIC & FUNCTIONAL MALEFIC ENGINE (DBA + DISPOSITOR NODES)
+========================================================================= */
+
+const FBM_BENEFIC_BY_ASC = {
+    0:  ["Sy", "Ch", "Ma", "Ju"], // Mesha (Aries)
+    1:  ["Sa", "Bu", "Ve"],       // Vrishaba (Taurus)
+    2:  ["Sa", "Bu", "Ve"],       // Mithuna (Gemini)
+    3:  ["Sy", "Ch", "Ma", "Ju"], // Kataka (Cancer)
+    4:  ["Sy", "Ch", "Ma", "Ju"], // Simha (Leo)
+    5:  ["Sa", "Bu", "Ve"],       // Kanya (Virgo)
+    6:  ["Sa", "Bu", "Ve"],       // Thula (Libra)
+    7:  ["Sy", "Ch", "Ma", "Ju"], // Vrischik (Scorpio)
+    8:  ["Ch", "Ma", "Ju"],       // Dhanu (Sagittarius)
+    9:  ["Sa", "Bu", "Ve"],       // Makara (Capricorn)
+    10: ["Sa", "Bu", "Ve"],       // Kumbha (Aquarius)
+    11: ["Sy", "Ch", "Ma", "Ju"]  // Meena (Pisces)
+};
+
+// Reference Table 1 Data (Planet codes & Status: 'G' = Benefic Green, 'O' = Malefic Red, 'Y' = Neutral Yellow)
+const FBM_REF1_DATA = [
+    { signIdx: 0,  num: 1,  cells: { 1:["Ma","G"], 5:["Sy","G"], 9:["Ju","G"], 2:["Ve","O"], 6:["Bu","O"], 8:["Ma","G"], 12:["Ju","G"], 3:["Bu","O"], 4:["Ch","G"], 7:["Ve","O"], 10:["Sa","Y"], 11:["Sa","Y"] } },
+    { signIdx: 1,  num: 2,  cells: { 1:["Ve","G"], 5:["Bu","G"], 9:["Sa","G"], 2:["Bu","G"], 6:["Ve","G"], 8:["Ju","O"], 12:["Ma","O"], 3:["Ch","Y"], 4:["Sy","O"], 7:["Ma","O"], 10:["Sa","G"], 11:["Ju","O"] } },
+    { signIdx: 2,  num: 3,  cells: { 1:["Bu","G"], 5:["Ve","G"], 9:["Sa","G"], 2:["Ch","O"], 6:["Ma","O"], 8:["Sa","G"], 12:["Ve","G"], 3:["Sy","Y"], 4:["Bu","G"], 7:["Ju","O"], 10:["Ju","O"], 11:["Ma","O"] } },
+    { signIdx: 3,  num: 4,  cells: { 1:["Ch","G"], 5:["Ma","G"], 9:["Ju","G"], 2:["Sy","Y"], 6:["Ju","G"], 8:["Sa","O"], 12:["Bu","O"], 3:["Bu","O"], 4:["Ve","O"], 7:["Sa","O"], 10:["Ma","G"], 11:["Ve","O"] } },
+    { signIdx: 4,  num: 5,  cells: { 1:["Sy","G"], 5:["Ju","G"], 9:["Ma","G"], 2:["Bu","O"], 6:["Sa","O"], 8:["Ju","G"], 12:["Ch","G"], 3:["Ve","O"], 4:["Ma","G"], 7:["Sa","O"], 10:["Ve","O"], 11:["Bu","Y"] } },
+    { signIdx: 5,  num: 6,  cells: { 1:["Bu","G"], 5:["Sa","G"], 9:["Ve","G"], 2:["Ve","G"], 6:["Sa","G"], 8:["Ma","O"], 12:["Sy","Y"], 3:["Ma","O"], 4:["Ju","O"], 7:["Ju","O"], 10:["Bu","G"], 11:["Ch","O"] } },
+    { signIdx: 6,  num: 7,  cells: { 1:["Ve","G"], 5:["Sa","G"], 9:["Bu","G"], 2:["Ma","O"], 6:["Ju","O"], 8:["Ve","G"], 12:["Bu","G"], 3:["Ju","O"], 4:["Sa","G"], 7:["Ma","O"], 10:["Ch","Y"], 11:["Sy","O"] } },
+    { signIdx: 7,  num: 8,  cells: { 1:["Ma","G"], 5:["Ju","G"], 9:["Ch","G"], 2:["Ju","G"], 6:["Ma","G"], 8:["Bu","O"], 12:["Ve","O"], 3:["Sa","Y"], 4:["Sa","Y"], 7:["Ve","O"], 10:["Sy","Y"], 11:["Bu","O"] } },
+    { signIdx: 8,  num: 9,  cells: { 1:["Ju","G"], 5:["Ma","G"], 9:["Sy","G"], 2:["Sa","O"], 6:["Ve","O"], 8:["Ch","Y"], 12:["Ma","G"], 3:["Sa","O"], 4:["Ju","G"], 7:["Bu","O"], 10:["Bu","O"], 11:["Ve","O"] } },
+    { signIdx: 9,  num: 10, cells: { 1:["Sa","G"], 5:["Ve","G"], 9:["Bu","G"], 2:["Sa","G"], 6:["Bu","G"], 8:["Sy","O"], 12:["Ju","O"], 3:["Ju","O"], 4:["Ma","O"], 7:["Ch","Y"], 10:["Ve","G"], 11:["Ma","O"] } },
+    { signIdx: 10, num: 11, cells: { 1:["Sa","G"], 5:["Bu","G"], 9:["Ve","G"], 2:["Ju","O"], 6:["Ch","O"], 8:["Bu","G"], 12:["Sa","G"], 3:["Ma","O"], 4:["Ve","G"], 7:["Sy","Y"], 10:["Ma","O"], 11:["Ju","O"] } },
+    { signIdx: 11, num: 12, cells: { 1:["Ju","G"], 5:["Ch","G"], 9:["Ma","G"], 2:["Ma","G"], 6:["Sy","Y"], 8:["Ve","O"], 12:["Sa","O"], 3:["Ve","O"], 4:["Bu","O"], 7:["Bu","O"], 10:["Ju","G"], 11:["Sa","O"] } }
+];
+
+function renderFbmRefTable1() {
+    const container = document.getElementById("fbmRefTable1Container");
+    if (!container) return;
+
+    const isSorted = document.getElementById("fbmRef1SortToggle")?.checked;
+    const modeKN = document.getElementById("modeKN")?.checked;
+
+    const signEN = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
+    const signKN = ["\u0CAE\u0CC7\u0CB7", "\u0CB5\u0CC3\u0CB7\u0CAD", "\u0CAE\u0CBF\u0CA5\u0CC1\u0CA8", "\u0C95\u0C9F\u0C95", "\u0CB8\u0CBF\u0C82\u0CB9", "\u0C95\u0CA8\u0CCD\u0CAF\u0CBE", "\u0CA4\u0CC1\u0CB2\u0CBE", "\u0CB5\u0CC3\u0CB6\u0CCD\u0C9A\u0CBF\u0C95", "\u0CA7\u0CA8\u0CC1", "\u0CAE\u0C95\u0CB0", "\u0C95\u0CC1\u0C82\u0CAD", "\u0CAE\u0CC0\u0CA8"];
+
+    const pEN = { Sy: "Sun", Ch: "Moon", Ma: "Mars", Bu: "Mercury", Ju: "Jupiter", Ve: "Venus", Sa: "Saturn" };
+    const pKN = { Sy: "\u0CB0\u0CB5\u0CBF", Ch: "\u0C9A\u0C82\u0CA6\u0CCD\u0CB0", Ma: "\u0C95\u0CC1\u0C9C", Bu: "\u0CAC\u0CC1\u0CA7", Ju: "\u0C97\u0CC1\u0CB0\u0CC1", Ve: "\u0CB6\u0CC1\u0C95\u0CCD\u0CB0", Sa: "\u0CB6\u0CA8\u0CBF" };
+
+    // Project-matched Rich Green, Red & Neutral Black/Yellow styles
+    const cellStyles = {
+        G: "background:rgba(0, 60, 15, 0.85); color:#16f529; border:1px solid #16f529; font-weight:900; padding:7px 8px; font-size:14.5px;",
+        O: "background:rgba(70, 0, 10, 0.85); color:#ff2a40; border:1px solid #ff2a40; font-weight:900; padding:7px 8px; font-size:14.5px;",
+        Y: "background:#000000; color:#facc15; border:1px solid #facc15; font-weight:900; padding:7px 8px; font-size:14.5px;"
+    };
+
+    const topHeaderStyle  = "background:linear-gradient(135deg, #001f5c, #000d29); color:#facc15; border:1px solid var(--grid-line); padding:8px 10px; font-size:15px; font-weight:900;";
+    const signColStyle    = "background:linear-gradient(135deg, #1b0033, #2d0066); color:#facc15; border:1px solid var(--grid-line); padding:7px 12px; font-size:15px; font-weight:900; white-space:nowrap;";
+    const numColStyle     = "background:#111111; color:#00d9ff; border:1px solid var(--grid-line); padding:7px 8px; font-size:15px; font-weight:900;";
+    const gapColStyle     = "background:#050505; border-top:none; border-bottom:none; width:14px; padding:0;";
+
+    let html = `<table class="shoda-table" style="width:100%; max-width:1150px; margin-bottom:0; border:2px solid var(--grid-line);">`;
+
+    if (isSorted) {
+        html += `<tr>
+            <th style="${topHeaderStyle}">${modeKN ? "\u0CB0\u0CBE\u0CB6\u0CBF" : "Ascendant"}</th>
+            <th style="${topHeaderStyle}">#</th>`;
+        for (let h = 1; h <= 12; h++) {
+            html += `<th style="${topHeaderStyle}">${h}H</th>`;
+        }
+        html += `</tr>`;
+
+        FBM_REF1_DATA.forEach(row => {
+            const sName = modeKN ? signKN[row.signIdx] : signEN[row.signIdx];
+            html += `<tr>
+                <td style="${signColStyle}">${sName}</td>
+                <td style="${numColStyle}">${row.num}</td>`;
+            for (let h = 1; h <= 12; h++) {
+                const [pCode, cCode] = row.cells[h];
+                const pDisp = modeKN ? pKN[pCode] : pEN[pCode];
+                html += `<td style="${cellStyles[cCode]}">${pDisp}</td>`;
+            }
+            html += `</tr>`;
+        });
+    } else {
+        const groups = [[1, 5, 9], [2, 6], [8, 12], [3, 4, 7, 10, 11]];
+        html += `<tr>
+            <th style="${topHeaderStyle}">${modeKN ? "\u0CB0\u0CBE\u0CB6\u0CBF" : "Ascendant"}</th>
+            <th style="${topHeaderStyle}">#</th>`;
+        groups.forEach((grp, gIdx) => {
+            grp.forEach(h => {
+                html += `<th style="${topHeaderStyle}">${h}H</th>`;
+            });
+            if (gIdx < groups.length - 1) {
+                html += `<th style="${gapColStyle}"></th>`;
+            }
+        });
+        html += `</tr>`;
+
+        FBM_REF1_DATA.forEach(row => {
+            const sName = modeKN ? signKN[row.signIdx] : signEN[row.signIdx];
+            html += `<tr>
+                <td style="${signColStyle}">${sName}</td>
+                <td style="${numColStyle}">${row.num}</td>`;
+            groups.forEach((grp, gIdx) => {
+                grp.forEach(h => {
+                    const [pCode, cCode] = row.cells[h];
+                    const pDisp = modeKN ? pKN[pCode] : pEN[pCode];
+                    html += `<td style="${cellStyles[cCode]}">${pDisp}</td>`;
+                });
+                if (gIdx < groups.length - 1) {
+                    html += `<td style="${gapColStyle}"></td>`;
+                }
+            });
+            html += `</tr>`;
+        });
+    }
+
+    html += `</table>`;
+    container.innerHTML = html;
+}
+
+function renderFbmRefTable2() {
+    const container = document.getElementById("fbmRefTable2Container");
+    if (!container) return;
+
+    const isSorted = document.getElementById("fbmRef2SortToggle")?.checked;
+    const greenRows = [1, 3, 5, 9, 11];
+    const yellowRows = [2, 7];
+
+    // Unsorted by default (exact house-offset sequence from 1H..12H; Col 2 of 6,8,12 is 7,8,1)
+    const rawBottomRows = [
+        {
+            bg: "rgba(0, 60, 15, 0.85)", color: "#16f529", border: "#16f529",
+            vals: ["3,11", "4,12", "5,1", "6,2", "7,3", "8,4", "9,5", "10,6", "11,7", "12,8", "1,9", "2,10"]
+        },
+        {
+            bg: "rgba(0, 60, 15, 0.85)", color: "#16f529", border: "#16f529",
+            vals: ["1,5,9", "2,6,10", "3,7,11", "4,8,12", "5,9,1", "6,10,2", "7,11,3", "8,12,4", "9,1,5", "10,2,6", "11,3,7", "12,4,8"]
+        },
+        {
+            bg: "#000000", color: "#facc15", border: "#facc15",
+            vals: ["2,7", "3,8", "4,9", "5,10", "6,11", "7,12", "8,1", "9,2", "10,3", "11,4", "12,5", "1,6"]
+        },
+        {
+            bg: "rgba(70, 0, 10, 0.85)", color: "#ff2a40", border: "#ff2a40",
+            vals: ["4,10", "5,11", "6,12", "7,1", "8,2", "9,3", "10,4", "11,5", "12,6", "1,7", "2,8", "3,9"]
+        },
+        {
+            bg: "rgba(70, 0, 10, 0.85)", color: "#ff2a40", border: "#ff2a40",
+            vals: ["6,8,12", "7,9,1", "8,10,2", "9,11,3", "10,12,4", "11,1,5", "12,2,6", "1,3,7", "2,4,8", "3,5,9", "4,6,10", "5,7,11"]
+        }
+    ];
+
+    const bottomRows = rawBottomRows.map(row => ({
+        ...row,
+        vals: row.vals.map(cellStr => {
+            if (!isSorted) return cellStr;
+            return cellStr.split(",").map(Number).sort((a, b) => a - b).join(",");
+        })
+    }));
+
+    let html = `<table class="shoda-table" style="width:100%; max-width:1150px; margin-bottom:0; border:2px solid var(--grid-line); background:#0a0a0a;">`;
+
+    // Dark Blue Royal Header 1 to 12
+    html += `<tr>`;
+    for (let c = 1; c <= 12; c++) {
+        html += `<th style="background:linear-gradient(135deg, #001f5c, #000d29); color:#facc15; border:1px solid var(--grid-line); padding:9px 6px; font-size:17px; font-weight:900; width:8.33%;">${c}H</th>`;
+    }
+    html += `</tr>`;
+
+    // Top 12 rows (X = R) with big bold numbers: Green (1,3,5,9,11), Yellow (2,7), Red (4,6,8,10,12) for X, White for = R
+    for (let r = 1; r <= 12; r++) {
+        const isGreen = greenRows.includes(r);
+        const isYellow = yellowRows.includes(r);
+        const leftColor = isGreen ? "#16f529" : (isYellow ? "#facc15" : "#ff2a40");
+        const rowBg = (r % 2 === 0) ? "#111111" : "#0a0a0a";
+        html += `<tr>`;
+        for (let c = 1; c <= 12; c++) {
+            const leftVal = ((c + r - 2) % 12) + 1;
+            html += `<td style="background:${rowBg}; border:1px solid #333; border-left:1px solid rgba(255,204,0,0.45); border-right:1px solid rgba(255,204,0,0.45); padding:6px 4px; font-size:16px; font-weight:900; white-space:nowrap;">
+                <span style="color:${leftColor};">${leftVal}</span><span style="color:#ffffff;"> = ${r}</span>
+            </td>`;
+        }
+        html += `</tr>`;
+    }
+
+    // Gold/Dark Divider Row
+    html += `<tr>`;
+    for (let c = 1; c <= 12; c++) {
+        html += `<td style="background:linear-gradient(90deg, #1a001a, #2b0000); border-top:2px solid var(--grid-line); border-bottom:2px solid var(--grid-line); height:12px; padding:0;"></td>`;
+    }
+    html += `</tr>`;
+
+    // Bottom 5 Lordship Evaluation Rows (3,11 Green | 1,5,9 Green | 2,7 Yellow | 4,10 Red | 6,8,12 Red)
+    bottomRows.forEach(rowObj => {
+        html += `<tr>`;
+        rowObj.vals.forEach(valStr => {
+            html += `<td style="background:${rowObj.bg}; color:${rowObj.color}; border:1px solid ${rowObj.border}; padding:7px 4px; font-size:16px; font-weight:900; letter-spacing:0.5px;">${valStr}</td>`;
+        });
+        html += `</tr>`;
+    });
+
+    html += `</table>`;
+    container.innerHTML = html;
+}
+
+function toggleFuncBeneficMalefic() {
+    const box = document.getElementById("funcBeneficMaleficWrapper");
+    if (!box) return;
+    const isOpening = (box.style.display === "none");
+    box.style.display = isOpening ? "block" : "none";
+    if (isOpening) {
+        initFbmDropdown();
+        renderFuncBeneficMaleficTab();
+        renderFbmRefTable1();
+        renderFbmRefTable2();
+    }
+}
+
+function initFbmDropdown() {
+    const sel = document.getElementById("fbmVargaSelect");
+    if (!sel) return;
+    if (sel.options.length === 0) {
+        const vKeys = [1, 10, 9, 7, 2, 4, 8, 60, 11, 30, 21, 16, 6, 12, 3, 24, 27, 20, 40, 45, 5];
+        vKeys.forEach(v => {
+            const op = document.createElement("option");
+            op.value = v;
+            op.textContent = "D" + v;
+            sel.appendChild(op);
+        });
+        sel.value = 1;
+    }
+
+    if (!sel._fbmWheelBound) {
+        sel._fbmWheelBound = true;
+        sel.addEventListener("wheel", function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (this._fbmLock) return;
+            this._fbmLock = true;
+            setTimeout(() => { this._fbmLock = false; }, 80);
+            const len = this.options.length;
+            if (!len) return;
+            const dir = e.deltaY > 0 ? 1 : -1;
+            this.selectedIndex = (this.selectedIndex + dir + len) % len;
+            renderFuncBeneficMaleficTab();
+        }, { passive: false });
+    }
+}
+
+function getFbmDynamicAspects(planet) {
+    if (planet === "Sa") return [3, 7, 10];
+    if (planet === "Ma") return [4, 7, 8];
+    if (planet === "Ju") return [5, 7, 9];
+    if (planet === "Ra" || planet === "Ke") {
+        const alt = document.getElementById("fbmRkAspectsToggle")?.checked;
+        return alt ? [3, 11] : [5, 9];
+    }
+    return [7];
+}
+
+function renderFuncBeneficMaleficTab() {
+    const sel = document.getElementById("fbmVargaSelect");
+    const kundaliContainer = document.getElementById("fbmSingleKundali");
+    const tbl = document.getElementById("fbmMainTable");
+    const summaryBanner = document.getElementById("fbmSummaryBanner");
+    if (!sel || !kundaliContainer || !tbl) return;
+
+    renderFbmRefTable1();
+    renderFbmRefTable2();
+
+    if (!window._shodaBhava || !window._shodaRashi || !window._ascSigns) {
+        tbl.innerHTML = "<tr><td style='color:#ff4444; padding:20px; text-align:center; font-weight:bold;'>Please load Natal Profile data first...</td></tr>";
+        return;
+    }
+
+    const v = parseInt(sel.value || "1");
+    const rashiData = window._shodaRashi[v];
+    if (!rashiData) return;
+
+    const modeKN = document.getElementById("modeKN")?.checked;
+    const modeKP_Active = document.getElementById("modeKP")?.checked;
+    const localShiftOn = document.getElementById("fbmLocalShiftToggle")?.checked;
+    const globalShiftOn = document.getElementById("shiftedLagnaToggle")?.checked;
+
+    // 1. FIXED MOON STARLORD (FROM NATAL D1 MOON) -> DBA ORDER
+    let startPlanet = "Ke";
+    try {
+        if (typeof moonStarLord !== "undefined" && moonStarLord) {
+            startPlanet = moonStarLord;
+        }
+    } catch (e) {}
+    if (startPlanet === "Mo") startPlanet = "Ch";
+
+    const vimBaseOrder = ["Ke", "Ve", "Sy", "Ch", "Ma", "Ra", "Ju", "Sa", "Bu"];
+    let startIndex = vimBaseOrder.indexOf(startPlanet);
+    if (startIndex === -1) startIndex = 0;
+
+    const planets = [
+        ...vimBaseOrder.slice(startIndex),
+        ...vimBaseOrder.slice(0, startIndex)
+    ];
+
+    const pNameEN = {
+        Sy: "Surya", Ch: "Chandra", Ma: "Mangala", Bu: "Budha",
+        Ju: "Jupiter", Ve: "Venus", Sa: "Saturn", Ra: "Rahu", Ke: "Ketu", ASC: "ASC"
+    };
+    const pNameKN = {
+        Sy: "\u0CB0\u0CB5\u0CBF", Ch: "\u0C9A\u0C82\u0CA6\u0CCD\u0CB0", Ma: "\u0C95\u0CC1\u0C9C",
+        Bu: "\u0CAC\u0CC1\u0CA7", Ju: "\u0C97\u0CC1\u0CB0\u0CC1", Ve: "\u0CB6\u0CC1\u0C95\u0CCD\u0CB0",
+        Sa: "\u0CB6\u0CA8\u0CBF", Ra: "\u0CB0\u0CBE\u0CB9\u0CC1", Ke: "\u0C95\u0CC7\u0CA4\u0CC1", ASC: "\u0CB2\u0C97\u0CCD\u0CA8"
+    };
+
+    const signNamesEN = [
+        "Mesha (Aries)", "Vrishaba (Taurus)", "Mithuna (Gemini)", "Kataka (Cancer)",
+        "Simha (Leo)", "Kanya (Virgo)", "Thula (Libra)", "Vrischik (Scorpio)",
+        "Dhanu (Sagittarius)", "Makara (Capricorn)", "Kumbha (Aquarius)", "Meena (Pisces)"
+    ];
+    const signNamesKN = [
+        "\u0CAE\u0CC7\u0CB7 (Mesha)", "\u0CB5\u0CC3\u0CB7\u0CAD (Vrishaba)", "\u0CAE\u0CBF\u0CA5\u0CC1\u0CA8 (Mithuna)", "\u0C95\u0C9F\u0C95 (Kataka)",
+        "\u0CB8\u0CBF\u0C82\u0CB9 (Simha)", "\u0C95\u0CA8\u0CCD\u0CAF\u0CBE (Kanya)", "\u0CA4\u0CC1\u0CB2\u0CBE (Thula)", "\u0CB5\u0CC3\u0CB6\u0CCD\u0C9A\u0CBF\u0C95 (Vrischik)",
+        "\u0CA7\u0CA8\u0CC1 (Dhanu)", "\u0CAE\u0C95\u0CB0 (Makara)", "\u0C95\u0CC1\u0C82\u0CAD (Kumbha)", "\u0CAE\u0CC0\u0CA8 (Meena)"
+    ];
+
+    const signLords = {
+        1: "Ma", 2: "Ve", 3: "Bu", 4: "Ch",
+        5: "Sy", 6: "Bu", 7: "Ve", 8: "Ma",
+        9: "Ju", 10: "Sa", 11: "Sa", 12: "Ju"
+    };
+
+    // 2. DETERMINE ACTIVE ASCENDANT & CHART DATA (100% IMMUNE TO GLOBAL SHIFT, CONTROLLED ONLY BY LOCAL SHIFT)
+    const rawChartData = window._vargaChartStore ? window._vargaChartStore[v] : null;
+    const pivot = document.getElementById("pivot")?.value || "ASC";
+
+    // Calculate if the 15-degree KP shift threshold is met for this Varga
+    let fbmMeets15Deg = false;
+    try {
+        if (raw && raw.ayanamshas) {
+            const ayaVal = document.getElementById("aya")?.value || "Lahiri";
+            const dRaw = raw.ayanamshas[ayaVal];
+            let baseDeg = parseFloat(dRaw.lagna || 0);
+            if (typeof originalDateTime !== "undefined" && typeof currentDateTime !== "undefined" && originalDateTime && currentDateTime) {
+                baseDeg = (baseDeg + ((currentDateTime - originalDateTime) / 60000) * 0.25) % 360;
+                if (baseDeg < 0) baseDeg += 360;
+            }
+            if (pivot !== "ASC" && window._shiftedPlanetsGlobal && window._shiftedPlanetsGlobal[pivot] !== undefined) {
+                baseDeg = window._shiftedPlanetsGlobal[pivot];
+            }
+            let pDegInVarga = 0;
+            if (v === 30) {
+                const sign = Math.floor(baseDeg / 30);
+                const deg = baseDeg % 30;
+                const isOdd = (sign % 2 === 0);
+                let start = 0, length = 5;
+                if (isOdd) {
+                    if (deg < 5) { start = 0; length = 5; }
+                    else if (deg < 10) { start = 5; length = 5; }
+                    else if (deg < 18) { start = 10; length = 8; }
+                    else if (deg < 25) { start = 18; length = 7; }
+                    else { start = 25; length = 5; }
+                } else {
+                    if (deg < 5) { start = 0; length = 5; }
+                    else if (deg < 12) { start = 5; length = 7; }
+                    else if (deg < 20) { start = 12; length = 8; }
+                    else if (deg < 25) { start = 20; length = 5; }
+                    else { start = 25; length = 5; }
+                }
+                pDegInVarga = ((deg - start) / length) * 30;
+            } else {
+                pDegInVarga = (baseDeg * v) % 30;
+            }
+            if (pDegInVarga >= 15) fbmMeets15Deg = true;
+        }
+    } catch (e) {}
+
+    // Undo any global shift that calc() applied, then apply ONLY if Local Shift is checked
+    const globalAppliedShift = (modeKP_Active && globalShiftOn && window._kpSignShift && window._kpSignShift[v]) ? window._kpSignShift[v] : 0;
+    const desiredLocalShift = (modeKP_Active && localShiftOn && fbmMeets15Deg) ? 1 : 0;
+    const netBoxDelta = (desiredLocalShift - globalAppliedShift + 12) % 12;
+
+    let chartData = null;
+    if (rawChartData) {
+        chartData = Array(12).fill(null).map(() => []);
+        for (let sIdx = 0; sIdx < 12; sIdx++) {
+            const targetBox = (sIdx + netBoxDelta) % 12;
+            rawChartData[sIdx].forEach(pObj => {
+                chartData[targetBox].push({ ...pObj });
+            });
+        }
+    }
+
+    let visualAscIdx = (window._pureAscSigns && window._pureAscSigns[v] !== undefined) ? window._pureAscSigns[v] : 0;
+    if (chartData) {
+        if (pivot === "ASC") {
+            for (let sIdx = 0; sIdx < 12; sIdx++) {
+                if (chartData[sIdx].some(p => p.isAsc)) {
+                    visualAscIdx = sIdx;
+                    break;
+                }
+            }
+        } else {
+            const pivCode = (pivot === "Surya") ? "Sy" : pivot.substring(0, 2);
+            for (let sIdx = 0; sIdx < 12; sIdx++) {
+                if (chartData[sIdx].some(p => p.n === pivCode)) {
+                    visualAscIdx = sIdx;
+                    break;
+                }
+            }
+        }
+    } else {
+        visualAscIdx = (visualAscIdx + desiredLocalShift) % 12;
+    }
+
+    // Helper for Lordship inside Kundali
+    function getPlanetLordshipLocal(pCode) {
+        const ascIndex = visualAscIdx + 1;
+        function housesOfLord(lord) {
+            const arr = [];
+            for (let h = 1; h <= 12; h++) {
+                const signOfHouse = ((ascIndex + h - 2) % 12) + 1;
+                if (signLords[signOfHouse] === lord) arr.push(h);
+            }
+            return arr;
+        }
+
+        if (pCode === "Ra" || pCode === "Ke") {
+            let signPlaced = null;
+            let pObj = null;
+            if (chartData) {
+                for (let i = 0; i < 12; i++) {
+                    pObj = chartData[i].find(p => p.n === pCode);
+                    if (pObj) break;
+                }
+            }
+            if (!pObj) return [];
+            if (pObj.pureSign !== undefined) {
+                signPlaced = pObj.pureSign + 1;
+            } else if (rashiData[pCode] && rashiData[pCode] !== "-") {
+                signPlaced = parseInt(rashiData[pCode]);
+            }
+
+            const dispositor = signLords[signPlaced];
+            const lordHouses = housesOfLord(dispositor);
+
+            let dispositorHouse = null;
+            if (chartData) {
+                for (let i = 0; i < 12; i++) {
+                    const obj = chartData[i].find(p => p.n === dispositor);
+                    if (obj) {
+                        dispositorHouse = ((i - visualAscIdx + 12) % 12) + 1;
+                        break;
+                    }
+                }
+            }
+            if (dispositorHouse) return [dispositorHouse, ...lordHouses];
+            return lordHouses;
+        }
+        return housesOfLord(pCode);
+    }
+
+    // Effective House Placement for Aspects & Table
+    function getEffectivePlacement(p) {
+        if (chartData) {
+            for (let i = 0; i < 12; i++) {
+                if (chartData[i].some(x => x.n === p)) {
+                    return ((i - visualAscIdx + 12) % 12) + 1;
+                }
+            }
+        }
+        if (modeKP_Active) {
+            let h = window._shodaBhava[v]?.[p];
+            return (h && h !== "-") ? parseInt(h) : "-";
+        } else {
+            let pSign = window._shodaRashi[v]?.[p];
+            if (!pSign || pSign === "-") return "-";
+            return ((parseInt(pSign) - 1 - visualAscIdx + 12) % 12) + 1;
+        }
+    }
+
+    // Calculate Aspects Received for Kundali Display
+    const aspectsReceived = {};
+    planets.forEach(p => aspectsReceived[p] = []);
+    planets.forEach(pFrom => {
+        const fromH = getEffectivePlacement(pFrom);
+        if (fromH === "-") return;
+        const aspects = getFbmDynamicAspects(pFrom);
+        planets.forEach(pTo => {
+            if (pFrom === pTo) return;
+            const toH = getEffectivePlacement(pTo);
+            if (toH === "-") return;
+            const dist = (toH - fromH + 12) % 12 + 1;
+            if (aspects.includes(dist)) {
+                aspectsReceived[pTo].push(pFrom);
+            }
+        });
+    });
+
+    // 3. RENDER EXACT SINGLE KUNDALI (MATCHING VEDIC ASPECTS & SPECIFIC CHART)
+    kundaliContainer.innerHTML = "";
+    const card = document.createElement("div");
+    card.className = "varga-card";
+    card.style.maxWidth = "1200px";
+    card.style.width = "100%";
+
+    const ascDispName = modeKN ? signNamesKN[visualAscIdx] : signNamesEN[visualAscIdx];
+    card.innerHTML = `<div class="varga-title">D-${v} Selected Chart &mdash; ${ascDispName}</div>`;
+
+    const k = document.createElement("div");
+    k.className = "kundali";
+    const m = [11, 0, 1, 2, 10, -1, -1, 3, 9, -1, -1, 4, 8, 7, 6, 5];
+
+    const includeAspects = document.getElementById("fbmIncludeAspectsToggle")?.checked;
+    const includeRaKeAspects = document.getElementById("fbmIncludeRaKeAspectsToggle")?.checked;
+
+    m.forEach(sIdx => {
+        const h = document.createElement("div");
+        h.className = "house";
+
+        if (sIdx === -1) {
+            if (!card.querySelector(".center-box")) {
+                const cb = document.createElement("div");
+                cb.className = "center-box";
+                cb.innerText = `D${v}`;
+                k.appendChild(cb);
+            }
+        } else {
+            const houseNum = ((sIdx - visualAscIdx + 12) % 12) + 1;
+            if (sIdx === visualAscIdx) h.classList.add("asc-house");
+            h.innerHTML += `<div class="house-num">${houseNum}</div>`;
+
+            // If localShift moved ASC to a different box than chartData's ASC, render ASC label in visualAscIdx
+            if (sIdx === visualAscIdx && (!chartData || !chartData[sIdx] || !chartData[sIdx].some(p => p.isAsc))) {
+                const lineClass = (pivot === "ASC") ? "p-line asc-line" : "p-line";
+                h.innerHTML += `<div class="${lineClass}" style="font-size:16px;">ASC</div>`;
+            }
+
+            if (chartData && chartData[sIdx]) {
+                chartData[sIdx].forEach(p => {
+                    let lineClass = "p-line";
+                    if (p.isAsc) {
+                        if (sIdx !== visualAscIdx) return; // Hide old ASC if Local Shift moved it
+                        if (pivot === "ASC") lineClass = "p-line asc-line";
+                        const mins = Math.floor((p.d * 60) % 60).toString().padStart(2, "0");
+                        h.innerHTML += `<div class="${lineClass}" style="font-size:16px;">ASC ${Math.floor(p.d)}&deg;${mins}&prime;</div>`;
+                    } else {
+                        let name = modeKN ? (pNameKN[p.n] || p.n) : p.n;
+                        if (p.r) name += " (Rx)";
+                        if (p.n === (pivot === "Surya" ? "Sy" : pivot.substring(0, 2))) {
+                            lineClass = "p-line pivot-line";
+                        }
+
+                        const placedHouse = ((sIdx - visualAscIdx + 12) % 12) + 1;
+                        let aspectStrings = [];
+                        const isTargetRaKe = (p.n === "Ra" || p.n === "Ke");
+                        const shouldApplyAspects = (isTargetRaKe && includeRaKeAspects) || (!isTargetRaKe && includeAspects);
+
+                        if (shouldApplyAspects && aspectsReceived[p.n]) {
+                            aspectsReceived[p.n].forEach(pAspecting => {
+                                const aspName = modeKN ? (pNameKN[pAspecting] || pAspecting) : pAspecting;
+                                aspectStrings.push(aspName);
+                            });
+                        }
+
+                        let combinedName = name;
+                        if (aspectStrings.length > 0) {
+                            combinedName = `${name} + ${aspectStrings.join(" + ")}`;
+                        }
+
+                        const mins = Math.floor((p.d * 60) % 60).toString().padStart(2, "0");
+                        let lordshipsArr = getPlanetLordshipLocal(p.n).filter(x => x !== "-" && x != null);
+                        let uniqueLords = [...new Set(lordshipsArr)].sort((a, b) => Number(a) - Number(b));
+                        let lordStr = uniqueLords.length > 0 ? `${placedHouse}-${uniqueLords.join(",")}` : `${placedHouse}`;
+                        let displayStr = `${combinedName} ${Math.floor(p.d)}&deg;${mins}&prime; - ${lordStr}`;
+
+                        h.innerHTML += `<div class="${lineClass}" style="font-size:15px; color:#fff; white-space:normal;">${displayStr}</div>`;
+                    }
+                });
+            }
+            k.appendChild(h);
+        }
+    });
+
+    card.appendChild(k);
+    kundaliContainer.appendChild(card);
+
+    // 4. EVALUATE FUNCTIONAL BENEFIC / MALEFIC FOR ALL 9 PLANETS IN THIS D-CHART
+    const beneficSetForAsc = FBM_BENEFIC_BY_ASC[visualAscIdx] || [];
+
+    function getSignInVarga(pCode) {
+        if (chartData) {
+            for (let i = 0; i < 12; i++) {
+                const found = chartData[i].find(x => x.n === pCode);
+                if (found) {
+                    if (found.pureSign !== undefined) return found.pureSign + 1;
+                    return i + 1;
+                }
+            }
+        }
+        if (rashiData && rashiData[pCode] && rashiData[pCode] !== "-") {
+            return parseInt(rashiData[pCode]);
+        }
+        return 1;
+    }
+
+    function evaluatePlanetForAsc(pCode) {
+        const isNode = (pCode === "Ra" || pCode === "Ke");
+        const signNum = getSignInVarga(pCode);
+        const signIdx = signNum - 1;
+        const signName = modeKN ? signNamesKN[signIdx] : signNamesEN[signIdx];
+        const dispositorCode = signLords[signNum] || "Ma";
+        const dispositorName = modeKN ? pNameKN[dispositorCode] : pNameEN[dispositorCode];
+
+        if (!isNode) {
+            const isBen = beneficSetForAsc.includes(pCode);
+            const labelEN = isBen ? "Functional Benefic" : "Functional Malefic";
+            const labelKN = isBen ? "\u0C95\u0CBE\u0CB0\u0C95 \u0CB6\u0CC1\u0CAD (Functional Benefic)" : "\u0C95\u0CBE\u0CB0\u0C95 \u0CAA\u0CBE\u0CAA (Functional Malefic)";
+            return {
+                isBenefic: isBen,
+                isNode: false,
+                signName,
+                dispositorCode,
+                dispositorName,
+                statusText: modeKN ? labelKN : labelEN
+            };
+        } else {
+            // Rahu & Ketu decided strictly by their dispositor's functional nature for this Ascendant
+            // Labeled strictly as "Benefic" or "Malefic" (NOT "Functional")
+            const isBen = beneficSetForAsc.includes(dispositorCode);
+            const labelEN = isBen ? "Benefic" : "Malefic";
+            const labelKN = isBen ? "\u0CB6\u0CC1\u0CAD (Benefic)" : "\u0CAA\u0CBE\u0CAA (Malefic)";
+            return {
+                isBenefic: isBen,
+                isNode: true,
+                signName,
+                dispositorCode,
+                dispositorName,
+                statusText: modeKN ? labelKN : labelEN
+            };
+        }
+    }
+
+    const evalMap = {};
+    planets.forEach(p => {
+        evalMap[p] = evaluatePlanetForAsc(p);
+    });
+
+    // Update Headings
+    const headingEl = document.getElementById("fbmTableHeading");
+    const subIndEl = document.getElementById("fbmSubIndicator");
+    const startPDisp = modeKN ? `${pNameKN[startPlanet]} (${pNameEN[startPlanet]})` : pNameEN[startPlanet];
+
+    if (headingEl) {
+        headingEl.innerHTML = modeKN
+            ? `D-${v} \u0CB2\u0C97\u0CCD\u0CA8 : <span style="color:#00d9ff;">${ascDispName}</span> &mdash; \u0CB6\u0CC1\u0CAD \u0CAE\u0CA4\u0CCD\u0CA4\u0CC1 \u0CAA\u0CBE\u0CAA \u0C97\u0CCD\u0CB0\u0CB9\u0C97\u0CB3\u0CC1`
+            : `D-${v} ASCENDANT : <span style="color:#00d9ff;">${ascDispName}</span> &mdash; FUNCTIONAL BENEFIC &amp; MALEFIC`;
+    }
+    if (subIndEl) {
+        const orderNames = planets.map(p => modeKN ? pNameKN[p] : pNameEN[p]).join(" &rarr; ");
+        subIndEl.innerHTML = modeKN
+            ? `\u0C9A\u0C82\u0CA6\u0CCD\u0CB0\u0CA8 \u0CA8\u0C95\u0CCD\u0CB7\u0CA4\u0CCD\u0CB0\u0CBE\u0CA7\u0CBF\u0CAA\u0CA4\u0CBF\u0CAF\u0CBF\u0C82\u0CA6 \u0CAA\u0CCD\0CB0\u0CBE\u0CB0\u0C82\u0CAD (${startPDisp}) : <span style="color:#facc15;">${orderNames}</span>`
+            : `Started from Moon's Starlord (${startPDisp}) in DBA Order : <span style="color:#facc15;">${orderNames}</span>`;
+    }
+
+    // 5. RENDER SUMMARY PILLS BANNER
+    if (summaryBanner) {
+        const benList = [];
+        const malList = [];
+        planets.forEach(p => {
+            const ev = evalMap[p];
+            const pDisp = modeKN ? `${pNameKN[p]} (${pNameEN[p]})` : pNameEN[p];
+            const itemTxt = ev.isNode ? `${pDisp} [&rarr; ${ev.dispositorName}]` : pDisp;
+            if (ev.isBenefic) benList.push(itemTxt);
+            else malList.push(itemTxt);
+        });
+
+        summaryBanner.innerHTML = `
+            <div style="background:rgba(0, 60, 15, 0.75); border:2px solid #16f529; border-radius:6px; padding:12px 16px; text-align:center;">
+                <div style="color:#16f529; font-weight:900; font-size:15px; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">
+                    ${modeKN ? "\u0CB6\u0CC1\u0CAD \u0C97\u0CCD\u0CB0\u0CB9\u0C97\u0CB3\u0CC1 (Functional Benefics &amp; Benefic Nodes)" : "Functional Benefics &amp; Benefic Nodes"}
+                </div>
+                <div style="color:#ffffff; font-weight:bold; font-size:14px; line-height:1.6;">
+                    ${benList.join(" &nbsp;&bull;&nbsp; ") || "-"}
+                </div>
+            </div>
+            <div style="background:rgba(70, 0, 10, 0.75); border:2px solid #ff2a40; border-radius:6px; padding:12px 16px; text-align:center;">
+                <div style="color:#ff2a40; font-weight:900; font-size:15px; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">
+                    ${modeKN ? "\u0CAA\u0CBE\u0CAA \u0C97\u0CCD\u0CB0\u0CB9\u0C97\u0CB3\u0CC1 (Functional Malefics &amp; Malefic Nodes)" : "Functional Malefics &amp; Malefic Nodes"}
+                </div>
+                <div style="color:#ffffff; font-weight:bold; font-size:14px; line-height:1.6;">
+                    ${malList.join(" &nbsp;&bull;&nbsp; ") || "-"}
+                </div>
+            </div>
+        `;
+    }
+
+    // 6. RENDER MAIN DBA TABLE USING EXACT SAME GREEN & RED COLORS AS ABOVE CARDS (STAR/SUB REMOVED)
+    const greenCellStyle = "background:rgba(0, 60, 15, 0.75); color:#16f529; font-weight:900; padding:9px 12px; border:1px solid #16f529; letter-spacing:0.3px;";
+    const redCellStyle   = "background:rgba(70, 0, 10, 0.75); color:#ff2a40; font-weight:900; padding:9px 12px; border:1px solid #ff2a40; letter-spacing:0.3px;";
+
+    let tHtml = `<tr>
+        <th style="background:#2d0066; color:#facc15; width:7%;">#</th>
+        <th style="background:#660033; color:#facc15; width:22%;">${modeKN ? "\u0C97\u0CCD\u0CB0\u0CB9 (Planet - DBA)" : "Planet (DBA Order)"}</th>
+        <th style="background:#660033; color:#facc15; width:22%;">${modeKN ? "\u0CB0\u0CBE\u0CB6\u0CBF (Placed Sign)" : "Placed Sign"}</th>
+        <th style="background:#660033; color:#facc15; width:24%;">${modeKN ? "\u0CB0\u0CBE\u0CB6\u0CCD\u0CAF\u0CBE\u0CA7\u0CBF\u0CAA\u0CA4\u0CBF / \u0C86\u0CA7\u0CBE\u0CB0 (Dispositor / Rule)" : "Dispositor / Rule Basis"}</th>
+        <th style="background:#660033; color:#facc15; width:25%;">${modeKN ? "\u0CAB\u0CB2\u0CBF\u0CA4\u0CBE\u0C82\u0CB6 (Status for D-" + v + " ASC)" : "Nature for D-" + v + " Ascendant"}</th>
+    </tr>`;
+
+    planets.forEach((p, idx) => {
+        const ev = evalMap[p];
+        const lordshipsArr = getPlanetLordshipLocal(p).filter(x => x !== "-" && x != null);
+        const uniqueLords = [...new Set(lordshipsArr)].sort((a, b) => Number(a) - Number(b));
+        const lordStr = uniqueLords.length > 0 ? uniqueLords.join(",") : "-";
+
+        const pDispDual = `${pNameKN[p]} / ${pNameEN[p]}`;
+        const pStatusStyle = ev.isBenefic ? greenCellStyle : redCellStyle;
+
+        let ruleBasisHtml = "";
+        if (ev.isNode) {
+            const dispEv = evalMap[ev.dispositorCode];
+            const dispColor = dispEv && dispEv.isBenefic ? "#16f529" : "#ff2a40";
+            ruleBasisHtml = modeKN
+                ? `\u0CB0\u0CBE\u0CB6\u0CCD\u0CAF\u0CBE\u0CA7\u0CBF\u0CAA\u0CA4\u0CBF: <b style="color:${dispColor};">${pNameKN[ev.dispositorCode]} (${pNameEN[ev.dispositorCode]})</b>`
+                : `Dispositor: <b style="color:${dispColor};">${pNameEN[ev.dispositorCode]} (${pNameKN[ev.dispositorCode]})</b>`;
+        } else {
+            ruleBasisHtml = modeKN
+                ? `\u0C86\u0CA7\u0CBF\u0CAA\u0CA4\u0CCD\u0CAF (Lords of): <b style="color:#facc15;">${lordStr}H</b>`
+                : `Lordship Houses: <b style="color:#facc15;">${lordStr}H</b>`;
+        }
+
+        tHtml += `<tr>
+            <td style="background:#2d0066; color:#facc15; font-weight:900;">${idx + 1}</td>
+            <td style="${pStatusStyle}; font-size:15px;">${pDispDual}</td>
+            <td style="font-weight:bold; color:#fff;">${ev.signName}</td>
+            <td style="font-size:14px;">${ruleBasisHtml}</td>
+            <td style="${pStatusStyle}; font-size:15px;">${ev.statusText}</td>
+        </tr>`;
+    });
+
+    tbl.innerHTML = tHtml;
+
+    if (typeof attachMemoryEvents === "function") {
+        setTimeout(() => attachMemoryEvents(tbl), 50);
+    }
+}
+
+// Auto-update hooks when profile, time, or mode changes
+window.addEventListener("DOMContentLoaded", () => {
+    initFbmDropdown();
+    renderFbmRefTable1();
+    renderFbmRefTable2();
+
+    const origCalcFbm = window.calc;
+    window.calc = function() {
+        if (typeof origCalcFbm === "function") origCalcFbm();
+        try {
+            const box = document.getElementById("funcBeneficMaleficWrapper");
+            if (box && box.style.display !== "none") {
+                renderFuncBeneficMaleficTab();
+            }
+        } catch (e) {}
+    };
+
+    const watchIdsFbm = [
+        "dobField", "tobField", "aya", "useTrueNode", "topNode",
+        "modeKN", "modeKP", "modeSign2Sign", "modeVedic",
+        "topKP", "topSign", "topVedic", "pivot", "topBarPivot"
+    ];
+    watchIdsFbm.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener("change", () => setTimeout(renderFuncBeneficMaleficTab, 40));
+        }
+    });
+});
+</script>
+<!-- Functional Benefic & Functional Malefic ▲ ---- ENDS HERE -->
 
 
 
@@ -2310,6 +3168,10 @@ function renderCuspalTables() {
 
 
 
+
+
+
+<!-- PLANET TO LORD AXIS COUNTER STARTS here -->
 
 
 
@@ -2323,73 +3185,22 @@ function renderCuspalTables() {
 
 <div id="planetAxisWrapper" class="shoda-wrapper" style="display:none; padding-bottom: 40px;">
     
-    <!-- ROW 1: Divisional Chart & Layout Controls (PIVOT Removed) -->
-    <div style="text-align:center; margin-bottom:14px; display:flex; justify-content:center; align-items:center; gap:22px; flex-wrap:wrap; font-weight:800;">
+    <div style="text-align:center; margin-bottom:14px; display:flex; justify-content:center; align-items:center; gap:20px;">
         <div>
-            <label style="color:var(--grid-line); font-weight:bold; font-size:16px; margin-right:8px;">
+            <label style="color:var(--grid-line); font-weight:bold; font-size:16px; margin-right:10px;">
                 SELECT DIVISIONAL CHART:
             </label>
             <select id="axisVargaSelect" onchange="renderPlanetAxisTable()" style="background:#000;color:#fff;border:1px solid var(--grid-line); padding:6px 10px;font-size:16px;font-weight:bold;cursor:pointer;">
             </select>
         </div>
-
-        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:6px; color:#ffffff;">
-            <input type="checkbox" id="axisThreePerRowToggle" checked onchange="handleAxisLayoutToggle('three')">
-            3 Planet
-        </label>
-        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:6px; color:#ffffff;">
-            <input type="checkbox" id="axisTwoPerRowToggle" onchange="handleAxisLayoutToggle('two')">
-            2 Planet
-        </label>
-
-        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:6px; color:#10b981;">
-            <input type="checkbox" id="axisScriptRotationToggle" checked onchange="renderPlanetAxisTable()">
-            Script Rotation
-        </label>
-
-        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:6px; color:#facc15;">
-            <input type="checkbox" id="axisSortToggle" checked onchange="renderPlanetAxisTable()">
-            Sort
-        </label>
-    </div>
-
-    <!-- ROW 2: Nakshatra Nadi Checkboxes for Axis Table -->
-    <div style="text-align:center; margin-bottom:20px; font-weight:800; display:flex; justify-content:center; flex-wrap:wrap; gap:25px;">
-        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:#0bf4e6;">
-            <input type="checkbox" id="axisCuspalConjToggle" checked onchange="renderPlanetAxisTable()">
-            Include cuspal conjunctions
-        </label>
-
-        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:#ff3366;">
-            <input type="checkbox" id="axisLocalShiftToggle" onchange="renderPlanetAxisTable()">
-            Shift
-        </label>
-
-        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:#ff9933;">
-            <input type="checkbox" id="axisRaKeDispToggle" onchange="renderPlanetAxisTable()">
-            RaKe Dispositor
-        </label>
-
-        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:#ff9933;">
-            <input type="checkbox" id="axisRaKeConjToggle" checked onchange="renderPlanetAxisTable()">
-            RaKe Conjunct
-        </label>
-
-        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:#ff9933;">
-            <input type="checkbox" id="axisRaKeAspToggle" checked onchange="renderPlanetAxisTable()">
-            RaKe Asp
-        </label>
     </div>
 
     <div class="shoda-title">PLANET TO LORD AXIS COUNTER</div>
-    <div style="text-align:center; color:#10b981; font-weight:bold; margin-top:-5px; margin-bottom:6px; font-size:14px;" id="planetAxisSortIndicator">
+    <div style="text-align:center; color:#10b981; font-weight:bold; margin-top:-5px; margin-bottom:25px; font-size:14px;" id="planetAxisSortIndicator">
         (Sorted by Moon's Starlord)
     </div>
-    <div style="text-align:center; color:#facc15; font-weight:bold; margin-bottom:25px; font-size:14px;">
-        &#x0CAC;&#x0CC1;&#x0CA7; (Placed in 9H) - sublord + sub-sub + starlord + placed house + lordship
-    </div>
     
-    <div id="planetAxisGrid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1400px; margin: 0 auto; width: 100%;">
+    <div id="planetAxisGrid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; max-width: 1400px; margin: 0 auto; width: 100%;">
     </div>
 </div>
 
@@ -2404,19 +3215,6 @@ function togglePlanetAxisTable() {
         initAxisDropdown();
         renderPlanetAxisTable();
     }
-}
-
-function handleAxisLayoutToggle(mode) {
-    const threeEl = document.getElementById("axisThreePerRowToggle");
-    const twoEl = document.getElementById("axisTwoPerRowToggle");
-    if (mode === "three") {
-        if (threeEl) threeEl.checked = true;
-        if (twoEl) twoEl.checked = false;
-    } else {
-        if (twoEl) twoEl.checked = true;
-        if (threeEl) threeEl.checked = false;
-    }
-    renderPlanetAxisTable();
 }
 
 function initAxisDropdown() {
@@ -2452,16 +3250,6 @@ function renderPlanetAxisTable() {
     const modeSign2Sign = document.getElementById("modeSign2Sign")?.checked || document.getElementById("topSign")?.checked;
     const modeKP = document.getElementById("modeKP")?.checked || document.getElementById("topKP")?.checked;
     const modeVedic = document.getElementById("modeVedic")?.checked || document.getElementById("topVedic")?.checked;
-
-    const twoPerRow = document.getElementById("axisTwoPerRowToggle")?.checked;
-    const scriptRotationOn = document.getElementById("axisScriptRotationToggle")?.checked;
-    const sortOn = document.getElementById("axisSortToggle")?.checked;
-    
-    // The Script column appears whenever 2-Planet per row is active
-    const showScriptCol = !!twoPerRow;
-
-    // Adjust grid columns dynamically (2 per row vs 3 per row)
-    grid.style.gridTemplateColumns = twoPerRow ? "repeat(2, 1fr)" : "repeat(3, 1fr)";
     
     // Dynamically compute KP Data 
     const kpData = typeof computeKPForVarga === "function" ? computeKPForVarga(v) : {};
@@ -2469,119 +3257,28 @@ function renderPlanetAxisTable() {
     const modeKN = document.getElementById("modeKN")?.checked;
     const knMap = { Sy: "\u0CB0\u0CB5\u0CBF", Ch: "\u0C9A\u0C82\u0CA6\u0CCD\u0CB0", Ma: "\u0C95\u0CC1\u0C9C", Bu: "\u0CAC\u0CC1\u0CA7", Ju: "\u0C97\u0CC1\u0CB0\u0CC1", Ve: "\u0CB6\u0CC1\u0C95\u0CCD\u0CB0", Sa: "\u0CB6\u0CA8\u0CBF", Ra: "\u0CB0\u0CBE\u0CB9\u0CC1", Ke: "\u0C95\u0CC7\u0CA4\u0CC1" };
     const longNames = { Sy: "Surya", Ch: "Chandra", Ma: "Mangala", Bu: "Budha", Ju: "Jupiter", Ve: "Venus", Sa: "Saturn", Ra: "Rahu", Ke: "Ketu" };
-    const signLords = { 1:"Ma", 2:"Ve", 3:"Bu", 4:"Ch", 5:"Sy", 6:"Bu", 7:"Ve", 8:"Ma", 9:"Ju", 10:"Sa", 11:"Sa", 12:"Ju" };
 
-    const chartData = window._vargaChartStore[v];
-    const SHIFTED_LAGNA = document.getElementById("axisLocalShiftToggle")?.checked;
-    const cuspalConjToggle = document.getElementById("axisCuspalConjToggle")?.checked;
-    const includeDisp = document.getElementById("axisRaKeDispToggle")?.checked;
-    const rakeConjToggle = document.getElementById("axisRaKeConjToggle")?.checked;
-    const rakeAspToggle = document.getElementById("axisRaKeAspToggle")?.checked;
-
-    // Ensure varga base degree is available for D2-D60
-    let vargaBaseDeg = window._nadiVargaBaseDegree;
-    if ((vargaBaseDeg === undefined || vargaBaseDeg === -1) && v !== 1 && typeof raw !== "undefined" && raw) {
-        let lagnaRaw = 0;
-        const aya = document.getElementById('aya')?.value || 'Lahiri';
-        if (raw.ayanamshas && raw.ayanamshas[aya] && raw.ayanamshas[aya].lagna !== undefined) {
-            lagnaRaw = parseFloat(raw.ayanamshas[aya].lagna);
-        } else if (raw.lagna !== undefined) {
-            lagnaRaw = parseFloat(raw.lagna);
-        }
-        if (document.getElementById("shiftedLagnaToggle")?.checked && typeof originalDateTime !== "undefined" && typeof currentDateTime !== "undefined" && originalDateTime && currentDateTime) {
-            lagnaRaw += ((currentDateTime - originalDateTime) / 60000) * 0.25;
-        }
-        while (lagnaRaw < 0) lagnaRaw += 360;
-        while (lagnaRaw >= 360) lagnaRaw -= 360;
-        if (typeof getVSign === "function") {
-            vargaBaseDeg = (getVSign(lagnaRaw, v) * 30) + ((lagnaRaw * v) % 30);
-        }
-    }
-
-    // =========================================================
-    // READ CUSPAL & PLANETARY TABLES DATA FOR HEADER SUMMARY
-    // =========================================================
-    const globalPivotVal = document.getElementById("pivot")?.value || "ASC";
-    function getAbsCuspDegForAxis(cNum) {
-        let isPlanetPivot = ["Sy", "Ch", "Ma", "Ra", "Ju", "Sa", "Bu", "Ke", "Ve", "Surya", "Chandra", "Mangala", "Budha", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu"].includes(globalPivotVal);
-        if (isPlanetPivot) {
-            let longName = globalPivotVal;
-            if (globalPivotVal.length === 2) {
-                longName = longNames[globalPivotVal] || globalPivotVal;
-            }
-            let pDeg = typeof getNadiAbsoluteLongitude === "function" ? getNadiAbsoluteLongitude(longName, v) : 0;
-            return (pDeg + (cNum - 1) * 30) % 360;
-        } else {
-            if (v === 1 && typeof currentCusps !== "undefined" && currentCusps && currentCusps[cNum] !== undefined) {
-                return currentCusps[cNum];
-            } else {
-                let baseDeg = (vargaBaseDeg !== undefined && vargaBaseDeg !== -1) ? vargaBaseDeg : (window._nadiVargaBaseDegree || 0);
-                if (!baseDeg) {
-                    let lagnaRaw = 0;
-                    if (typeof raw !== "undefined" && raw && raw.ayanamshas) {
-                        const aya = document.getElementById('aya')?.value || 'Lahiri';
-                        lagnaRaw = parseFloat(raw.ayanamshas[aya].lagna || 0);
-                    } else if (typeof raw !== "undefined" && raw && raw.lagna !== undefined) {
-                        lagnaRaw = parseFloat(raw.lagna);
-                    }
-                    let isShiftActive = document.getElementById("shiftedLagnaToggle")?.checked;
-                    if (isShiftActive && typeof originalDateTime !== "undefined" && typeof currentDateTime !== "undefined" && originalDateTime && currentDateTime) {
-                        lagnaRaw += ((currentDateTime - originalDateTime) / 60000) * 0.25;
-                    }
-                    while(lagnaRaw < 0) lagnaRaw += 360;
-                    while(lagnaRaw >= 360) lagnaRaw -= 360;
-
-                    if (v === 1) baseDeg = lagnaRaw;
-                    else if (typeof getVSign === "function") {
-                        baseDeg = (getVSign(lagnaRaw, v) * 30) + ((lagnaRaw * v) % 30);
-                    }
-                }
-                return (baseDeg + (cNum - 1) * 30) % 360;
-            }
-        }
-    }
-
-    const cuspalSubMap = {};
-    const cuspalSubSubMap = {};
-    const cuspalStarMap = {};
-    ["Sy", "Ch", "Ma", "Ra", "Ju", "Sa", "Bu", "Ke", "Ve"].forEach(code => {
-        cuspalSubMap[code] = [];
-        cuspalSubSubMap[code] = [];
-        cuspalStarMap[code] = [];
-    });
-
-    for (let c = 1; c <= 12; c++) {
-        let absCuspDeg = getAbsCuspDegForAxis(c);
-        if (absCuspDeg === -1 || absCuspDeg === undefined) continue;
-        let kp = (typeof getKpLordsNadi === "function")
-            ? getKpLordsNadi(absCuspDeg)
-            : ((typeof getKPDetails === "function") ? getKPDetails(absCuspDeg) : { star: "-", sub: "-", subSub: "-" });
-        let st = kp.star;
-        let sb = kp.sub;
-        let ss = kp.subSub || kp.subsub;
-        if (cuspalSubMap[sb]) cuspalSubMap[sb].push(c);
-        if (cuspalSubSubMap[ss]) cuspalSubSubMap[ss].push(c);
-        if (cuspalStarMap[st]) cuspalStarMap[st].push(c);
-    }
-
-    function getChartSignIndex(code) {
-        for (let i = 0; i < 12; i++) {
-            if (code === "ASC") {
-                if (chartData[i].find(x => x.isAsc)) return i;
-            } else {
-                if (chartData[i].find(x => x.n === code)) return i;
-            }
-        }
-        return -1;
-    }
-
-    // Pure ASC-based Visual Placement Fetcher (Always gets each planet's house from ASC)
-    function getAscPlacement(pCode) {
+    // 🔥 Pure Visual Chart Fetcher (Ensures 100% sync with KP, Sign, Vedic, and Pivot modes on screen)
+    function getEffectivePlacement(pCode) {
+        const chartData = window._vargaChartStore[v];
         if (!chartData) return "-";
+        
+        let pivotVal = document.getElementById("topBarPivot")?.value || document.getElementById("pivot")?.value || "ASC";
         let ascIndex = 0;
-        for (let i = 0; i < 12; i++) {
-            if (chartData[i].find(x => x.isAsc)) { ascIndex = i; break; }
+        
+        // Mirror the exact pivot logic of the visual chart
+        if (pivotVal === "ASC" || pivotVal === "1") {
+            for (let i = 0; i < 12; i++) {
+                if (chartData[i].find(x => x.isAsc)) { ascIndex = i; break; }
+            }
+        } else {
+            const pivotLabel = (pivotVal === "Surya") ? "Sy" : pivotVal.substring(0,2);
+            for (let i = 0; i < 12; i++) {
+                if (chartData[i].find(x => x.n === pivotLabel)) { ascIndex = i; break; }
+            }
         }
+        
+        // Find planet and compute house relative to visual pivot
         for (let i = 0; i < 12; i++) {
             if (chartData[i].find(x => x.n === pCode)) {
                 return ((i - ascIndex + 12) % 12) + 1;
@@ -2589,253 +3286,8 @@ function renderPlanetAxisTable() {
         }
         return "-";
     }
-
-    // Base Nadi House & Lordship Extractor strictly relative to ASC
-    function getAscBaseScript(targetPlanet) {
-        let t_placedHouse = getAscPlacement(targetPlanet);
-        let t_lordships = [];
-
-        if (v !== 1 && typeof getNadiAbsoluteLongitude === "function") {
-            let targetDeg = getNadiAbsoluteLongitude(targetPlanet, v);
-            let ascVargaDeg = vargaBaseDeg;
-            if (targetDeg !== -1 && ascVargaDeg !== undefined && ascVargaDeg !== -1) {
-                let pureBaseSign = Math.floor(ascVargaDeg / 30);
-                let lordshipBaseSign = pureBaseSign;
-                if (SHIFTED_LAGNA) {
-                    let shiftAmt = (window._kpSignShift && window._kpSignShift[v] !== undefined) ? window._kpSignShift[v] : ((ascVargaDeg % 30) >= 15 ? 1 : 0);
-                    lordshipBaseSign = (pureBaseSign + shiftAmt) % 12;
-                }
-                if (modeKP) {
-                    t_placedHouse = Math.floor(((targetDeg - ascVargaDeg + 360) % 360) / 30) + 1;
-                } else {
-                    t_placedHouse = ((Math.floor(targetDeg / 30) - pureBaseSign + 12) % 12) + 1;
-                }
-                const getHousesOfVarga = (lord) => {
-                    let houses = [];
-                    for (let h = 1; h <= 12; h++) {
-                        let hSign = (lordshipBaseSign + h - 1) % 12 + 1;
-                        if (signLords[hSign] === lord) houses.push(h);
-                    }
-                    return houses;
-                };
-                if (targetPlanet === "Ra" || targetPlanet === "Ke") {
-                    if (includeDisp) {
-                        let pSign = Math.floor(targetDeg / 30);
-                        let dispositor = signLords[pSign + 1];
-                        t_lordships = getHousesOfVarga(dispositor);
-                        let dispDeg = getNadiAbsoluteLongitude(dispositor, v);
-                        if (dispDeg !== -1) {
-                            let dispPlaced = modeKP
-                                ? Math.floor(((dispDeg - ascVargaDeg + 360) % 360) / 30) + 1
-                                : ((Math.floor(dispDeg / 30) - pureBaseSign + 12) % 12) + 1;
-                            t_lordships.unshift(dispPlaced);
-                        }
-                    }
-                } else {
-                    t_lordships = getHousesOfVarga(targetPlanet);
-                }
-            }
-        } else if (modeSign2Sign) {
-            let planetSignIdx = getChartSignIndex(targetPlanet);
-            let baseSignIdx = getChartSignIndex("ASC");
-            let lordshipBaseIdx = baseSignIdx;
-            if (SHIFTED_LAGNA && baseSignIdx !== -1) {
-                let shiftAmt = (window._kpSignShift && window._kpSignShift[v] !== undefined) ? window._kpSignShift[v] : 0;
-                lordshipBaseIdx = (lordshipBaseIdx + shiftAmt) % 12;
-            }
-            if (planetSignIdx !== -1 && baseSignIdx !== -1) {
-                t_placedHouse = ((planetSignIdx - baseSignIdx + 12) % 12) + 1;
-                const getSignModeHousesOf = (lord) => {
-                    let houses = [];
-                    for (let h = 1; h <= 12; h++) {
-                        let hSign = (lordshipBaseIdx + h - 1) % 12;
-                        if (signLords[hSign + 1] === lord) houses.push(h);
-                    }
-                    return houses;
-                };
-                if (targetPlanet === "Ra" || targetPlanet === "Ke") {
-                    if (includeDisp) {
-                        let dispositor = signLords[planetSignIdx + 1];
-                        t_lordships = getSignModeHousesOf(dispositor);
-                        let dispSignIdx = getChartSignIndex(dispositor);
-                        if (dispSignIdx !== -1) {
-                            t_lordships.unshift(((dispSignIdx - baseSignIdx + 12) % 12) + 1);
-                        }
-                    }
-                } else {
-                    t_lordships = getSignModeHousesOf(targetPlanet);
-                }
-            }
-        } else {
-            let pureAscSign = (window._pureAscSigns && window._pureAscSigns[v] !== undefined) ? window._pureAscSigns[v] : 0;
-            let shiftAmt = 0;
-            if (SHIFTED_LAGNA && window._kpSignShift && window._kpSignShift[v] !== undefined) {
-                shiftAmt = window._kpSignShift[v];
-            }
-            let lordshipSign = (pureAscSign + shiftAmt) % 12;
-            if (window._shodaBhava && window._shodaBhava[v] && window._shodaBhava[v][targetPlanet]) {
-                t_placedHouse = window._shodaBhava[v][targetPlanet];
-            }
-            const getHousesOf = (lord) => {
-                let houses = [];
-                for (let h = 1; h <= 12; h++) {
-                    let hSign = ((lordshipSign + h - 1) % 12) + 1;
-                    if (signLords[hSign] === lord) houses.push(h);
-                }
-                return houses;
-            };
-            if (targetPlanet === "Ra" || targetPlanet === "Ke") {
-                if (includeDisp) {
-                    let pPureSign = -1;
-                    for (let i = 0; i < 12; i++) {
-                        let obj = chartData[i].find(x => x.n === targetPlanet);
-                        if (obj && obj.pureSign !== undefined) pPureSign = obj.pureSign;
-                    }
-                    if (pPureSign !== -1) {
-                        let dispositor = signLords[pPureSign + 1];
-                        t_lordships = getHousesOf(dispositor);
-                        let dispPlaced = window._shodaBhava[v][dispositor];
-                        if (dispPlaced && dispPlaced !== "-") t_lordships.unshift(dispPlaced);
-                    }
-                }
-            } else {
-                t_lordships = getHousesOf(targetPlanet);
-            }
-
-            if (v === 1 && cuspalConjToggle) {
-                let activeCusps = (typeof currentCusps !== "undefined" && currentCusps && Object.keys(currentCusps).length > 0) ? currentCusps : null;
-                if (!activeCusps && window.raw && window.raw.ayanamshas) {
-                    const aya = document.getElementById('aya')?.value || 'Lahiri';
-                    if (window.raw.ayanamshas[aya]?.cusps) activeCusps = window.raw.ayanamshas[aya].cusps;
-                }
-                if (activeCusps && typeof getNadiAbsoluteLongitude === "function") {
-                    const applyCuspConj = (tp) => {
-                        let absDeg = getNadiAbsoluteLongitude(tp, v);
-                        if (absDeg !== -1) {
-                            for (let c = 1; c <= 12; c++) {
-                                let cuspDeg = activeCusps[c];
-                                if (cuspDeg !== undefined) {
-                                    let diff = Math.abs(absDeg - parseFloat(cuspDeg));
-                                    if (diff > 180) diff = 360 - diff;
-                                    if (diff <= 3.3333) t_lordships.push(c);
-                                }
-                            }
-                        }
-                    };
-                    if (targetPlanet !== "Ra" && targetPlanet !== "Ke") {
-                        applyCuspConj(targetPlanet);
-                    } else if (includeDisp) {
-                        let pPureSign = -1;
-                        for (let i = 0; i < 12; i++) {
-                            let obj = chartData[i].find(x => x.n === targetPlanet);
-                            if (obj && obj.pureSign !== undefined) pPureSign = obj.pureSign;
-                        }
-                        if (pPureSign !== -1) {
-                            let dispositor = signLords[pPureSign + 1];
-                            if (dispositor) applyCuspConj(dispositor);
-                        }
-                    }
-                }
-            }
-        }
-        return { h: t_placedHouse, l: t_lordships };
-    }
-
-    // Builds the Script string for any level lord (Planet, Star, Sub, Sub-Sub) inside a card
-    function buildAxisScriptString(lordCode, cardPlanetCode, cardPlanetAscHouse) {
-        if (!lordCode || lordCode === "-") return "-";
-
-        const rotateFromHouse = (num, refHouse) => {
-            let n = parseInt(num);
-            let r = parseInt(refHouse);
-            if (isNaN(n) || isNaN(r)) return null;
-            return ((n - r + 12) % 12) + 1;
-        };
-
-        // Helper to assemble raw ASC-based groups for any planet
-        function getRawAscGroups(pCode) {
-            let base = getAscBaseScript(pCode);
-            if (pCode === "Ra" || pCode === "Ke") {
-                let groups = [];
-                let firstGroup = [];
-                let nodePlaced = parseInt(base.h);
-                if (!isNaN(nodePlaced)) firstGroup.push(nodePlaced);
-                base.l.forEach(x => {
-                    let n = parseInt(x);
-                    if (!isNaN(n)) firstGroup.push(n);
-                });
-                firstGroup = [...new Set(firstGroup)].sort((a, b) => a - b);
-                if (firstGroup.length > 0) groups.push(firstGroup);
-
-                let dataSource = window._shodaRashi ? window._shodaRashi[v] : null;
-                let nodeSign = dataSource ? parseInt(dataSource[pCode]) : null;
-                if (nodeSign && !isNaN(nodeSign)) {
-                    const truePlanets = ["Sy", "Ch", "Ma", "Bu", "Ju", "Ve", "Sa"];
-                    truePlanets.forEach(ap => {
-                        let apSign = dataSource[ap];
-                        if (!apSign || apSign === "-") return;
-                        let dist = (nodeSign - parseInt(apSign) + 12) % 12 + 1;
-                        let isConj = (dist === 1);
-                        let aspects = [7];
-                        if (ap === "Ma") aspects = [4, 7, 8];
-                        if (ap === "Ju") aspects = [5, 7, 9];
-                        if (ap === "Sa") aspects = [3, 7, 10];
-                        let isAsp = aspects.includes(dist);
-
-                        if ((isConj && rakeConjToggle) || (isAsp && rakeAspToggle)) {
-                            let apScript = getAscBaseScript(ap);
-                            let nums = [];
-                            let apPlaced = parseInt(apScript.h);
-                            if (!isNaN(apPlaced)) nums.push(apPlaced);
-                            apScript.l.forEach(x => {
-                                let n = parseInt(x);
-                                if (!isNaN(n)) nums.push(n);
-                            });
-                            nums = [...new Set(nums)].sort((a, b) => a - b);
-                            if (nums.length > 0) groups.push(nums);
-                        }
-                    });
-                }
-                return groups;
-            } else {
-                let nums = [];
-                let pPlaced = parseInt(base.h);
-                if (!isNaN(pPlaced)) nums.push(pPlaced);
-                base.l.forEach(x => {
-                    let n = parseInt(x);
-                    if (!isNaN(n)) nums.push(n);
-                });
-                nums = [...new Set(nums)].sort((a, b) => a - b);
-                return nums.length > 0 ? [nums] : [];
-            }
-        }
-
-        let groups = getRawAscGroups(lordCode);
-        if (groups.length === 0) return "-";
-
-        // Rotation Rules:
-        // 1. If Script Rotation checkbox is OFF -> Show normal ASC script (no rotation)
-        // 2. If Script Rotation checkbox is ON -> Rotate every card's script from that card's own source planet house
-        let targetRefHouse = scriptRotationOn ? parseInt(cardPlanetAscHouse) : null;
-
-        let formattedGroups = groups.map(grp => {
-            let outGrp = [...grp];
-            if (targetRefHouse !== null && !isNaN(targetRefHouse)) {
-                outGrp = outGrp.map(num => rotateFromHouse(num, targetRefHouse)).filter(x => x !== null);
-                outGrp = [...new Set(outGrp)];
-                if (sortOn) {
-                    outGrp.sort((a, b) => a - b);
-                }
-            } else {
-                outGrp.sort((a, b) => a - b);
-            }
-            return outGrp.join(",");
-        }).filter(s => s.length > 0);
-
-        return formattedGroups.join(" + ") || "-";
-    }
     
-    // Sorting Logic: Moon's Starlord comes first, then Vimshottari order
+    // Sorting Logic (Moon's Starlord first, then DBA order)
     let startPlanet = "Ke";
     try {
         if (typeof moonStarLord !== "undefined" && moonStarLord) {
@@ -2853,9 +3305,6 @@ function renderPlanetAxisTable() {
         ...vimBaseOrder.slice(0, startIndex)
     ];
 
-    // In 2-Planet per row mode, repeat the first planet at the end (10 cards total = 5 full rows)
-    const renderList = twoPerRow ? [...pList, pList[0]] : pList;
-
     if (indicator) {
         let dispStart = modeKN ? (knMap[startPlanet] || startPlanet) : (longNames[startPlanet] || startPlanet);
         let modeName = modeSign2Sign ? "Sign Mode" : (modeVedic ? "Vedic Mode" : "KP Mode");
@@ -2863,6 +3312,8 @@ function renderPlanetAxisTable() {
     }
 
     let html = "";
+    
+    
 	
 	function getAxisData(pA, pB, hA, hB) {
         if (!hA || !hB || isNaN(hA) || isNaN(hB) || hA === "-" || hB === "-") {
@@ -2908,25 +3359,23 @@ function renderPlanetAxisTable() {
         return { axis: axisStr, x: xVal };
     }
 
-    renderList.forEach(p => {
-        let pBaseObj = getAscBaseScript(p);
-        let hP_Asc = pBaseObj.h;
+    pList.forEach(p => {
+        let hP = getEffectivePlacement(p);
         let dispP = modeKN ? (knMap[p] || p) : (longNames[p] || p);
-        let hP_Display = hP_Asc;
         
-        let placementLabel = modeSign2Sign ? `Sign ${hP_Display}` : `${hP_Display}H`;
+        let placementLabel = modeSign2Sign ? `Sign ${hP}` : `${hP}H`;
         
         let star = kpData[p]?.star || "-";
         let sub = kpData[p]?.sub || "-";
         let subsub = kpData[p]?.subsub || "-";
         
-        let hStar_Asc = (star !== "-") ? getAscBaseScript(star).h : "-";
-        let hSub_Asc = (sub !== "-") ? getAscBaseScript(sub).h : "-";
-        let hSubSub_Asc = (subsub !== "-") ? getAscBaseScript(subsub).h : "-";
+        let hStar = (star !== "-") ? getEffectivePlacement(star) : "-";
+        let hSub = (sub !== "-") ? getEffectivePlacement(sub) : "-";
+        let hSubSub = (subsub !== "-") ? getEffectivePlacement(subsub) : "-";
 
-        let starData = getAxisData(p, star, hP_Display, hStar_Asc);
-        let subData = getAxisData(p, sub, hP_Display, hSub_Asc);
-        let subSubData = getAxisData(p, subsub, hP_Display, hSubSub_Asc);
+        let starData = getAxisData(p, star, hP, hStar);
+        let subData = getAxisData(p, sub, hP, hSub);
+        let subSubData = getAxisData(p, subsub, hP, hSubSub);
 
         let dispStar = modeKN ? (knMap[star] || star) : (longNames[star] || star);
         let dispSub = modeKN ? (knMap[sub] || sub) : (longNames[sub] || sub);
@@ -2950,33 +3399,10 @@ function renderPlanetAxisTable() {
         let titleName = dispP;
         if (isUntenanted) titleName += " $";
 
-        // Build Cuspal & Planetary Header Suffix:
-        // 2 Planet mode -> sublord + sub-sub + starlord + placed house + lordship
-        // 3 Planet mode -> only sublord (discard rest all)
-        let subHousesStr = (cuspalSubMap[p] && cuspalSubMap[p].length > 0) ? cuspalSubMap[p].join(",") : "-";
-        let subSubHousesStr = (cuspalSubSubMap[p] && cuspalSubSubMap[p].length > 0) ? cuspalSubSubMap[p].join(",") : "-";
-        let starHousesStr = (cuspalStarMap[p] && cuspalStarMap[p].length > 0) ? cuspalStarMap[p].join(",") : "-";
-
-        let lordshipsClean = (pBaseObj.l || [])
-            .map(x => parseInt(x))
-            .filter(x => !isNaN(x));
-        lordshipsClean = [...new Set(lordshipsClean)].sort((a, b) => a - b);
-        let lordshipHousesStr = lordshipsClean.length > 0 ? lordshipsClean.join(",") : "-";
-
-        let headerCuspalInfo = twoPerRow
-            ? `${subHousesStr} + ${subSubHousesStr} + ${starHousesStr} + ${hP_Display} + ${lordshipHousesStr}`
-            : `${subHousesStr}`;
-
-        // Compute scripts for the Script column when 2-Planet mode is active
-        let pScriptStr = showScriptCol ? buildAxisScriptString(p, p, hP_Asc) : "";
-        let starScriptStr = showScriptCol ? buildAxisScriptString(star, p, hP_Asc) : "";
-        let subScriptStr = showScriptCol ? buildAxisScriptString(sub, p, hP_Asc) : "";
-        let subSubScriptStr = showScriptCol ? buildAxisScriptString(subsub, p, hP_Asc) : "";
-
         html += `
         <div class="varga-card" style="border:1px solid var(--grid-line); background:#111; padding:15px; border-radius:6px; box-shadow:0 4px 6px rgba(0,0,0,0.5);">
-            <div style="color:var(--asc-yellow); font-weight:900; font-size:15px; text-align:center; margin-bottom:12px; border-bottom:2px solid #333; padding-bottom:8px; text-transform:uppercase;">
-                ${titleName} (Placed in ${placementLabel}) - <span style="color:#ffffff;">${headerCuspalInfo}</span>
+            <div style="color:var(--asc-yellow); font-weight:900; font-size:16px; text-align:center; margin-bottom:12px; border-bottom:2px solid #333; padding-bottom:8px; text-transform:uppercase;">
+                ${titleName} (Placed in${placementLabel})
             </div>
             <table style="width:100%; border-collapse:collapse; color:#fff; font-size:14px; text-align:center;">
                 <tr style="border-bottom:1px solid #444; color:#0bf4e6;">
@@ -2984,35 +3410,31 @@ function renderPlanetAxisTable() {
                     <th style="padding:6px 4px;">Lord</th>
                     <th style="padding:6px 4px;">Axis</th>
                     <th style="padding:6px 4px;">X</th>
-                    ${showScriptCol ? `<th style="padding:6px 4px; color:#facc15;">Script</th>` : ``}
                 </tr>
                 <tr style="border-bottom:1px solid #333;">
                     <td style="padding:8px 4px; text-align:left; color:#ffffff; font-weight:bold;">Planet</td>
                     <td style="padding:8px 4px; font-weight:bold;">${dispP}</td>
-                    <td style="padding:8px 4px; font-weight:bold;"><span style="color:#10b981;">${hP_Display}-${hP_Display}</span></td>
-                    <td style="padding:8px 4px; font-weight:bold; color:#10b981; font-size:15px;">${hP_Display}</td>
-                    ${showScriptCol ? `<td style="padding:8px 4px; font-weight:bold; color:#ffffff; font-size:14px;">${pScriptStr}</td>` : ``}
+                    <td style="padding:8px 4px; font-weight:bold;"><span style="color:#10b981;">${hP}-${hP}</span></td>
+                    <td style="padding:8px 4px; font-weight:bold; color:#10b981; font-size:15px;">${hP}</td>
                 </tr>
                 <tr style="border-bottom:1px solid #333;">
                     <td style="padding:8px 4px; text-align:left; color:#0bf4e6; font-weight:bold;">Star Lord</td>
+					
                     <td style="padding:8px 4px; font-weight:bold;">${dispStar}</td>
                     <td style="padding:8px 4px; font-weight:bold;">${starData.axis}</td>
                     <td style="padding:8px 4px; font-weight:bold; color:#10b981; font-size:15px;">${starData.x}</td>
-                    ${showScriptCol ? `<td style="padding:8px 4px; font-weight:bold; color:#0bf4e6; font-size:14px;">${starScriptStr}</td>` : ``}
                 </tr>
                 <tr style="border-bottom:1px solid #333;">
                     <td style="padding:8px 4px; text-align:left; color:#facc15; font-weight:bold;">Sub Lord</td>
                     <td style="padding:8px 4px; font-weight:bold;">${dispSub}</td>
                     <td style="padding:8px 4px; font-weight:bold;">${subData.axis}</td>
                     <td style="padding:8px 4px; font-weight:bold; color:#10b981; font-size:15px;">${subData.x}</td>
-                    ${showScriptCol ? `<td style="padding:8px 4px; font-weight:bold; color:#facc15; font-size:14px;">${subScriptStr}</td>` : ``}
                 </tr>
                 <tr>
                     <td style="padding:8px 4px; text-align:left; color:#ff8800; font-weight:bold;">Sub-Sub</td>
                     <td style="padding:8px 4px; font-weight:bold;">${dispSubSub}</td>
                     <td style="padding:8px 4px; font-weight:bold;">${subSubData.axis}</td>
                     <td style="padding:8px 4px; font-weight:bold; color:#10b981; font-size:15px;">${subSubData.x}</td>
-                    ${showScriptCol ? `<td style="padding:8px 4px; font-weight:bold; color:#ff8800; font-size:14px;">${subSubScriptStr}</td>` : ``}
                 </tr>
             </table>
         </div>`;
@@ -3053,6 +3475,8 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 <!-- PLANET TO LORD AXIS COUNTER ENds here -->
+
+
 
 
 
@@ -21104,58 +21528,6 @@ function renderStandaloneHouseAspects() {
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
