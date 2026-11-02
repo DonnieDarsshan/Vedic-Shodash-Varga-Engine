@@ -6483,6 +6483,11 @@ window.addEventListener("DOMContentLoaded", () => {
 			Clear All
 		</button>
 
+		<label style="display:flex;align-items:center;gap:6px;color:#f97316;font-weight:bold;cursor:pointer;">
+			<input type="checkbox" id="budhaMaleficToggle" onchange="applyBhavaAndZodiacColoring()">
+			Budha Malefic
+		</label>
+
 		<label style="display:flex;align-items:center;gap:6px;color:var(--asc-yellow);font-weight:bold;cursor:pointer;">
 			<input type="checkbox" id="bhavaTableColorToggle" checked onchange="applyBhavaAndZodiacColoring()">
 			Color
@@ -6632,12 +6637,20 @@ function applyBhavaAndZodiacColoring() {
     disconnectDivTablesObserver();
 
     try {
-        // =========================================================
-        // PART A: BHAVA DIVISIONAL TABLE COLORING
-        // =========================================================
-        const bContainer = document.getElementById("bhavaTable");
-        const bTable = bContainer ? bContainer.querySelector("table") : null;
-        const isBhavaColorOn = document.getElementById("bhavaTableColorToggle")?.checked;
+            // =========================================================
+            // PART A: BHAVA DIVISIONAL TABLE COLORING
+            // =========================================================
+            const bContainer = document.getElementById("bhavaTable");
+            const bTable = bContainer ? bContainer.querySelector("table") : null;
+            const isBhavaColorOn = document.getElementById("bhavaTableColorToggle")?.checked;
+            const isBudhaMalefic = document.getElementById("budhaMaleficToggle")?.checked;
+
+            // Dynamesch Regelen fir Budha (Benefic / Malefic)
+            if (isBudhaMalefic) {
+                BHAVA_DIV_COLOR_RULES["Bu"] = { exc: [3, 6, 10, 11], good: [2, 4, 7], worst: [1, 5, 9, 8, 12] };
+            } else {
+                BHAVA_DIV_COLOR_RULES["Bu"] = { exc: [1, 5, 9], good: [2, 4, 7, 10, 11], worst: [3, 6, 8, 12] };
+            }
 
         if (bTable && bTable.rows.length > 1) {
             const headerCells = bTable.rows[0].cells;
