@@ -6401,9 +6401,61 @@ window.addEventListener("DOMContentLoaded", () => {
 
 
 
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap');
+
+/* Crisp, Anti-Aliased Tabular Numbers for Divisional & Lords Tables */
+#divisionalTablesWrapper .shoda-table th,
+#divisionalTablesWrapper .shoda-table td,
+#lordWrapper .shoda-table th,
+#lordWrapper .shoda-table td {
+    font-family: 'JetBrains Mono', 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif !important;
+    font-variant-numeric: tabular-nums !important;
+    font-feature-settings: "tnum" 1, "zero" 1 !important;
+    font-weight: 700 !important; /* True crisp bold without heavy browser blurring */
+    font-size: 14.5px !important;
+    letter-spacing: 0.5px !important; /* Expands letter spacing to prevent thick characters from merging */
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+    text-rendering: optimizeLegibility !important;
+    text-shadow: none !important;
+}
+
+/* Keep Kannada / English headers & planet labels super clean & bold */
+#divisionalTablesWrapper .shoda-table th,
+#divisionalTablesWrapper .shoda-table td:first-child,
+#lordWrapper .shoda-table th,
+#lordWrapper .shoda-table td:first-child {
+    font-family: 'Inter', 'Noto Sans Kannada', 'Segoe UI', sans-serif !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.4px !important;
+    -webkit-font-smoothing: antialiased !important;
+}
+</style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <!-- Divisional Tables  -->
-
-
 
 <div class="division-title" onclick="toggleTables()">
 	Bhava &amp; Zodiac Divisional Table &#9660;
@@ -6445,13 +6497,18 @@ window.addEventListener("DOMContentLoaded", () => {
 	
 	<div id="zodiacControlBar" style="background:#0a0a0a;border:1px solid var(--grid-line);padding:8px 10px;margin-bottom:8px;display:flex;gap:20px;justify-content:center;align-items:center;flex-wrap:wrap;">
 	
+		<label style="display:flex;align-items:center;gap:6px;color:#3b82f6;font-weight:bold;cursor:pointer;">
+			<input type="checkbox" id="toggleSignNum" onchange="handleZodiacExclusiveToggle('num')">
+			Sign Number
+		</label>
+
 		<label style="display:flex;align-items:center;gap:6px;color:var(--asc-yellow);font-weight:bold;cursor:pointer;">
-			<input type="checkbox" id="toggleSignNames" onchange="handleZodiacToggle('name')">
+			<input type="checkbox" id="toggleSignNames" onchange="handleZodiacExclusiveToggle('name')">
 			Sign Names
 		</label>
 
 		<label style="display:flex;align-items:center;gap:6px;color:#10b981;font-weight:bold;cursor:pointer;">
-			<input type="checkbox" id="toggleDignity" checked onchange="handleZodiacToggle('dignity')">
+			<input type="checkbox" id="toggleDignity" checked onchange="handleZodiacExclusiveToggle('dignity')">
 			Planet Dignity
 		</label>
 
@@ -6468,86 +6525,84 @@ window.addEventListener("DOMContentLoaded", () => {
 
 <script>
 /* =========================================================================
-   BHAVA & ZODIAC DIVISIONAL TABLES: INDEPENDENT COLOR CODING ENGINE
+   BHAVA & ZODIAC DIVISIONAL TABLES: SINGLE-SOURCE LOCKED COLOR ENGINE
 ========================================================================= */
 
-// 1. Bhava Divisional Table Rules (Excellent = Green, Good/Average = Yellow, Worst = Red)
+// 1. Bhava Divisional Table Rules
 const BHAVA_DIV_COLOR_RULES = {
-    // Benefic Planets: Chandra, Jupiter, Venus, Budha (2H also mapped to Yellow as remaining neutral/average house)
     Ch: { exc: [1, 5, 9],      good: [2, 4, 7, 10, 11], worst: [3, 6, 8, 12] },
     Ju: { exc: [1, 5, 9],      good: [2, 4, 7, 10, 11], worst: [3, 6, 8, 12] },
     Ve: { exc: [1, 5, 9],      good: [2, 4, 7, 10, 11], worst: [3, 6, 8, 12] },
     Bu: { exc: [1, 5, 9],      good: [2, 4, 7, 10, 11], worst: [3, 6, 8, 12] },
-    // Malefic Planets: Surya, Mangala, Saturn
     Sy: { exc: [3, 6, 10, 11], good: [2, 4, 7],         worst: [1, 5, 9, 8, 12] },
     Ma: { exc: [3, 6, 10, 11], good: [2, 4, 7],         worst: [1, 5, 9, 8, 12] },
     Sa: { exc: [3, 6, 10, 11], good: [2, 4, 7],         worst: [1, 5, 9, 8, 12] },
-    // Rahu & Ketu
     Ra: { exc: [3, 6, 11],     good: [2, 7, 10],        worst: [1, 5, 9, 4, 8, 12] },
     Ke: { exc: [3, 6, 11],     good: [2, 7, 10],        worst: [1, 5, 9, 4, 8, 12] }
 };
 
-// 2. Classical Sign Dignity Rules for Zodiac Divisional Table (Signs 1 = Aries ... 12 = Pisces)
-const ZODIAC_SIGN_DIGNITY_MAP = {
-    Sy: { 1:"uccha", 2:"enemy", 3:"sama", 4:"friend", 5:"friend", 6:"sama", 7:"neecha", 8:"friend", 9:"friend", 10:"enemy", 11:"enemy", 12:"friend" },
-    Ch: { 1:"sama", 2:"uccha", 3:"friend", 4:"friend", 5:"friend", 6:"friend", 7:"sama", 8:"neecha", 9:"sama", 10:"sama", 11:"sama", 12:"sama" },
-    Ma: { 1:"friend", 2:"sama", 3:"enemy", 4:"neecha", 5:"friend", 6:"enemy", 7:"sama", 8:"friend", 9:"friend", 10:"uccha", 11:"sama", 12:"friend" },
-    Bu: { 1:"sama", 2:"friend", 3:"friend", 4:"enemy", 5:"friend", 6:"uccha", 7:"friend", 8:"sama", 9:"sama", 10:"sama", 11:"sama", 12:"neecha" },
-    Ju: { 1:"friend", 2:"enemy", 3:"enemy", 4:"uccha", 5:"friend", 6:"enemy", 7:"enemy", 8:"friend", 9:"friend", 10:"neecha", 11:"sama", 12:"friend" },
-    Ve: { 1:"sama", 2:"friend", 3:"friend", 4:"enemy", 5:"enemy", 6:"neecha", 7:"friend", 8:"sama", 9:"sama", 10:"friend", 11:"friend", 12:"uccha" },
-    Sa: { 1:"neecha", 2:"friend", 3:"friend", 4:"enemy", 5:"enemy", 6:"friend", 7:"uccha", 8:"enemy", 9:"sama", 10:"friend", 11:"friend", 12:"sama" },
-    Ra: { 1:"enemy", 2:"uccha", 3:"uccha", 4:"enemy", 5:"enemy", 6:"friend", 7:"friend", 8:"neecha", 9:"neecha", 10:"friend", 11:"friend", 12:"sama" },
-    Ke: { 1:"sama", 2:"neecha", 3:"neecha", 4:"enemy", 5:"enemy", 6:"sama", 7:"friend", 8:"uccha", 9:"uccha", 10:"friend", 11:"sama", 12:"friend" }
+// 2. SINGLE MASTER TABLE FOR ZODIAC DIGNITY & COLOR (NO FALLBACKS, NO SECOND RULES)
+// Values strictly limited to: "uccha", "moolatrikona", "own", "friend", "sama", "enemy", "neecha"
+const MASTER_ZODIAC_DIGNITY = {
+    Sy: { 1:"uccha",        2:"enemy",  3:"sama",   4:"friend", 5:"own",    6:"sama",   7:"neecha",       8:"friend", 9:"friend",       10:"enemy", 11:"enemy",        12:"friend" },
+    Ch: { 1:"friend",       2:"uccha",  3:"friend", 4:"own",    5:"friend", 6:"friend", 7:"sama",         8:"neecha", 9:"enemy",        10:"enemy", 11:"enemy",        12:"friend" },
+    Ma: { 1:"moolatrikona", 2:"sama",   3:"enemy",  4:"neecha", 5:"friend", 6:"enemy",  7:"sama",         8:"own",    9:"friend",       10:"uccha", 11:"sama",         12:"friend" },
+    Bu: { 1:"sama",         2:"friend", 3:"own",    4:"enemy",  5:"sama",   6:"uccha",  7:"friend",       8:"sama",   9:"enemy",        10:"friend",11:"friend",       12:"neecha" },
+    Ju: { 1:"friend",       2:"enemy",  3:"enemy",  4:"uccha",  5:"friend", 6:"enemy",  7:"enemy",        8:"friend", 9:"moolatrikona", 10:"neecha",11:"sama",         12:"own"    },
+    Ve: { 1:"sama",         2:"own",    3:"friend", 4:"enemy",  5:"enemy",  6:"neecha", 7:"moolatrikona", 8:"sama",   9:"enemy",        10:"friend",11:"friend",       12:"uccha"  },
+    Sa: { 1:"neecha",       2:"friend", 3:"friend", 4:"enemy",  5:"enemy",  6:"friend", 7:"uccha",        8:"enemy",  9:"sama",         10:"own",   11:"moolatrikona", 12:"sama"   },
+    Ra: { 1:"enemy",        2:"uccha",  3:"uccha",  4:"enemy",  5:"enemy",  6:"own",    7:"friend",       8:"neecha", 9:"neecha",       10:"friend",11:"moolatrikona", 12:"sama"   },
+    Ke: { 1:"sama",         2:"neecha", 3:"neecha", 4:"enemy",  5:"sama",   6:"sama",   7:"friend",       8:"uccha",  9:"moolatrikona", 10:"friend",11:"enemy",        12:"own"    }
+};
+
+const DIGNITY_LABELS_EN = {
+    uccha: "Uccha",
+    moolatrikona: "Moolatrikona",
+    own: "Own",
+    friend: "Friend",
+    sama: "Sama",
+    enemy: "Enemy",
+    neecha: "Neecha"
+};
+
+const DIGNITY_LABELS_KN = {
+    uccha: "\u0C89\u0C9A\u0CCD\u0C9A",
+    moolatrikona: "\u0CA4\u0CCD\u0CB0\u0CBF\u0C95\u0CCB\u0CA3",
+    own: "\u0CB8\u0CCD\u0CB5\u0C95\u0CCD\u0CB7\u0CC7\u0CA4\u0CCD\u0CB0",
+    friend: "\u0CAE\u0CBF\u0CA4\u0CCD\u0CB0",
+    sama: "\u0CB8\u0CAE",
+    enemy: "\u0CB6\u0CA4\u0CCD\u0CB0\u0CC1",
+    neecha: "\u0CA8\u0CC0\u0C9A"
+};
+
+const ZODIAC_NAMES_EN = {
+    1: "Aries", 2: "Taurus", 3: "Gemini", 4: "Cancer", 5: "Leo", 6: "Virgo",
+    7: "Libra", 8: "Scorpio", 9: "Sagittarius", 10: "Capricorn", 11: "Aquarius", 12: "Pisces"
+};
+
+const ZODIAC_NAMES_KN = {
+    1: "\u0CAE\u0CC7\u0CB7", 2: "\u0CB5\u0CC3\u0CB7\u0CAD", 3: "\u0CAE\u0CBF\u0CA5\u0CC1\u0CA8", 4: "\u0C95\u0C9F\u0C95", 
+    5: "\u0CB8\u0CBF\u0C82\u0CB9", 6: "\u0C95\u0CA8\u0CCD\u0CAF", 7: "\u0CA4\u0CC1\u0CB2\u0CBE", 8: "\u0CB5\u0CC3\u0CB6\u0CCD\u0C9A\u0CBF\u0C95", 
+    9: "\u0CA7\u0CA8\u0CC1", 10: "\u0CAE\u0C95\u0CB0", 11: "\u0C95\u0CC1\u0C82\u0CAD", 12: "\u0CAE\u0CC0\u0CA8"
 };
 
 function identifyDivTablePlanetCode(str) {
     if (!str) return null;
     const s = str.trim();
     const map = {
-        "Sy": "Sy", "Surya": "Sy", "Sun": "Sy", "\u0CB0\u0CB5\u0CBF": "Sy",
-        "Ch": "Ch", "Chandra": "Ch", "Moon": "Ch", "\u0C9A\u0C82\u0CA6\u0CCD\u0CB0": "Ch",
-        "Ma": "Ma", "Mangala": "Ma", "Mars": "Ma", "Kuja": "Ma", "\u0C95\u0CC1\u0C9C": "Ma",
-        "Bu": "Bu", "Budha": "Bu", "Mercury": "Bu", "\u0CAC\u0CC1\u0CA7": "Bu",
-        "Ju": "Ju", "Jupiter": "Ju", "Guru": "Ju", "\u0C97\u0CC1\u0CB0\u0CC1": "Ju",
-        "Ve": "Ve", "Venus": "Ve", "Shukra": "Ve", "\u0CB6\u0CC1\u0C95\u0CCD\u0CB0": "Ve",
-        "Sa": "Sa", "Saturn": "Sa", "Shani": "Sa", "\u0CB6\u0CA8\u0CBF": "Sa",
+        "Sy": "Sy", "Sury": "Sy", "Surya": "Sy", "Sun": "Sy", "\u0CB0\u0CB5\u0CBF": "Sy",
+        "Ch": "Ch", "Chnd": "Ch", "Chandra": "Ch", "Moon": "Ch", "\u0C9A\u0C82\u0CA6\u0CCD\u0CB0": "Ch",
+        "Ma": "Ma", "Kuja": "Ma", "Mangala": "Ma", "Mars": "Ma", "\u0C95\u0CC1\u0C9C": "Ma",
+        "Bu": "Bu", "Buda": "Bu", "Budha": "Bu", "Mercury": "Bu", "\u0CAC\u0CC1\u0CA7": "Bu",
+        "Ju": "Ju", "Jupt": "Ju", "Jupiter": "Ju", "Guru": "Ju", "\u0C97\u0CC1\u0CB0\u0CC1": "Ju",
+        "Ve": "Ve", "Vens": "Ve", "Venus": "Ve", "Shukra": "Ve", "\u0CB6\u0CC1\u0C95\u0CCD\u0CB0": "Ve",
+        "Sa": "Sa", "Shan": "Sa", "Saturn": "Sa", "Shani": "Sa", "\u0CB6\u0CA8\u0CBF": "Sa",
         "Ra": "Ra", "Rahu": "Ra", "\u0CB0\u0CBE\u0CB9\u0CC1": "Ra",
         "Ke": "Ke", "Ketu": "Ke", "\u0C95\u0CC7\u0CA4\u0CC1": "Ke"
     };
     if (map[s]) return map[s];
     for (const [k, v] of Object.entries(map)) {
         if (k.length >= 2 && (s === k || s.startsWith(k + " ") || s.startsWith(k + "("))) return v;
-    }
-    return null;
-}
-
-function detectDignityCategoryFromText(text, pCode, v, rashiNum) {
-    const t = (text || "").toLowerCase();
-    // 1. Direct text match (English & Kannada dignity labels)
-    if (t.includes("uccha") || t.includes("exalt") || t.includes("\u0C89\u0C9A\u0CCD\u0C9A")) return "uccha";
-    if (t.includes("neecha") || t.includes("debil") || t.includes("\u0CA8\u0CC0\u0C9A")) return "neecha";
-    if (t.includes("bitter") || t.includes("adhi shatru") || t.includes("\u0CAA\u0CB0\u0CAE \u0CB6\u0CA4\u0CCD\u0CB0\u0CC1")) return "enemy";
-    if (t.includes("enemy") || t.includes("shatru") || t.includes("\u0CB6\u0CA4\u0CCD\u0CB0\u0CC1")) return "enemy";
-    if (t.includes("sama") || t.includes("neutral") || t.includes("\u0CA4\u0C9F\u0CB8\u0CCD\u0CA5") || t.includes("\u0CB8\u0CAE")) return "sama";
-    if (
-        t.includes("mool") || t.includes("own") || t.includes("swa") ||
-        t.includes("friend") || t.includes("mitra") ||
-        t.includes("\u0CAE\u0CBF\u0CA4\u0CCD\u0CB0") || t.includes("\u0CB8\u0CCD\u0CB5") || t.includes("\u0CAE\u0CC2\u0CB2")
-    ) {
-        return "friend";
-    }
-
-    // 2. Fallback to Sign Number (1-12) when Sign Names or Numbers are displayed
-    let sNum = rashiNum;
-    if (!sNum && v && pCode && window._shodaRashi && window._shodaRashi[v]) {
-        sNum = parseInt(window._shodaRashi[v][pCode], 10);
-    }
-    if (!sNum) {
-        const nMatch = t.match(/^(\d+)$/);
-        if (nMatch) sNum = parseInt(nMatch[1], 10);
-    }
-    if (sNum >= 1 && sNum <= 12 && pCode && ZODIAC_SIGN_DIGNITY_MAP[pCode]) {
-        return ZODIAC_SIGN_DIGNITY_MAP[pCode][sNum] || null;
     }
     return null;
 }
@@ -6567,8 +6622,8 @@ function connectDivTablesObserver() {
             applyBhavaAndZodiacColoring();
         });
     }
-    if (bContainer) window._divTablesObserver.observe(bContainer, { childList: true, subtree: false });
-    if (rContainer) window._divTablesObserver.observe(rContainer, { childList: true, subtree: false });
+    if (bContainer) window._divTablesObserver.observe(bContainer, { childList: true, subtree: true });
+    if (rContainer) window._divTablesObserver.observe(rContainer, { childList: true, subtree: true });
 }
 
 function applyBhavaAndZodiacColoring() {
@@ -6625,23 +6680,20 @@ function applyBhavaAndZodiacColoring() {
                     }
 
                     if (rules.exc.includes(hVal)) {
-                        // Excellent -> Green
-                        cell.style.background = "rgba(0, 60, 15, 0.85)";
-                        cell.style.color = "#16f529";
-                        cell.style.border = "1px solid #16f529";
-                        cell.style.fontWeight = "900";
+                        cell.style.setProperty("background", "rgba(0, 60, 15, 0.85)", "important");
+                        cell.style.setProperty("color", "#16f529", "important");
+                        cell.style.setProperty("border", "1px solid #16f529", "important");
+                        cell.style.setProperty("font-weight", "900", "important");
                     } else if (rules.good.includes(hVal)) {
-                        // Good / Average -> Yellow
-                        cell.style.background = "rgba(85, 65, 0, 0.88)";
-                        cell.style.color = "#fef08a";
-                        cell.style.border = "1px solid #facc15";
-                        cell.style.fontWeight = "900";
+                        cell.style.setProperty("background", "rgba(85, 65, 0, 0.88)", "important");
+                        cell.style.setProperty("color", "#fef08a", "important");
+                        cell.style.setProperty("border", "1px solid #facc15", "important");
+                        cell.style.setProperty("font-weight", "900", "important");
                     } else if (rules.worst.includes(hVal)) {
-                        // Worst -> Red
-                        cell.style.background = "rgba(70, 0, 10, 0.85)";
-                        cell.style.color = "#ff2a40";
-                        cell.style.border = "1px solid #ff2a40";
-                        cell.style.fontWeight = "900";
+                        cell.style.setProperty("background", "rgba(70, 0, 10, 0.85)", "important");
+                        cell.style.setProperty("color", "#ff2a40", "important");
+                        cell.style.setProperty("border", "1px solid #ff2a40", "important");
+                        cell.style.setProperty("font-weight", "900", "important");
                     } else {
                         cell.style.background = "";
                         cell.style.color = "";
@@ -6653,11 +6705,15 @@ function applyBhavaAndZodiacColoring() {
         }
 
         // =========================================================
-        // PART B: ZODIAC DIVISIONAL TABLE COLORING (GRADIENTS)
+        // PART B: ZODIAC DIVISIONAL TABLE (SINGLE RULE BY SIGN NUM)
         // =========================================================
         const rContainer = document.getElementById("rashiTable");
         const rTable = rContainer ? rContainer.querySelector("table") : null;
         const isZodiacColorOn = document.getElementById("zodiacTableColorToggle")?.checked;
+        const isDignityTextOn = document.getElementById("toggleDignity")?.checked;
+        const isSignNamesOn = document.getElementById("toggleSignNames")?.checked;
+        const isSignNumOn = document.getElementById("toggleSignNum")?.checked;
+        const modeKN = document.getElementById("modeKN")?.checked;
 
         if (rTable && rTable.rows.length > 1) {
             const headerCells = rTable.rows[0].cells;
@@ -6668,7 +6724,7 @@ function applyBhavaAndZodiacColoring() {
             for (let c = 1; c < headerCells.length; c++) {
                 const hTxt = headerCells[c].innerText.trim();
                 const pCode = identifyDivTablePlanetCode(hTxt);
-                const dMatch = hTxt.match(/^D-?(\d+)/i);
+                const dMatch = hTxt.match(/\bD-?(\d+)\b/i);
                 if (pCode) {
                     colPlanets[c] = pCode;
                     planetsInCols = true;
@@ -6681,7 +6737,7 @@ function applyBhavaAndZodiacColoring() {
                 const row = rTable.rows[r];
                 const firstTxt = row.cells[0]?.innerText.trim() || "";
                 const rowPlanet = !planetsInCols ? identifyDivTablePlanetCode(firstTxt) : null;
-                const rowVMatch = firstTxt.match(/^D-?(\d+)/i);
+                const rowVMatch = firstTxt.match(/\bD-?(\d+)\b/i);
                 const rowVarga = rowVMatch ? parseInt(rowVMatch[1], 10) : null;
 
                 for (let c = 1; c < row.cells.length; c++) {
@@ -6689,13 +6745,34 @@ function applyBhavaAndZodiacColoring() {
                     const pCode = planetsInCols ? colPlanets[c] : rowPlanet;
                     const vNum = planetsInCols ? rowVarga : colVargas[c];
 
-                    // Reset any inline child colors so our gradient & text colors are clean
-                    cell.querySelectorAll("*").forEach(child => {
-                        child.style.color = "inherit";
-                        child.style.background = "transparent";
-                    });
+                    // Strip any inner HTML spans from base builder
+                    const cleanText = cell.innerText.trim();
+                    if (cell.children.length > 0) {
+                        cell.textContent = cleanText;
+                    }
 
-                    if (!isZodiacColorOn || !pCode) {
+                    // Get exact sign number (1-12) directly from window._shodaRashi[vNum][pCode]
+                    let sNum = null;
+                    if (vNum && pCode && window._shodaRashi && window._shodaRashi[vNum] && window._shodaRashi[vNum][pCode] !== undefined) {
+                        const parsed = parseInt(window._shodaRashi[vNum][pCode], 10);
+                        if (!isNaN(parsed) && parsed >= 1 && parsed <= 12) {
+                            sNum = parsed;
+                        }
+                    }
+
+                    // Look up strictly from MASTER_ZODIAC_DIGNITY
+                    const cat = (pCode && sNum && MASTER_ZODIAC_DIGNITY[pCode]) ? MASTER_ZODIAC_DIGNITY[pCode][sNum] : null;
+
+                    // Overwrite cell text: strictly based on the 3 exclusive toggles
+                    if (isDignityTextOn && cat) {
+                        cell.textContent = modeKN ? DIGNITY_LABELS_KN[cat] : DIGNITY_LABELS_EN[cat];
+                    } else if (isSignNamesOn && sNum) {
+                        cell.textContent = modeKN ? ZODIAC_NAMES_KN[sNum] : ZODIAC_NAMES_EN[sNum];
+                    } else if (isSignNumOn && sNum) {
+                        cell.textContent = sNum;
+                    }
+
+                    if (!isZodiacColorOn || !cat) {
                         cell.style.background = "";
                         cell.style.color = "";
                         cell.style.border = "";
@@ -6703,43 +6780,30 @@ function applyBhavaAndZodiacColoring() {
                         continue;
                     }
 
-                    const cat = detectDignityCategoryFromText(cell.innerText.trim(), pCode, vNum, null);
-
-                    if (cat === "uccha") {
-                        // Uccha - Dark Green Gradient
-                        cell.style.background = "linear-gradient(135deg, #003811 0%, #001a06 100%)";
-                        cell.style.color = "#00ff55";
-                        cell.style.border = "1px solid #00e64d";
-                        cell.style.fontWeight = "900";
-                    } else if (cat === "friend") {
-                        // Friend / Own / Moolatrikona - Green Gradient
-                        cell.style.background = "linear-gradient(135deg, rgba(16, 115, 45, 0.88) 0%, rgba(6, 55, 20, 0.92) 100%)";
-                        cell.style.color = "#86efac";
-                        cell.style.border = "1px solid #22c55e";
-                        cell.style.fontWeight = "900";
+                    if (cat === "uccha" || cat === "moolatrikona") {
+                        // Uccha & Moolatrikona -> Dark Green Gradient
+                        cell.style.setProperty("background", "linear-gradient(135deg, #005522 0%, #002b11 100%)", "important");
+                        cell.style.setProperty("color", "#00ff55", "important");
+                        cell.style.setProperty("border", "1px solid #00e64d", "important");
+                        cell.style.setProperty("font-weight", "900", "important");
+                    } else if (cat === "own" || cat === "friend") {
+                        // Own & Friend -> Teal Gradient
+                        cell.style.setProperty("background", "linear-gradient(135deg, #004d4d 0%, #002626 100%)", "important");
+                        cell.style.setProperty("color", "#0bf4e6", "important");
+                        cell.style.setProperty("border", "1px solid #008f82", "important");
+                        cell.style.setProperty("font-weight", "900", "important");
                     } else if (cat === "sama") {
-                        // Sama - Yellow Gradient
-                        cell.style.background = "linear-gradient(135deg, rgba(115, 88, 0, 0.9) 0%, rgba(55, 40, 0, 0.94) 100%)";
-                        cell.style.color = "#fef08a";
-                        cell.style.border = "1px solid #facc15";
-                        cell.style.fontWeight = "900";
-                    } else if (cat === "enemy") {
-                        // Enemy - Red Gradient
-                        cell.style.background = "linear-gradient(135deg, rgba(135, 15, 30, 0.88) 0%, rgba(65, 5, 12, 0.92) 100%)";
-                        cell.style.color = "#fca5a5";
-                        cell.style.border = "1px solid #f87171";
-                        cell.style.fontWeight = "900";
-                    } else if (cat === "neecha") {
-                        // Neecha - Dark Red Gradient
-                        cell.style.background = "linear-gradient(135deg, #450008 0%, #1c0003 100%)";
-                        cell.style.color = "#ff2a40";
-                        cell.style.border = "1px solid #ff1a33";
-                        cell.style.fontWeight = "900";
-                    } else {
-                        cell.style.background = "";
-                        cell.style.color = "";
-                        cell.style.border = "";
-                        cell.style.fontWeight = "";
+                        // Sama -> Yellow Gradient
+                        cell.style.setProperty("background", "linear-gradient(135deg, rgba(80, 60, 0, 0.92) 0%, rgba(30, 22, 0, 0.96) 100%)", "important");
+                        cell.style.setProperty("color", "#fef08a", "important");
+                        cell.style.setProperty("border", "1px solid #d4af37", "important");
+                        cell.style.setProperty("font-weight", "900", "important");
+                    } else if (cat === "enemy" || cat === "neecha") {
+                        // Enemy & Neecha -> Dark Red Gradient
+                        cell.style.setProperty("background", "linear-gradient(135deg, #450008 0%, #1c0003 100%)", "important");
+                        cell.style.setProperty("color", "#ff2a40", "important");
+                        cell.style.setProperty("border", "1px solid #ff1a33", "important");
+                        cell.style.setProperty("font-weight", "900", "important");
                     }
                 }
             }
@@ -6766,7 +6830,7 @@ window.addEventListener("DOMContentLoaded", () => {
     if (typeof origHandleZodiacToggle === "function") {
         window.handleZodiacToggle = function(mode) {
             origHandleZodiacToggle(mode);
-            setTimeout(applyBhavaAndZodiacColoring, 20);
+            applyBhavaAndZodiacColoring();
         };
     }
 
@@ -6774,19 +6838,50 @@ window.addEventListener("DOMContentLoaded", () => {
     if (typeof origUpdateShodaOrder === "function") {
         window.updateShodaOrder = function(mode) {
             origUpdateShodaOrder(mode);
-            setTimeout(applyBhavaAndZodiacColoring, 20);
+            applyBhavaAndZodiacColoring();
         };
     }
+
+    window.handleZodiacExclusiveToggle = function(clickedId) {
+        const numCheck = document.getElementById("toggleSignNum");
+        const nameCheck = document.getElementById("toggleSignNames");
+        const digCheck = document.getElementById("toggleDignity");
+        
+        // Turn off the others when one is checked
+        if (clickedId === 'num' && numCheck.checked) {
+            nameCheck.checked = false;
+            digCheck.checked = false;
+        } else if (clickedId === 'name' && nameCheck.checked) {
+            numCheck.checked = false;
+            digCheck.checked = false;
+        } else if (clickedId === 'dignity' && digCheck.checked) {
+            numCheck.checked = false;
+            nameCheck.checked = false;
+        }
+
+        // Prevent unchecking all (force exactly 1 to stay checked)
+        if (!numCheck.checked && !nameCheck.checked && !digCheck.checked) {
+            if (clickedId === 'num') numCheck.checked = true;
+            if (clickedId === 'name') nameCheck.checked = true;
+            if (clickedId === 'dignity') digCheck.checked = true;
+        }
+
+        if (typeof window.handleZodiacToggle === "function") {
+            window.handleZodiacToggle(clickedId);
+        }
+        applyBhavaAndZodiacColoring();
+    };
+
+    ["toggleSignNum", "toggleSignNames", "toggleDignity", "modeKN", "moonBased", "lagnaBased"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener("change", () => {
+                setTimeout(applyBhavaAndZodiacColoring, 0);
+            });
+        }
+    });
 });
 </script>
-
-
-
-
-
-
-
-
 
 <!-- ========================================================= -->
 <!-- LORDS OF KUNDALIS & HOUSE LORDSHIP MATRIX (ALL IN ONE)    -->
@@ -6832,7 +6927,6 @@ window.addEventListener("DOMContentLoaded", () => {
    LORDS OF KUNDALIS: INDEPENDENT NADI-STYLE SHIFT + NUMBER & COLOR UPDATER
 ========================================================================= */
 
-// 1. Exact House Placement Reference Rules (Matches the 3rd Table below)
 const LORDS_HOUSE_COLOR_RULES = {
     1:  { good: [3, 11, 1, 5, 9],  neutral: [2, 7],   bad: [4, 10, 6, 8, 12] },
     2:  { good: [4, 12, 2, 6, 10], neutral: [3, 8],   bad: [5, 11, 7, 9, 1] },
@@ -6848,11 +6942,9 @@ const LORDS_HOUSE_COLOR_RULES = {
     12: { good: [2, 10, 12, 4, 8], neutral: [1, 6],   bad: [3, 9, 5, 7, 11] }
 };
 
-// Rahu & Ketu Placement Rules: Good = 2,6,10,3,7,11 | Bad = 1,5,9,4,8,12
 const RAHU_KETU_GOOD_HOUSES = [2, 6, 10, 3, 7, 11];
 const RAHU_KETU_BAD_HOUSES  = [1, 5, 9, 4, 8, 12];
 
-// 2. Render Function for the Moved 3rd Table (1 to 12 Bhava Matrix)
 function renderFbmRefTable2() {
     const container = document.getElementById("fbmRefTable2Container");
     if (!container) return;
@@ -6933,7 +7025,6 @@ function renderFbmRefTable2() {
     container.innerHTML = html;
 }
 
-// 3. Exact Nadi-Style Shift State (Matches Nakshatra Nadi For All Divisional Charts & Nakshatra Nadi DBA Mixer)
 function getIndependentLordsTableState(v) {
     const SHIFTED_LAGNA = document.getElementById("lordsLocalShiftToggle")?.checked;
     const pivot = document.getElementById("pivot")?.value || "ASC";
@@ -7008,7 +7099,6 @@ function getIndependentLordsTableState(v) {
     };
 }
 
-// Compute where a planet sits (House 1..12) in D-v (Matches Nadi tables: placed house comes directly from _shodaBhava)
 function getPlacedHouseForLordsTable(v, pCode, stateObj) {
     const isSignMode = document.getElementById("modeSign2Sign")?.checked;
     if (isSignMode && window._shodaRashi && window._shodaRashi[v] && window._shodaRashi[v][pCode]) {
@@ -7022,7 +7112,6 @@ function getPlacedHouseForLordsTable(v, pCode, stateObj) {
     return NaN;
 }
 
-// 4. Safe Observer Management (Prevents Infinite Microtask CPU Loop!)
 window._lordsTableObserver = null;
 window._isUpdatingLordsTable = false;
 
@@ -7160,7 +7249,6 @@ function applyLordsTableColoring() {
                 const vState = getVState(v);
                 const lordshipSign = vState.lordshipSign;
 
-                // Handle Rahu / Ketu row or column
                 if (nodeCode) {
                     const placedHouse = getPlacedHouseForLordsTable(v, nodeCode, vState);
                     if (!isNaN(placedHouse)) {
@@ -7179,7 +7267,6 @@ function applyLordsTableColoring() {
                     continue;
                 }
 
-                // Handle Houses 1 to 12
                 if (hNum && hNum >= 1 && hNum <= 12) {
                     const signOfHouse = ((lordshipSign + hNum - 1) % 12) + 1;
                     const lordCode = signLords[signOfHouse];
@@ -7221,7 +7308,6 @@ function applyLordsTableColoring() {
     }
 }
 
-// 5. Keep both tables automatically synced whenever Lords of Kundalis is opened or recalculated
 window.addEventListener("DOMContentLoaded", () => {
     renderFbmRefTable2();
     applyLordsTableColoring();
@@ -7236,6 +7322,17 @@ window.addEventListener("DOMContentLoaded", () => {
     };
 });
 </script>
+
+<!-- Divisional Tables  -->
+
+
+
+
+
+
+
+
+
 
 
 
@@ -22364,169 +22461,4 @@ function renderStandaloneHouseAspects() {
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
