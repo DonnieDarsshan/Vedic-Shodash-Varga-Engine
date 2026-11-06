@@ -16456,7 +16456,7 @@ function handleNadiPivotChange() {
         <div id="sideTransitContainer" style="flex: 1; min-width: 300px; max-width: 450px;"></div>
     </div>
 
-    <div id="transitMixerTableContainer" style="width: 100%; max-width: 1400px; margin: 40px auto 0 auto; padding: 0 20px; box-sizing: border-box;">
+    <div id="transitMixerTableContainer" style="width: 100%; max-width: 1520px; margin: 40px auto 0 auto; padding: 0 15px; box-sizing: border-box;">
         <!-- Dynamic Table Generated via JS -->
     </div>
 
@@ -16653,7 +16653,45 @@ async function fetchTransitFromCloud() {
 
 
 
-function buildStandardKundaliHTML(chartData, title, forcedAscIndex = null, pivotVal = "ASC") {
+// Helper: Returns inline CSS for Transit Good / Worst / Bad based on House from Pivot
+function getTransitColorStyle(pCode, houseNum) {
+    const rules = {
+        Sy: { good: [3, 6, 10, 11], worst: [5] },
+        Surya: { good: [3, 6, 10, 11], worst: [5] },
+        Ch: { good: [1, 3, 6, 7, 9, 10, 11], worst: [8] },
+        Chandra: { good: [1, 3, 6, 7, 9, 10, 11], worst: [8] },
+        Ma: { good: [3, 6, 11], worst: [7] },
+        Mangala: { good: [3, 6, 11], worst: [7] },
+        Bu: { good: [6, 8, 10, 11], worst: [] },
+        Budha: { good: [6, 8, 10, 11], worst: [] },
+        Ju: { good: [2, 5, 7, 9, 11], worst: [3] },
+        Jupiter: { good: [2, 5, 7, 9, 11], worst: [3] },
+        Ve: { good: [1, 2, 3, 4, 5, 8, 9, 11, 12], worst: [6] },
+        Venus: { good: [1, 2, 3, 4, 5, 8, 9, 11, 12], worst: [6] },
+        Sa: { good: [3, 6, 9, 10, 11], worst: [1] },
+        Saturn: { good: [3, 6, 9, 10, 11], worst: [1] },
+        Ra: { good: [3, 6, 11], worst: [9] },
+        Rahu: { good: [3, 6, 11], worst: [9] },
+        Ke: { good: [3, 6, 11], worst: [2] },
+        Ketu: { good: [3, 6, 11], worst: [2] }
+    };
+
+    const r = rules[pCode];
+    if (!r) return null;
+
+    if (r.good.includes(houseNum)) {
+        // Good: Green text with green outline
+        return "color:#22c55e; border:1.5px solid #22c55e; padding:1px 6px; border-radius:4px; display:inline-block;";
+    } else if (r.worst.includes(houseNum)) {
+        // Worst: Light red text (#ff9999) + Dark red background (#5c0000) + Bright red outline (#ff1a1a)
+        return "color:#ff9999; background:#5c0000; border:1.5px solid #ff1a1a; padding:1px 6px; border-radius:4px; display:inline-block;";
+    } else {
+        // Bad: Red text with red outline (transparent background)
+        return "color:#ef4444; border:1.5px solid #ef4444; padding:1px 6px; border-radius:4px; display:inline-block;";
+    }
+}
+
+function buildStandardKundaliHTML(chartData, title, forcedAscIndex = null, pivotVal = "ASC", isTransitChart = false) {
     let html = `<div class="varga-card" style="width: 100%; border: 2px solid var(--grid-line); background:#111;"><div class="varga-title" style="margin-top:0; font-size:1.2em; padding:8px;">${title}</div><div class="kundali">`;
     const houseMap = [11, 0, 1, 2, 10, -1, -1, 3, 9, -1, -1, 4, 8, 7, 6, 5];
     
@@ -16670,6 +16708,7 @@ function buildStandardKundaliHTML(chartData, title, forcedAscIndex = null, pivot
     }
 
     const modeKN = document.getElementById("modeKN")?.checked;
+    const useColorCoding = document.getElementById("mixerColorToggle")?.checked;
     const knMap = { Sy: "\u0CB0\u0CB5\u0CBF", Ch: "\u0C9A\u0C82\u0CA6\u0CCD\u0CB0", Ma: "\u0C95\u0CC1\u0C9C", Bu: "\u0CAC\u0CC1\u0CA7", Ju: "\u0C97\u0CC1\u0CB0\u0CC1", Ve: "\u0CB6\u0CC1\u0C95\u0CCD\u0CB0", Sa: "\u0CB6\u0CA8\u0CBF", Ra: "\u0CB0\u0CBE\u0CB9\u0CC1", Ke: "\u0C95\u0CC7\u0CA4\u0CC1", ASC: "\u0CB2\u0C97\u0CCD\u0CA8" };
     
     // STRICT COLOR PALETTE: White (Minor), Yellow (Major), Teal (ASC)
@@ -16693,10 +16732,17 @@ function buildStandardKundaliHTML(chartData, title, forcedAscIndex = null, pivot
                 let mins = Math.floor((p.d * 60) % 60).toString().padStart(2, '0');
                 let color = pColors[p.n] || "#ffffff";
                 
-                // ASC and Pivot Planet ALWAYS turn Teal
-                if (p.isPivotMarker || p.isAsc || p.n === pivotVal) {
+                // Pivot Marker / Natal ASC / Natal Pivot ALWAYS turn Teal
+                if (p.isPivotMarker || (!isTransitChart && (p.isAsc || p.n === pivotVal))) {
                     let dName = p.isAsc ? "ASC" : name;
                     html += `<div style="color:#0bf4e6; font-size:15px; font-weight:700; margin:3px 0;">${dName} ${deg}&deg;${mins}&prime;</div>`;
+                } else if (isTransitChart && useColorCoding) {
+                    let cStyle = getTransitColorStyle(p.n, houseNum);
+                    if (cStyle) {
+                        html += `<div style="${cStyle} font-size:15px; font-weight:700; margin:3px 0;">${name} ${deg}&deg;${mins}&prime;</div>`;
+                    } else {
+                        html += `<div style="color:${color}; font-size:15px; font-weight:700; margin:3px 0;">${name} ${deg}&deg;${mins}&prime;</div>`;
+                    }
                 } else {
                     html += `<div style="color:${color}; font-size:15px; font-weight:700; margin:3px 0;">${name} ${deg}&deg;${mins}&prime;</div>`;
                 }
@@ -16738,16 +16784,27 @@ function expandUIElements() {
         if (controlsDiv) {
             controlsDiv.style.width = "100%";
             controlsDiv.style.maxWidth = "1300px";
-            controlsDiv.style.margin = "0 auto 20px auto";
-            controlsDiv.style.gap = "25px";
-            controlsDiv.style.justifyContent = "space-evenly";
+            controlsDiv.style.margin = "0 auto 10px auto";
+            controlsDiv.style.gap = "12px";
+            controlsDiv.style.justifyContent = "center";
+
+            // Remove the 140px empty gap caused by transitStatus and move it to the very end
+            if (statusSpan) {
+                statusSpan.style.minWidth = "0px";
+                statusSpan.style.marginLeft = "4px";
+            }
 
             if (!document.getElementById("mixerPivot")) {
-                // --- CLEAN PIVOT DROPDOWN & HIDE MINOR ---
+                // --- CLEAN PIVOT DROPDOWN, COLOR TOGGLE & HIDE MINOR ---
                 const selectHTML = `
-                    <div style="display:flex; align-items:center; gap:10px; margin-left:10px;">
+                    <div style="display:flex; align-items:center; gap:10px; margin-left:4px;">
+                        <label style="color:#39FF14; font-weight:bold; font-size:16px; margin-right:6px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                            <input type="checkbox" id="mixerColorToggle" onchange="renderMixer()" style="transform: scale(1.2);">
+                            Color
+                        </label>
+
                         <span style="color:var(--grid-line); font-weight:bold; font-size:18px;">Pivot:</span>
-                        <select id="mixerPivot" onchange="syncAllPivots(this.id)" style="background:#111; color:#fff; border:1px solid var(--grid-line); padding:8px 12px; font-weight:bold; font-size:16px; cursor:pointer;">
+                        <select id="mixerPivot" onchange="syncAllPivots(this.id)" style="background:#111; color:#fff; border:1px solid var(--grid-line); padding:6px 10px; font-weight:bold; font-size:15px; cursor:pointer;">
                             <option value="ASC">ASC</option>
                             <option value="Sy">ರವಿ</option>
                             <option value="Ch">ಚಂದ್ರ</option>
@@ -16760,13 +16817,18 @@ function expandUIElements() {
                             <option value="Ke">ಕೇತು</option>
                         </select>
 
-                        <label style="color:#ff8800; font-weight:bold; font-size:16px; margin-left:15px; cursor:pointer; display:flex; align-items:center; gap:8px;">
+                        <label style="color:#ff8800; font-weight:bold; font-size:16px; margin-left:8px; cursor:pointer; display:flex; align-items:center; gap:6px;">
                             <input type="checkbox" id="mixerHideMinor" checked onchange="renderMixer()" style="transform: scale(1.2);">
                             Hide Minor
                         </label>
                     </div>
                 `;
-                controlsDiv.insertAdjacentHTML('beforeend', selectHTML);
+                // Insert right BEFORE transitStatus so the empty status span never pushes the controls right
+                if (statusSpan) {
+                    statusSpan.insertAdjacentHTML('beforebegin', selectHTML);
+                } else {
+                    controlsDiv.insertAdjacentHTML('beforeend', selectHTML);
+                }
             }
         }
 
@@ -16978,18 +17040,10 @@ function renderMixer() {
     transitChart.forEach((h, i) => i <= 5 ? h.sort((a,b) => a.d - b.d) : h.sort((a,b) => b.d - a.d));
 
     // RENDER SIDE-BY-SIDE (Dynamic Titles based on Varga)
-    document.getElementById("sideNatalContainer").innerHTML = buildStandardKundaliHTML(natalChart, `Natal Chart (D${v})`, forcedTransitAscIdx, pivotVal);
-    document.getElementById("sideTransitContainer").innerHTML = buildStandardKundaliHTML(transitChart, `Transit Chart (D${v})`, forcedTransitAscIdx, pivotVal);
+    document.getElementById("sideNatalContainer").innerHTML = buildStandardKundaliHTML(natalChart, `Natal Chart (D${v})`, forcedTransitAscIdx, pivotVal, false);
+    document.getElementById("sideTransitContainer").innerHTML = buildStandardKundaliHTML(transitChart, `Transit Chart (D${v})`, forcedTransitAscIdx, pivotVal, true);
 
     
-	
-	
-	
-	
-	
-	
-	
-	
 	// DYNAMIC ROW-BY-ROW ELONGATION (PRESERVES SHAPE)
     const len = (chart, idx) => chart[idx] ? chart[idx].length : 0;
 
@@ -17034,10 +17088,8 @@ const calcH = (base, p) => p >= 3 ? (p + 2) * 25 : base;
     const cy_ob = y5 + (h_ob / 2);
 
     
-	
-	
-	
 	const modeKN = document.getElementById("modeKN")?.checked;
+    const useColorCoding = document.getElementById("mixerColorToggle")?.checked;
     const knMap = { Sy: "\u0CB0\u0CB5\u0CBF", Ch: "\u0C9A\u0C82\u0CA6\u0CCD\u0CB0", Ma: "\u0C95\u0CC1\u0C9C", Bu: "\u0CAC\u0CC1\u0CA7", Ju: "\u0C97\u0CC1\u0CB0\u0CC1", Ve: "\u0CB6\u0CC1\u0C95\u0CCD\u0CB0", Sa: "\u0CB6\u0CA8\u0CBF", Ra: "\u0CB0\u0CBE\u0CB9\u0CC1", Ke: "\u0C95\u0CC7\u0CA4\u0CC1", ASC: "\u0CB2\u0C97\u0CCD\u0CA8", Mn: "\u0CAE\u0CC1\u0C82\u0CA5\u0CBE" };
     
     // STRICT COLOR PALETTE: White (Minor), Yellow (Major), Teal (ASC)
@@ -17098,6 +17150,8 @@ const calcH = (base, p) => p >= 3 ? (p + 2) * 25 : base;
     `;
 
     for (let i = 0; i < 12; i++) {
+        const houseNumFromPivot = ((i - forcedTransitAscIdx + 12) % 12) + 1;
+
         // --- Inner Natal Renderer ---
         let nPlanets = natalChart[i] ? natalChart[i].map(p => {
             let color = pColors[p.n] || "#ffffff";
@@ -17129,10 +17183,16 @@ const calcH = (base, p) => p >= 3 ? (p + 2) * 25 : base;
             let deg = Math.floor(p.d);
             let min = Math.floor((p.d * 60) % 60).toString().padStart(2, '0');
             
-            // ASC and Pivot turn Teal
-            if (p.isPivotMarker || p.isAsc || p.n === pivotVal) {
+            // Pivot Marker turns Teal
+            if (p.isPivotMarker) {
                 let dName = p.isAsc ? "ASC" : name;
                 return `<div style="color:#0bf4e6; margin:2px 0;">${dName} ${deg}&deg;${min}'</div>`;
+            }
+            if (useColorCoding) {
+                let cStyle = getTransitColorStyle(p.n, houseNumFromPivot);
+                if (cStyle) {
+                    return `<div style="${cStyle} margin:2px 0;">${name} ${deg}&deg;${min}'</div>`;
+                }
             }
             return `<div style="color:${color}; margin:2px 0;">${name} ${deg}&deg;${min}'</div>`;
         }).join("") : "";
@@ -17237,7 +17297,7 @@ const calcH = (base, p) => p >= 3 ? (p + 2) * 25 : base;
         let label = isTransit ? `T - ${labelName}` : labelName;
         let color = isTransit ? "#ffea00" : "#18ffff"; // Yellow and Teal
 
-        const obj = { label: label, deg: displayDeg, color: color, houseNum: houseNum };
+        const obj = { label: label, deg: displayDeg, color: color, houseNum: houseNum, isTransit: isTransit, pCode: shortCode };
 
         // --- DIRECTIONAL ASSIGNMENT (1,5,9 etc.) ---
         const rem = groupIndex % 4;
@@ -17317,7 +17377,12 @@ const calcH = (base, p) => p >= 3 ? (p + 2) * 25 : base;
         arr.forEach(p => {
             let d = Math.floor(p.deg);
             let m = Math.floor((p.deg * 60) % 60).toString().padStart(2, '0');
-            boxHtml += `<div style="color:${p.color}; font-size:16px; font-weight:bold; margin:4px 0; letter-spacing:0.5px; text-shadow: 1px 1px 1px #000;">${p.label} ${d}&deg;${m}' <span style="color:#bbb; font-size:16px; font-weight:500;">(House ${p.houseNum})</span></div>`;
+            let itemStyle = `color:${p.color};`;
+            if (p.isTransit && useColorCoding) {
+                let cStyle = getTransitColorStyle(p.pCode, p.houseNum);
+                if (cStyle) itemStyle = cStyle;
+            }
+            boxHtml += `<div style="${itemStyle} font-size:16px; font-weight:bold; margin:4px 0; letter-spacing:0.5px; text-shadow: 1px 1px 1px #000;">${p.label} ${d}&deg;${m}' <span style="color:#bbb; font-size:16px; font-weight:500;">(House ${p.houseNum})</span></div>`;
         });
         boxHtml += `</div>`;
         return boxHtml;
@@ -17559,18 +17624,19 @@ const calcH = (base, p) => p >= 3 ? (p + 2) * 25 : base;
             </div>
         </div>
 
-        <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 17px; min-width: 900px;">
+        <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 17px; min-width: 1000px;">
             <thead>
                 <tr style="background: #222; color: #fff; border-bottom: 2px solid var(--grid-line);">
-                    <th style="padding: 15px; border-right: 1px solid #444;">PLANET</th>
-                    <th style="padding: 15px; border-right: 1px solid #444;">NAKSHATRA</th>
-                    <th style="padding: 15px; border-right: 1px solid #444;">PADA</th>
-                    <th style="padding: 15px; border-right: 1px solid #444; color: #0bf4e6;">TARA</th>
-                    <th style="padding: 15px; border-right: 1px solid #444; color: #a3e635;">ENTRY</th>
-                    <th style="padding: 15px; border-right: 1px solid #444; color: #ef4444;">EXIT</th>
-                    <th style="padding: 15px; border-right: 1px solid #444;">LORD</th>
-                    <th style="padding: 15px; border-right: 1px solid #444;">ZODIAC</th>
-                    <th style="padding: 15px;">HOUSE</th>
+                    <th style="padding: 15px 10px; border-right: 1px solid #444;">PLANET</th>
+                    <th style="padding: 15px 10px; border-right: 1px solid #444;">NAKSHATRA</th>
+                    <th style="padding: 15px 10px; border-right: 1px solid #444;">PADA</th>
+                    <th style="padding: 15px 10px; border-right: 1px solid #444; color: #0bf4e6;">TARA</th>
+                    <th style="padding: 15px 10px; border-right: 1px solid #444; color: #a3e635;">ENTRY</th>
+                    <th style="padding: 15px 10px; border-right: 1px solid #444; color: #ef4444;">EXIT</th>
+                    <th style="padding: 15px 10px; border-right: 1px solid #444;">LORD</th>
+                    <th style="padding: 15px 10px; border-right: 1px solid #444;">ZODIAC</th>
+                    <th style="padding: 15px 10px; border-right: 1px solid #444;">HOUSE</th>
+                    <th style="padding: 15px 10px; color: #ff8800;">ASP</th>
                 </tr>
             </thead>
             <tbody>
@@ -17595,6 +17661,19 @@ const calcH = (base, p) => p >= 3 ? (p + 2) * 25 : base;
         }
         
         return dateStr;
+    };
+
+    // Vedic Aspect Offsets (Inclusive count from planet's occupied house)
+    const vedicAspectMap = {
+        Saturn: [3, 7, 10],
+        Jupiter: [5, 7, 9],
+        Rahu: [5, 7, 9],
+        Ketu: [5, 7, 9],
+        Mangala: [4, 7, 8],
+        Surya: [7],
+        Chandra: [7],
+        Budha: [7],
+        Venus: [7]
     };
 
     tablePlanets.forEach(pObj => {
@@ -17647,25 +17726,40 @@ const calcH = (base, p) => p >= 3 ? (p + 2) * 25 : base;
         let tData = getPosData(tLon);
         let taraIdx = (tData.lordIdx - refDashaIdx + 9) % 9;
         let taraVal = taraNames[taraIdx];
+
+        // Calculate aspected houses from current occupied house (tData.house)
+        let aspOffsets = vedicAspectMap[pObj.key] || [7];
+        let aspHousesStr = aspOffsets.map(offset => ((tData.house + offset - 2) % 12) + 1).join(", ");
+
+        let planetCellHtml = `<span style="color: #ff8800;">${pObj.name}</span>`;
+        let houseCellHtml = `<span style="color: #facc15;">${tData.house}</span>`;
+        if (useColorCoding) {
+            let cStyle = getTransitColorStyle(pObj.key, tData.house);
+            if (cStyle) {
+                planetCellHtml = `<span style="${cStyle} padding: 4px 10px;">${pObj.name}</span>`;
+                houseCellHtml = `<span style="${cStyle} padding: 4px 10px;">${tData.house}</span>`;
+            }
+        }
         
         tableHtml += `
             <tr style="border-bottom: 2px solid #555; transition: background 0.2s;" onmouseover="this.style.background='#1a1a1a'" onmouseout="this.style.background='transparent'">
-                <td style="padding: 18px 10px; font-weight: bold; border-right: 1px solid #444; color: #ff8800; vertical-align: middle;">${pObj.name}</td>
-                <td style="padding: 18px 10px; color: #ddd; border-right: 1px solid #444; vertical-align: middle;">${tData.name}</td>
-                <td style="padding: 18px 10px; color: #ddd; border-right: 1px solid #444; vertical-align: middle;">${tData.pada}</td>
-                <td style="padding: 18px 10px; color: #0bf4e6; font-weight: bold; border-right: 1px solid #444; vertical-align: middle;">${taraVal}</td>
-                <td style="padding: 18px 10px; color: #a3e635; border-right: 1px solid #444; font-weight: bold; vertical-align: middle;">${entryHtml}</td>
-                <td style="padding: 18px 10px; color: #ef4444; border-right: 1px solid #444; font-weight: bold; vertical-align: middle;">${exitHtml}</td>
-                <td style="padding: 18px 10px; color: #ddd; border-right: 1px solid #444; vertical-align: middle;">${tData.lord}</td>
-                <td style="padding: 18px 10px; color: #bbb; border-right: 1px solid #444; vertical-align: middle;">${tData.zodiac}</td>
-                <td style="padding: 18px 10px; color: #facc15; font-weight:bold; vertical-align: middle;">${tData.house}</td>
+                <td style="padding: 18px 8px; font-weight: bold; border-right: 1px solid #444; vertical-align: middle;">${planetCellHtml}</td>
+                <td style="padding: 18px 8px; color: #ddd; border-right: 1px solid #444; vertical-align: middle;">${tData.name}</td>
+                <td style="padding: 18px 8px; color: #ddd; border-right: 1px solid #444; vertical-align: middle;">${tData.pada}</td>
+                <td style="padding: 18px 8px; color: #0bf4e6; font-weight: bold; border-right: 1px solid #444; vertical-align: middle;">${taraVal}</td>
+                <td style="padding: 18px 8px; color: #a3e635; border-right: 1px solid #444; font-weight: bold; vertical-align: middle;">${entryHtml}</td>
+                <td style="padding: 18px 8px; color: #ef4444; border-right: 1px solid #444; font-weight: bold; vertical-align: middle;">${exitHtml}</td>
+                <td style="padding: 18px 8px; color: #ddd; border-right: 1px solid #444; vertical-align: middle;">${tData.lord}</td>
+                <td style="padding: 18px 8px; color: #bbb; border-right: 1px solid #444; vertical-align: middle;">${tData.zodiac}</td>
+                <td style="padding: 18px 8px; font-weight:bold; border-right: 1px solid #444; vertical-align: middle;">${houseCellHtml}</td>
+                <td style="padding: 18px 8px; color: #ff8800; font-weight: bold; vertical-align: middle; white-space: nowrap;">${aspHousesStr}</td>
             </tr>
         `;
     });
 
     tableHtml += `
                 <tr style="height: 30px; border: none;">
-                    <td colspan="9"></td>
+                    <td colspan="10"></td>
                 </tr>
             </tbody>
         </table>
@@ -19128,10 +19222,63 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
         </div>
     </div>
 
+    <!-- STYLING FOR FULL-LENGTH BAR HEADINGS -->
+    <style>
+        .dba-bar-header {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 14px 22px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 17px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 20px;
+            transition: all 0.2s ease-in-out;
+            user-select: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+        }
+        .dba-bar-header:hover {
+            filter: brightness(1.2);
+            transform: translateY(-1px);
+        }
+        .dba-bar-cyan {
+            background: linear-gradient(90deg, #042f2e 0%, #0f172a 50%, #0a0a0a 100%);
+            border: 1px solid rgba(11, 244, 230, 0.35);
+            border-left: 6px solid #0bf4e6;
+            color: #0bf4e6;
+        }
+        .dba-bar-green {
+            background: linear-gradient(90deg, #052e16 0%, #0f172a 50%, #0a0a0a 100%);
+            border: 1px solid rgba(57, 255, 20, 0.35);
+            border-left: 6px solid #39FF14;
+            color: #39FF14;
+        }
+        .dba-bar-yellow {
+            background: linear-gradient(90deg, #422006 0%, #0f172a 50%, #0a0a0a 100%);
+            border: 1px solid rgba(250, 204, 21, 0.35);
+            border-left: 6px solid #facc15;
+            color: #facc15;
+        }
+        .dba-bar-arrow {
+            font-size: 14px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid currentColor;
+            transition: transform 0.2s ease;
+        }
+    </style>
+
     <!-- NEW COLLAPSIBLE WRAPPER FOR FIRST TABLE -->
-    <div style="margin-top: 20px; width:100%;">
-        <div style="color: #0bf4e6; font-size: 18px; font-weight: 900; text-align: center; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; padding-bottom: 5px; display: inline-block; position: relative; left: 50%; transform: translateX(-50%);" onclick="const g = document.getElementById('dbaIslandsGrid'); if (g.style.display === 'none' || g.style.display === '') { g.style.display = 'grid'; this.innerHTML = 'Uniform Pivot Rotator &#9650;'; this.style.borderBottom = '2px solid #0bf4e6'; } else { g.style.display = 'none'; this.innerHTML = 'Uniform Pivot Rotator &#9660;'; this.style.borderBottom = 'none'; }">
-            Uniform Pivot Rotator &#9660;
+    <div style="margin-top: 25px; width:100%;">
+        <div class="dba-bar-header dba-bar-cyan" onclick="const g = document.getElementById('dbaIslandsGrid'); const a = this.querySelector('.dba-bar-arrow'); if (g.style.display === 'none' || g.style.display === '') { g.style.display = 'grid'; a.innerHTML = '&#9650;'; this.style.boxShadow = '0 0 15px rgba(11, 244, 230, 0.2)'; } else { g.style.display = 'none'; a.innerHTML = '&#9660;'; this.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.6)'; }">
+            <span>&#9881; Uniform Pivot Rotator</span>
+            <span class="dba-bar-arrow">&#9660;</span>
         </div>
         
         <!-- 9 ROWS OF ISLANDS GRID (COLLAPSED BY DEFAULT) -->
@@ -19141,17 +19288,19 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
     </div>
 
     <!-- NEW INDIVIDUAL PLANETS PIVOT ROTATOR -->
-    <div style="margin-top: 20px; padding-top: 20px; border-top: 2px dashed #444; width:100%;">
-        <div style="color: #39FF14; font-size: 18px; font-weight: 900; text-align: center; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; padding-bottom: 5px; display: inline-block; position: relative; left: 50%; transform: translateX(-50%);" onclick="const g = document.getElementById('dbaRotatorGrid'); if (g.style.display === 'none' || g.style.display === '') { g.style.display = 'grid'; this.innerHTML = 'Individual Planets Pivot Rotator &#9650;'; this.style.borderBottom = '2px solid #39FF14'; } else { g.style.display = 'none'; this.innerHTML = 'Individual Planets Pivot Rotator &#9660;'; this.style.borderBottom = 'none'; }">
-            Individual Planets Pivot Rotator &#9660;
+    <div style="margin-top: 20px; width:100%;">
+        <div class="dba-bar-header dba-bar-green" onclick="const g = document.getElementById('dbaRotatorGrid'); const a = this.querySelector('.dba-bar-arrow'); if (g.style.display === 'none' || g.style.display === '') { g.style.display = 'grid'; a.innerHTML = '&#9650;'; this.style.boxShadow = '0 0 15px rgba(57, 255, 20, 0.2)'; } else { g.style.display = 'none'; a.innerHTML = '&#9660;'; this.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.6)'; }">
+            <span>&#129680; Individual Planets Pivot Rotator</span>
+            <span class="dba-bar-arrow">&#9660;</span>
         </div>
         <div id="dbaRotatorGrid" style="display:none; gap:20px; width:100%;"></div>
     </div>
 
     <!-- NEW ANCHOR LOCKED PIVOT ROTATOR -->
-    <div style="margin-top: 20px; padding-top: 20px; border-top: 2px dashed #444; width:100%;">
-        <div style="color: #facc15; font-size: 18px; font-weight: 900; text-align: center; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; padding-bottom: 5px; display: inline-block; position: relative; left: 50%; transform: translateX(-50%);" onclick="const g = document.getElementById('dbaAnchorRotatorGrid'); if (g.style.display === 'none' || g.style.display === '') { g.style.display = 'grid'; this.innerHTML = 'Anchor Locked Pivot Rotator &#9650;'; this.style.borderBottom = '2px solid #facc15'; } else { g.style.display = 'none'; this.innerHTML = 'Anchor Locked Pivot Rotator &#9660;'; this.style.borderBottom = 'none'; }">
-            Anchor Locked Pivot Rotator &#9660;
+    <div style="margin-top: 20px; width:100%;">
+        <div class="dba-bar-header dba-bar-yellow" onclick="const g = document.getElementById('dbaAnchorRotatorGrid'); const a = this.querySelector('.dba-bar-arrow'); if (g.style.display === 'none' || g.style.display === '') { g.style.display = 'grid'; a.innerHTML = '&#9650;'; this.style.boxShadow = '0 0 15px rgba(250, 204, 21, 0.2)'; } else { g.style.display = 'none'; a.innerHTML = '&#9660;'; this.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.6)'; }">
+            <span>&#9875; Anchor Locked Pivot Rotator</span>
+            <span class="dba-bar-arrow">&#9660;</span>
         </div>
         <div id="dbaAnchorRotatorGrid" style="display:none; gap:20px; width:100%;"></div>
     </div>
